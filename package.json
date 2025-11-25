@@ -10,5 +10,6 @@
   "scripts": {
     "dev": "bun run --cwd backend dev & bun run --cwd frontend dev",
     "build": "bun run --cwd backend build && bun run --cwd frontend build"
+    
   }
 }
