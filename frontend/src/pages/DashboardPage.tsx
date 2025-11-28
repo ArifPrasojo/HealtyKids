@@ -103,12 +103,43 @@ const DashboardPage: React.FC = () => {
     }
   ];
 
+  const miniGames = [
+    {
+      id: 1,
+      title: "Game Mencocokkan Istilah",
+      description: "Cocokkan istilah kesehatan dengan definisi menggunakan garis penghubung!",
+      icon: "🎯",
+      background: "bg-gradient-to-br from-blue-500 to-purple-500",
+      difficulty: "Mudah",
+      players: "1.2k",
+      rating: 4.8
+    },
+    {
+      id: 2,
+      title: "Teka Teki Silang Kesehatan",
+      description: "Asah pengetahuan kesehatan dengan teka-teki silang yang menantang!",
+      icon: "🧩",
+      background: "bg-gradient-to-br from-blue-500 to-purple-600",
+      difficulty: "Menengah",
+      players: "856",
+      rating: 4.6
+    }
+  ];
+
   const handleModuleClick = () => {
     navigate('/materi');
   };
 
   const handleQuizClick = () => {
     navigate('/quiz');
+  };
+
+  const handleGameClick = (gameId: number) => {
+    if (gameId === 1) {
+      navigate('/game/matching');
+    } else if (gameId === 2) {
+      navigate('/game/crossword'); // Ini akan mengarah ke GameCrossword.tsx
+    }
   };
 
   return (
@@ -138,7 +169,7 @@ const DashboardPage: React.FC = () => {
         </div>
 
         {/* Learning Modules Section */}
-        <div className="mb-8">
+        <div className="mb-12">
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-gray-800 mb-4">🎓 Modul Pembelajaran</h2>
             <p className="text-gray-600">Pilih topik yang ingin kamu pelajari hari ini</p>
@@ -159,6 +190,75 @@ const DashboardPage: React.FC = () => {
                 lessons={module.lessons}
                 onClick={handleModuleClick}
               />
+            ))}
+          </div>
+        </div>
+
+        {/* Mini Games Section */}
+        <div className="mb-12">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-gray-800 mb-4">🎮 Mini Games</h2>
+            <p className="text-gray-600">Belajar sambil bermain dengan game edukatif yang seru!</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            {miniGames.map((game) => (
+              <div key={game.id} className="group bg-white rounded-3xl shadow-xl border border-gray-100 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 overflow-hidden">
+                {/* Game Header with Background */}
+                <div className={`${game.background} p-6 text-white relative overflow-hidden`}>
+                  <div className="absolute top-0 right-0 w-24 h-24 opacity-20 transform rotate-12 translate-x-6 -translate-y-6">
+                    <div className="w-full h-full bg-white rounded-full flex items-center justify-center">
+                      <span className="text-4xl">{game.icon}</span>
+                    </div>
+                  </div>
+                  <div className="relative z-10">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="w-14 h-14 bg-white bg-opacity-20 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                        <span className="text-3xl">{game.icon}</span>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-xs font-semibold bg-white bg-opacity-20 rounded-full px-2 py-1">
+                          {game.difficulty}
+                        </div>
+                      </div>
+                    </div>
+                    <h3 className="text-xl font-bold mb-2 group-hover:scale-105 transition-transform duration-300">
+                      {game.title}
+                    </h3>
+                  </div>
+                </div>
+
+                {/* Game Content */}
+                <div className="p-6">
+                  <p className="text-gray-600 text-sm leading-relaxed mb-4">
+                    {game.description}
+                  </p>
+
+                  {/* Game Stats */}
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center space-x-4 text-xs text-gray-500">
+                      <span className="flex items-center">
+                        <span className="mr-1">👥</span>
+                        {game.players} players
+                      </span>
+                      <span className="flex items-center">
+                        <span className="mr-1">⭐</span>
+                        {game.rating}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Play Button */}
+                  <Button 
+                    variant="primary"
+                    size="lg"
+                    className="w-full font-semibold bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 hover:shadow-lg transform hover:scale-105 text-white border-0 transition-all duration-300"
+                    onClick={() => handleGameClick(game.id)}
+                  >
+                    🎮 Mainkan Sekarang
+                  </Button>
+                </div>
+              </div>
             ))}
           </div>
         </div>
