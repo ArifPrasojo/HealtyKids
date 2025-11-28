@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import DashboardPage from './pages/DashboardPage'
 import Materi from './pages/Materi'
 import Quiz from './pages/Quiz'
+import Result from './pages/Result'
 import LoadingScreen from './components/ui/LoadingScreen'
 import './App.css'
 
@@ -24,6 +25,7 @@ function App() {
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/materi" element={<Materi />} />
         <Route path="/quiz" element={<Quiz />} />
+        <Route path="/result" element={<Result />} />
         {/* Tambahkan route lain sesuai kebutuhan */}
       </Routes>
     </Router>
