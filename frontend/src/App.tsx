@@ -5,6 +5,8 @@ import Materi from './pages/Materi'
 import Quiz from './pages/Quiz'
 import Result from './pages/Result'
 import LoadingScreen from './components/ui/LoadingScreen'
+import HealthMatchingGamePage from './pages/HealthMatchingGamePage'
+import GameCrossword from './pages/GameCrossword'
 import './App.css'
 
 function App() {
@@ -26,6 +28,8 @@ function App() {
         <Route path="/materi" element={<Materi />} />
         <Route path="/quiz" element={<Quiz />} />
         <Route path="/result" element={<Result />} />
+        <Route path="/game/matching" element={<HealthMatchingGamePage />} />
+        <Route path="/game/crossword" element={<GameCrossword />} />
         {/* Tambahkan route lain sesuai kebutuhan */}
       </Routes>
     </Router>
