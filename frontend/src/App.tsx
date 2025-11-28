@@ -1,10 +1,22 @@
+import React, { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import DashboardPage from './pages/DashboardPage'
 import Materi from './pages/Materi'
 import Quiz from './pages/Quiz'
+import LoadingScreen from './components/ui/LoadingScreen'
 import './App.css'
 
 function App() {
+  const [isLoading, setIsLoading] = useState(true);
+
+  const handleLoadingComplete = () => {
+    setIsLoading(false);
+  };
+
+  if (isLoading) {
+    return <LoadingScreen onLoadingComplete={handleLoadingComplete} />;
+  }
+
   return (
     <Router>
       <Routes>
