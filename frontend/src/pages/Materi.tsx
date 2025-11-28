@@ -79,9 +79,9 @@ const Materi: React.FC = () => {
 
   return (
     <Layout className="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      <div className="w-full px-4 py-6">
+      <div className="w-full px-6 py-8">
         {/* Page Header */}
-        <div className="text-center mb-6">
+        <div className="text-center mb-8">
           <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-blue-600 bg-clip-text text-transparent mb-3">
             📚 Pembelajaran Kesehatan
           </h1>
@@ -89,7 +89,7 @@ const Materi: React.FC = () => {
         </div>
 
         <div className="w-full">
-          <div className="grid lg:grid-cols-4 gap-6 h-[calc(100vh-280px)]">
+          <div className="grid lg:grid-cols-4 gap-6 min-h-[600px]">
             {/* Left Sidebar - Module List */}
             <div className="lg:col-span-1">
               <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden h-full">
@@ -123,7 +123,7 @@ const Materi: React.FC = () => {
                 </div>
 
                 {/* Module List */}
-                <div className="p-4 flex-1 overflow-y-auto">
+                <div className="p-4 flex-1 overflow-y-auto max-h-96">
                   <h3 className="text-sm font-bold text-gray-700 mb-4 flex items-center">
                     <span className="mr-2">📋</span>
                     Daftar Materi
@@ -214,7 +214,7 @@ const Materi: React.FC = () => {
                 </div>
 
                 {/* Video Player */}
-                <div className="bg-gradient-to-br from-gray-900 to-gray-800 relative overflow-hidden flex-1 min-h-[300px]">
+                <div className="bg-gradient-to-br from-gray-900 to-gray-800 relative overflow-hidden flex-1 min-h-[350px]">
                   {/* Background Pattern */}
                   <div className="absolute inset-0 opacity-10">
                     <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-purple-600"></div>
