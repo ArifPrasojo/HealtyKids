@@ -8,9 +8,11 @@ const Footer: React.FC = () => {
           {/* Company Info */}
           <div>
             <div className="flex items-center space-x-2 mb-3">
-              <div className="w-6 h-6 bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-xs">H</span>
-              </div>
+              <img 
+                src="/src/assets/images/logo.png" 
+                alt="HealthyKids Logo" 
+                className="w-6 h-6 rounded-lg object-cover"
+              />
               <span className="text-lg font-bold text-gray-800">HealthyKids</span>
             </div>
             <p className="text-gray-600 text-xs leading-relaxed">
