@@ -107,6 +107,15 @@ const Materi: React.FC = () => {
               </div>
             </div>
 
+            {/* Center - Page Header */}
+            <div className="text-center flex-1 mx-8">
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-blue-600 bg-clip-text text-transparent mb-2 flex items-center justify-center">
+                <span className="mr-2">📚</span>
+                Pembelajaran Kesehatan
+              </h1>
+              <p className="text-gray-600">Belajar dengan video interaktif yang menyenangkan</p>
+            </div>
+
             {/* Progress Indicator */}
             <div className="bg-white/80 backdrop-blur-sm rounded-2xl px-4 py-3 border border-white/50 shadow-lg">
               <div className="flex items-center space-x-2">
@@ -119,14 +128,6 @@ const Materi: React.FC = () => {
                 <span className="text-xs text-gray-500 hidden sm:inline">Materi</span>
               </div>
             </div>
-          </div>
-          
-          {/* Page Header */}
-          <div className="text-center mt-8">
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-blue-600 bg-clip-text text-transparent mb-3">
-              📚 Pembelajaran Kesehatan
-            </h1>
-            <p className="text-gray-600 text-lg">Belajar dengan video interaktif yang menyenangkan</p>
           </div>
         </div>
 
