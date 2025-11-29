@@ -8,11 +8,9 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ onLoadingComplete }) => {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    // Simulate network speed detection and loading progress
     const simulateLoading = () => {
       let currentProgress = 0;
-      
-      // Simulate different loading speeds based on "network conditions"
+
       const baseSpeed = Math.random() * 50 + 25; // Random speed between 25-75ms per increment
       const networkDelay = Math.random() * 100 + 50; // Random additional delay 50-150ms
 
