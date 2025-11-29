@@ -5,7 +5,11 @@ import { Button } from '../components/ui/Button';
 import ModuleCard from '../components/ui/ModuleCard';
 import StatsCard from '../components/ui/StatsCard';
 
-const DashboardPage: React.FC = () => {
+interface DashboardPageProps {
+  onLogout?: () => void;
+}
+
+const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
   const navigate = useNavigate();
 
   const modules = [
@@ -86,14 +90,6 @@ const DashboardPage: React.FC = () => {
       gradient: "bg-gradient-to-r from-purple-500 to-indigo-600"
     },
     {
-      title: "Streak Harian",
-      subtitle: "Hari berturut-turut",
-      value: "7 Hari",
-      description: "Keep it up! 💪",
-      icon: "🔥",
-      gradient: "bg-gradient-to-r from-orange-400 to-red-500"
-    },
-    {
       title: "Pencapaian",
       subtitle: "Badge terbaru",
       value: "Health Explorer",
@@ -110,9 +106,7 @@ const DashboardPage: React.FC = () => {
       description: "Cocokkan istilah kesehatan dengan definisi menggunakan garis penghubung!",
       icon: "🎯",
       background: "bg-gradient-to-br from-blue-500 to-purple-500",
-      difficulty: "Mudah",
-      players: "1.2k",
-      rating: 4.8
+      difficulty: "Mudah"
     },
     {
       id: 2,
@@ -120,9 +114,7 @@ const DashboardPage: React.FC = () => {
       description: "Asah pengetahuan kesehatan dengan teka-teki silang yang menantang!",
       icon: "🧩",
       background: "bg-gradient-to-br from-blue-500 to-purple-600",
-      difficulty: "Menengah",
-      players: "856",
-      rating: 4.6
+      difficulty: "Menengah"
     }
   ];
 
@@ -138,12 +130,12 @@ const DashboardPage: React.FC = () => {
     if (gameId === 1) {
       navigate('/game/matching');
     } else if (gameId === 2) {
-      navigate('/game/crossword'); // Ini akan mengarah ke GameCrossword.tsx
+      navigate('/game/crossword');
     }
   };
 
   return (
-    <Layout className="px-6 py-8 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <Layout className="px-6 py-8 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50" onLogout={onLogout}>
       <div className="w-full">
         {/* Welcome Section */}
         <div className="text-center mb-8">
@@ -154,7 +146,7 @@ const DashboardPage: React.FC = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid lg:grid-cols-3 gap-6 mb-12">
+        <div className="grid lg:grid-cols-2 gap-6 mb-12">
           {statsData.map((stat, index) => (
             <StatsCard
               key={index}
@@ -175,7 +167,7 @@ const DashboardPage: React.FC = () => {
             <p className="text-gray-600">Pilih topik yang ingin kamu pelajari hari ini</p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {modules.map((module) => (
               <ModuleCard
                 key={module.id}
@@ -194,6 +186,7 @@ const DashboardPage: React.FC = () => {
           </div>
         </div>
 
+
         {/* Mini Games Section */}
         <div className="mb-12">
           <div className="text-center mb-8">
@@ -201,61 +194,70 @@ const DashboardPage: React.FC = () => {
             <p className="text-gray-600">Belajar sambil bermain dengan game edukatif yang seru!</p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-8xl mx-auto">
             {miniGames.map((game) => (
-              <div key={game.id} className="group bg-white rounded-3xl shadow-xl border border-gray-100 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 overflow-hidden">
-                {/* Game Header with Background */}
-                <div className={`${game.background} p-6 text-white relative overflow-hidden`}>
-                  <div className="absolute top-0 right-0 w-24 h-24 opacity-20 transform rotate-12 translate-x-6 -translate-y-6">
-                    <div className="w-full h-full bg-white rounded-full flex items-center justify-center">
-                      <span className="text-4xl">{game.icon}</span>
-                    </div>
-                  </div>
-                  <div className="relative z-10">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="w-14 h-14 bg-white bg-opacity-20 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                        <span className="text-3xl">{game.icon}</span>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-xs font-semibold bg-white bg-opacity-20 rounded-full px-2 py-1">
-                          {game.difficulty}
-                        </div>
-                      </div>
-                    </div>
-                    <h3 className="text-xl font-bold mb-2 group-hover:scale-105 transition-transform duration-300">
-                      {game.title}
-                    </h3>
-                  </div>
-                </div>
-
-                {/* Game Content */}
+              <div key={game.id} className="bg-white rounded-3xl shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
+                {/* Colored Top Border */}
+                <div className={`h-2 ${game.id === 1 ? 'bg-gradient-to-r from-blue-400 to-purple-500' : 'bg-gradient-to-r from-purple-400 to-indigo-500'}`}></div>
+                
+                {/* Game Header */}
                 <div className="p-6">
-                  <p className="text-gray-600 text-sm leading-relaxed mb-4">
-                    {game.description}
-                  </p>
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center space-x-3">
+                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${game.id === 1 ? 'bg-blue-100' : 'bg-purple-100'}`}>
+                        <span className="text-2xl">{game.icon}</span>
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-xl font-bold text-gray-800 mb-1">
+                          {game.title}
+                        </h3>
+                        <p className="text-gray-600 text-sm leading-relaxed">
+                          {game.description}
+                        </p>
+                      </div>
+                    </div>
+                    <div className={`px-3 py-1 rounded-full text-xs font-medium ${
+                      game.difficulty === 'Mudah' ? 'bg-green-100 text-green-700' :
+                      game.difficulty === 'Menengah' ? 'bg-yellow-100 text-yellow-700' :
+                      'bg-red-100 text-red-700'
+                    }`}>
+                      {game.difficulty}
+                    </div>
+                  </div>
 
-                  {/* Game Stats */}
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center space-x-4 text-xs text-gray-500">
-                      <span className="flex items-center">
-                        <span className="mr-1">👥</span>
-                        {game.players} players
-                      </span>
-                      <span className="flex items-center">
-                        <span className="mr-1">⭐</span>
-                        {game.rating}
+                  {/* Progress Section (Optional - you can remove this if not needed) */}
+                  <div className="mb-6">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm font-medium text-gray-700">Progress</span>
+                      <span className="text-sm font-medium text-gray-600">
+                        {game.id === 1 ? '3' : '2'}/{game.id === 1 ? '5' : '4'} levels
                       </span>
                     </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        className={`h-2 rounded-full ${game.id === 1 ? 'bg-gradient-to-r from-blue-400 to-purple-500' : 'bg-gradient-to-r from-purple-400 to-indigo-500'}`}
+                        style={{ width: game.id === 1 ? '60%' : '50%' }}
+                      ></div>
+                    </div>
+                  </div>
+
+                  {/* Action Status */}
+                  <div className="flex items-center mb-6">
+                    <span className="text-sm text-gray-600 flex items-center">
+                      <span className="mr-2">📚</span>
+                      Lanjutkan belajar
+                    </span>
                   </div>
 
                   {/* Play Button */}
                   <Button 
                     variant="primary"
                     size="lg"
-                    className="w-full font-semibold bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 hover:shadow-lg transform hover:scale-105 text-white border-0 transition-all duration-300"
+                    className="w-full font-semibold bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 hover:shadow-lg transform hover:scale-105 text-white border-0 transition-all duration-300 rounded-2xl py-3"
                     onClick={() => handleGameClick(game.id)}
                   >
-                    🎮 Mainkan Sekarang
+                    <span className="mr-2">📖</span>
+                    Mainkan Sekarang
                   </Button>
                 </div>
               </div>
