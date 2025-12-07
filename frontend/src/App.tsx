@@ -8,6 +8,7 @@ import Login from './pages/Login'
 import LoadingScreen from './components/ui/LoadingScreen'
 import HealthMatchingGamePage from './pages/HealthMatchingGamePage'
 import GameCrossword from './pages/GameCrossword'
+import MateriHome from './pages/MateriHome'
 import './App.css'
 
 function App() {
@@ -118,6 +119,15 @@ function App() {
           element={
             isAuthenticated ? 
             <GameCrossword /> :
+            <Navigate to="/login" replace />
+          } 
+        />
+
+        <Route 
+          path="/materihome" 
+          element={
+            isAuthenticated ? 
+            <MateriHome onLogout={handleLogout} /> : 
             <Navigate to="/login" replace />
           } 
         />

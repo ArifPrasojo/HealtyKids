@@ -3,54 +3,66 @@ import { useNavigate } from 'react-router-dom';
 import Layout from '../components/layouts/Layout';
 import { Button } from '../components/ui/Button';
 
+interface ModuleItem {
+  id: number;
+  title: string;
+  duration: string;
+  completed: boolean;
+  emoji: string;
+  description: string;
+}
+
 const Materi: React.FC = () => {
   const navigate = useNavigate();
   const [currentVideo, setCurrentVideo] = useState(0);
   const [completedVideos, setCompletedVideos] = useState<number[]>([]);
   const [isPlaying, setIsPlaying] = useState(false);
 
-  const modules = [
+  // Tambahkan state untuk toggle sidebar
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+  // grouped sections (accordion)
+  const sections: { id: number; title: string; items: ModuleItem[]; icon: string }[] = [
     {
       id: 1,
-      title: "Pengantar Kesehatan Remaja",
-      duration: "5 min",
-      completed: true,
-      emoji: "🎯",
-      description: "Dasar-dasar kesehatan untuk remaja"
+      title: 'Minggu 1: Pengenalan Game',
+      icon: '⭕',
+      items: [
+        { id: 1, title: 'Apa itu Game Development?', duration: '5 min', completed: true, emoji: '📘', description: 'Dasar-dasar game development' },
+        { id: 2, title: 'Sejarah Video Game', duration: '8 min', completed: false, emoji: '📜', description: 'Ringkasan sejarah game' },
+        { id: 3, title: 'Genre-Genre Game', duration: '6 min', completed: false, emoji: '🎮', description: 'Mengenal genre game' }
+      ]
     },
     {
       id: 2,
-      title: "Konsep Dasar Kesehatan",
-      duration: "8 min",
-      completed: true,
-      emoji: "📖",
-      description: "Memahami konsep kesehatan secara menyeluruh"
+      title: 'Minggu 2: Tools & Software',
+      icon: '⚙️',
+      items: [
+        { id: 4, title: 'Pengenalan Engine', duration: '10 min', completed: false, emoji: '⚙️', description: 'Unity / Godot overview' },
+        { id: 5, title: 'Editor & Workflow', duration: '12 min', completed: false, emoji: '🛠️', description: 'Setup workflow' }
+      ]
     },
     {
       id: 3,
-      title: "Kesehatan Mental Remaja",
-      duration: "12 min",
-      completed: false,
-      emoji: "🧠",
-      description: "Mengelola kesehatan mental di masa remaja"
+      title: 'Minggu 3: Game Art & Design',
+      icon: '🎨',
+      items: [
+        { id: 6, title: 'Pixel Art Basics', duration: '9 min', completed: false, emoji: '🖌️', description: 'Dasar pixel art' },
+        { id: 7, title: 'Level Design', duration: '11 min', completed: false, emoji: '🗺️', description: 'Mendesain level yang menarik' }
+      ]
     },
     {
       id: 4,
-      title: "Nutrisi untuk Remaja",
-      duration: "10 min",
-      completed: false,
-      emoji: "🥗",
-      description: "Pola makan sehat untuk pertumbuhan optimal"
-    },
-    {
-      id: 5,
-      title: "Aktivitas Fisik & Olahraga",
-      duration: "15 min",
-      completed: false,
-      emoji: "💪",
-      description: "Pentingnya olahraga untuk kesehatan"
+      title: 'Minggu 4: Programming Basics',
+      icon: '💻',
+      items: [
+        { id: 8, title: 'Logika & Algoritma', duration: '14 min', completed: false, emoji: '💡', description: 'Dasar logika pemrograman' },
+      ]
     }
   ];
+
+  // flat list for indexing content area
+  const flatModules: ModuleItem[] = sections.flatMap(s => s.items);
 
   const handleVideoComplete = () => {
     if (!completedVideos.includes(currentVideo)) {
@@ -59,7 +71,7 @@ const Materi: React.FC = () => {
   };
 
   const handleNextLesson = () => {
-    if (currentVideo < modules.length - 1) {
+    if (currentVideo < flatModules.length - 1) {
       setCurrentVideo(currentVideo + 1);
       setIsPlaying(false);
     }
@@ -77,334 +89,286 @@ const Materi: React.FC = () => {
   };
 
   const handleBackToDashboard = () => {
-    navigate('/dashboard');
+    navigate('/materihome');
   };
 
-  const progressPercentage = ((modules.filter(m => m.completed).length / modules.length) * 100).toFixed(0);
-  const currentModule = modules[currentVideo];
+  const progressPercentage = (
+    (flatModules.filter((_, idx) => {
+      const m = flatModules[idx];
+      return m.completed || completedVideos.includes(idx);
+    }).length / flatModules.length) * 100
+  ).toFixed(0);
+
+  const currentModule = flatModules[currentVideo];
+
+  // accordion state: which section is open (id) - default open first
+  const [openSectionId, setOpenSectionId] = useState<number | null>(sections[0]?.id ?? null);
+
+  const toggleSection = (id: number) => {
+    setOpenSectionId(prev => (prev === id ? null : id));
+  };
 
   return (
-    <Layout className="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      <div className="w-full px-6 py-8">
-        {/* Elegant Back Navigation */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            {/* Back Button - More Elegant */}
-            <div 
-              onClick={handleBackToDashboard}
-              className="group flex items-center space-x-3 cursor-pointer bg-white/80 backdrop-blur-sm rounded-2xl px-4 py-3 border border-white/50 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+    <Layout hideLogoMobile={true}> {/* Tambah prop */}
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+        <div className="w-full px-4 md:px-6 py-4 md:py-8">
+          {/* Hamburger Button - Fixed Top Left (hanya muncul di mobile ketika sidebar closed) */}
+          {!isSidebarOpen && (
+            <button
+              onClick={() => setIsSidebarOpen(true)}
+              className="fixed top-4 left-4 z-50 lg:hidden bg-white p-3 rounded-full shadow-xl border border-gray-200 hover:bg-gray-50 transition-all"
             >
-              <div className="w-8 h-8 bg-gradient-to-r from-indigo-500 to-blue-600 rounded-lg flex items-center justify-center group-hover:from-indigo-600 group-hover:to-blue-700 transition-all duration-300">
-                <svg className="w-4 h-4 text-white transform group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </div>
-              <div className="hidden sm:block">
-                <div className="text-sm font-semibold text-gray-800 group-hover:text-indigo-600 transition-colors">
-                  Dashboard
-                </div>
-                <div className="text-xs text-gray-500">Kembali ke beranda</div>
-              </div>
-            </div>
+              <svg className="w-6 h-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+          )}
 
-            {/* Center - Page Header */}
-            <div className="text-center flex-1 mx-8">
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-blue-600 bg-clip-text text-transparent mb-2 flex items-center justify-center">
-                <span className="mr-2">📚</span>
-                Pembelajaran Kesehatan
-              </h1>
-              <p className="text-gray-600">Belajar dengan video interaktif yang menyenangkan</p>
-            </div>
-
-            {/* Progress Indicator */}
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl px-4 py-3 border border-white/50 shadow-lg">
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-gradient-to-r from-emerald-400 to-green-500 rounded-full animate-pulse"></div>
-                <span className="text-sm font-medium text-gray-700">
-                  <span className="font-bold text-indigo-600">{currentVideo + 1}</span>
-                  <span className="mx-1 text-gray-400">/</span>
-                  <span className="text-gray-600">{modules.length}</span>
-                </span>
-                <span className="text-xs text-gray-500 hidden sm:inline">Materi</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="w-full">
-          <div className="grid lg:grid-cols-4 gap-6 min-h-[600px]">
-            {/* Left Sidebar - Module List */}
-            <div className="lg:col-span-1">
-              <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden h-full">
-                {/* Sidebar Header */}
-                <div className="p-6 bg-gradient-to-br from-indigo-600 via-blue-600 to-purple-600 text-white">
-                  <div className="text-center mb-4">
-                    <div className="w-14 h-14 bg-white bg-opacity-20 rounded-2xl flex items-center justify-center mx-auto mb-3 transform hover:scale-105 transition-transform duration-200">
-                      <span className="text-2xl">📚</span>
-                    </div>
-                    <h2 className="text-lg font-bold">Progress Belajar</h2>
-                    <p className="text-indigo-100 text-sm">Kesehatan Remaja</p>
-                  </div>
-                  
-                  {/* Progress Indicator */}
-                  <div className="bg-white bg-opacity-10 rounded-xl p-4">
-                    <div className="flex justify-between text-sm mb-3">
-                      <span className="text-indigo-100">Kemajuan Kamu</span>
-                      <span className="font-bold text-white">{progressPercentage}%</span>
-                    </div>
-                    <div className="w-full bg-indigo-300 bg-opacity-50 rounded-full h-3">
-                      <div 
-                        className="bg-gradient-to-r from-yellow-400 to-orange-400 h-3 rounded-full transition-all duration-700 shadow-sm"
-                        style={{ width: `${progressPercentage}%` }}
-                      ></div>
-                    </div>
-                    <p className="text-xs text-indigo-100 mt-2 flex items-center">
-                      <span className="mr-1">🔥</span>
-                      {modules.filter(m => m.completed).length} dari {modules.length} materi selesai
-                    </p>
-                  </div>
-                </div>
-
-                {/* Module List */}
-                <div className="p-4 flex-1 overflow-y-auto max-h-96">
-                  <h3 className="text-sm font-bold text-gray-700 mb-4 flex items-center">
-                    <span className="mr-2">📋</span>
-                    Daftar Materi
-                  </h3>
-                  <div className="space-y-3">
-                    {modules.map((module, index) => (
-                      <div
-                        key={module.id}
-                        onClick={() => setCurrentVideo(index)}
-                        className={`group p-3 rounded-2xl cursor-pointer transition-all duration-300 transform hover:scale-105 ${
-                          currentVideo === index
-                            ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 shadow-md'
-                            : 'bg-gray-50 hover:bg-gray-100 border border-gray-200 hover:border-gray-300 hover:shadow-sm'
-                        }`}
+          {/* Main grid: conditional based on sidebar state */}
+          <div className="w-full">
+            <div className={`grid ${isSidebarOpen ? 'lg:grid-cols-4' : 'grid-cols-1'} gap-4 md:gap-6 transition-all duration-300`}>
+              {/* Left Sidebar - Accordion Panel - conditional render */}
+              {isSidebarOpen && (
+                <div className="lg:col-span-1 fixed lg:relative inset-0 lg:inset-auto z-50 lg:z-auto bg-black/50 lg:bg-transparent" onClick={(e) => {
+                  // Close sidebar when clicking backdrop on mobile
+                  if (e.target === e.currentTarget && window.innerWidth < 1024) {
+                    setIsSidebarOpen(false);
+                  }
+                }}>
+                  {/* Ubah dari right-0 ke left-0 dan rounded-l-3xl ke rounded-r-3xl */}
+                  <div className="absolute lg:relative left-0 lg:left-auto top-0 bottom-0 w-80 lg:w-auto bg-green-50 lg:bg-green-50 rounded-r-3xl lg:rounded-3xl shadow-2xl lg:shadow-xl border border-green-200 overflow-hidden lg:sticky lg:top-6">
+                    {/* Header Title with Close Button (X icon untuk close) */}
+                    <div className="bg-gradient-to-r from-green-600 to-emerald-600 p-4 flex items-center justify-between">
+                      <h2 className="text-white font-bold text-base lg:text-lg">Dasar-Dasar Game Development</h2>
+                      <button
+                        onClick={() => setIsSidebarOpen(false)}
+                        className="text-white hover:bg-white/20 rounded-full p-1 transition-colors lg:hidden"
                       >
-                        <div className="flex items-start space-x-3">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-200 ${
-                            module.completed 
-                              ? 'bg-gradient-to-r from-green-400 to-emerald-500 text-white shadow-md' 
-                              : currentVideo === index
-                              ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md'
-                              : 'bg-gray-200 text-gray-600 group-hover:bg-gray-300'
-                          }`}>
-                            {module.completed ? '✓' : module.emoji}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className={`text-xs font-semibold transition-colors ${
-                              currentVideo === index ? 'text-blue-700' : 'text-gray-800'
-                            }`}>
-                              {module.title}
+                        {/* X Icon untuk close di mobile */}
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+
+                    {/* Accordion sections */}
+                    <div className="p-3 max-h-[calc(100vh-200px)] overflow-y-auto">
+                      <div className="space-y-3">
+                        {sections.map(section => {
+                          const isOpen = openSectionId === section.id;
+                          return (
+                            <div key={section.id} className="rounded-2xl overflow-hidden border border-green-200 shadow-sm">
+                              <button
+                                onClick={() => toggleSection(section.id)}
+                                className={`w-full flex items-center justify-between px-4 lg:px-5 py-3 lg:py-4 transition-all duration-300 ${
+                                  isOpen 
+                                    ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-md' 
+                                    : 'bg-gradient-to-r from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100 text-gray-800 hover:shadow-md'
+                                }`}
+                              >
+                                <div className="flex items-center space-x-3 lg:space-x-4">
+                                  <div className={`w-8 h-8 lg:w-10 lg:h-10 rounded-xl flex items-center justify-center transition-all duration-300 ${
+                                    isOpen ? 'bg-white text-green-600 scale-110' : 'bg-white text-green-600 shadow-sm'
+                                  }`}>
+                                    <span className="text-sm lg:text-base">{section.icon}</span>
+                                  </div>
+                                  <div className="text-sm lg:text-base font-bold text-left">{section.title}</div>
+                                </div>
+                                <div className={`transform transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}>
+                                  <svg 
+                                    className="w-5 h-5 lg:w-6 lg:h-6" 
+                                    fill="none" 
+                                    stroke="currentColor" 
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                  </svg>
+                                </div>
+                              </button>
+
+                              {/* Items */}
+                              {isOpen && (
+                                <div className="bg-white px-3 py-3 animate-fade-in">
+                                  <div className="space-y-2">
+                                    {section.items.map((item) => {
+                                      const flatIndex = flatModules.findIndex(m => m.id === item.id);
+                                      const active = flatIndex === currentVideo;
+                                      const done = item.completed || completedVideos.includes(flatIndex);
+                                      return (
+                                        <div
+                                          key={item.id}
+                                          onClick={() => { 
+                                            setCurrentVideo(flatIndex); 
+                                            setIsPlaying(false);
+                                            // Close sidebar on mobile after selection
+                                            if (window.innerWidth < 1024) {
+                                              setIsSidebarOpen(false);
+                                            }
+                                          }}
+                                          className={`flex items-center space-x-3 lg:space-x-4 p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-300 ${
+                                            active 
+                                              ? 'bg-gradient-to-r from-green-100 to-emerald-100 border-2 border-green-300 shadow-md' 
+                                              : 'hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 border-2 border-transparent hover:border-green-200'
+                                          }`}
+                                        >
+                                          <div className={`w-6 h-6 lg:w-7 lg:h-7 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
+                                            done 
+                                              ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-md' 
+                                              : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                                          }`}>
+                                            {done ? (
+                                              <svg className="w-4 h-4 lg:w-5 lg:h-5" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                              </svg>
+                                            ) : (
+                                              <span className="text-xs lg:text-sm">📄</span>
+                                            )}
+                                          </div>
+                                          <div className="flex-1 min-w-0">
+                                            <div className={`text-sm lg:text-base font-semibold truncate transition-colors ${
+                                              active ? 'text-green-700' : 'text-gray-700'
+                                            }`}>
+                                              {item.title}
+                                            </div>
+                                            <div className="text-xs lg:text-sm text-gray-500 mt-1">
+                                              {item.duration} • {item.description}
+                                            </div>
+                                          </div>
+                                          {active && (
+                                            <div className="flex-shrink-0">
+                                              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                                            </div>
+                                          )}
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              )}
                             </div>
-                            <div className="text-xs text-gray-400 flex items-center mt-1">
-                              <span className="mr-1">⏱️</span>
-                              {module.duration}
-                            </div>
-                          </div>
-                        </div>
+                          );
+                        })}
                       </div>
-                    ))}
-                  </div>
 
-                  {/* Achievement Section */}
-                  <div className="mt-4 p-3 bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl border border-amber-200">
-                    <div className="text-xs font-bold text-amber-700 mb-1 flex items-center">
-                      <span className="mr-1">🎯</span>
-                      Target Hari Ini
-                    </div>
-                    <div className="text-xs text-amber-600">
-                      {currentVideo < modules.length - 1 
-                        ? `${modules[currentVideo + 1].title}` 
-                        : 'Semua materi selesai! 🎉'
-                      }
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Main Content - Video Player */}
-            <div className="lg:col-span-3">
-              <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden h-full flex flex-col">
-                {/* Video Header */}
-                <div className="p-6 bg-gradient-to-r from-indigo-600 via-blue-600 to-purple-600 text-white flex-shrink-0">
-                  <div className="flex items-center justify-between flex-wrap gap-4">
-                    <div className="flex items-center space-x-4">
-                      <div className="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
-                        <span className="text-xl">{currentModule.emoji}</span>
-                      </div>
-                      <div>
-                        <h1 className="text-xl font-bold">{currentModule.title}</h1>
-                        <p className="text-blue-100 text-sm">
-                          {currentModule.description}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="bg-white bg-opacity-20 rounded-lg px-3 py-1 mb-1">
-                        <span className="text-sm font-semibold">
-                          {currentVideo + 1} / {modules.length}
-                        </span>
-                      </div>
-                      <div className="text-blue-100 text-xs flex items-center justify-end">
-                        <span className="mr-1">⏱️</span>
-                        {currentModule.duration}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Video Player */}
-                <div className="bg-gradient-to-br from-gray-900 to-gray-800 relative overflow-hidden flex-1 min-h-[350px]">
-                  {/* Background Pattern */}
-                  <div className="absolute inset-0 opacity-10">
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-purple-600"></div>
-                  </div>
-                  
-                  <div className="absolute inset-0 flex items-center justify-center z-10">
-                    <div className="text-center text-white max-w-md px-4">
-                      {!isPlaying ? (
-                        <>
-                          <div 
-                            onClick={handlePlayVideo}
-                            className="w-20 h-20 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6 cursor-pointer hover:shadow-2xl transition-all duration-300 transform hover:scale-110 group"
-                          >
-                            <svg className="w-8 h-8 ml-1 text-white group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 20 20">
-                              <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/>
+                      {/* Card untuk kembali ke Materi Home */}
+                      <div className="mt-6 p-4 lg:p-5 bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl border-2 border-green-200 hover:bg-gradient-to-r hover:from-green-100 hover:to-emerald-100 transition-all duration-300 cursor-pointer group shadow-sm" onClick={() => navigate('/materihome')}>
+                        <div className="flex items-center space-x-3 lg:space-x-4">
+                          <div className="w-10 h-10 lg:w-12 lg:h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-md">
+                            <svg className="w-5 h-5 lg:w-6 lg:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                             </svg>
                           </div>
-                          <h3 className="text-xl font-bold mb-4 flex items-center justify-center">
-                            <span className="mr-2">{currentModule.emoji}</span>
-                            {currentModule.title}
-                          </h3>
-                          <p className="text-gray-300 mb-4 text-sm leading-relaxed">
-                            Video pembelajaran yang menyenangkan dan mudah dipahami
-                          </p>
-                          <div className="flex items-center justify-center space-x-3 text-xs text-gray-400">
-                            <span className="flex items-center">
-                              <span className="mr-1">⏱️</span>
-                              {currentModule.duration}
-                            </span>
-                            <span>•</span>
-                            <span>Level: Pemula</span>
+                          <div>
+                            <div className="text-sm lg:text-base font-bold text-gray-800 group-hover:text-green-700 transition-colors">
+                              Kembali ke Materi Home
+                            </div>
+                            <div className="text-xs lg:text-sm text-gray-600">
+                              Pilih materi lainnya
+                            </div>
                           </div>
-                        </>
-                      ) : (
-                        <div className="bg-black bg-opacity-50 rounded-2xl p-6">
-                          <div className="text-lg mb-3">🎥 Video sedang diputar...</div>
-                          <p className="text-gray-300 text-sm">
-                            Simulasi video pembelajaran sedang berjalan
-                          </p>
                         </div>
-                      )}
+                      </div>
                     </div>
                   </div>
                 </div>
+              )}
 
-                {/* Video Controls and Navigation */}
-                <div className="p-6 bg-white flex-shrink-0">
-                  <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
-                    <div className="flex items-center space-x-3 flex-wrap gap-2">
-                      <Button 
-                        variant="secondary" 
-                        size="sm" 
-                        className="flex items-center space-x-2 hover:shadow-md transition-all transform hover:scale-105"
-                      >
-                        <span>📥</span>
-                        <span className="hidden sm:inline">Download</span>
-                      </Button>
-                      <Button 
-                        variant="secondary" 
-                        size="sm" 
-                        className="flex items-center space-x-2 hover:shadow-md transition-all transform hover:scale-105"
-                      >
-                        <span>📝</span>
-                        <span className="hidden sm:inline">Catatan</span>
-                      </Button>
-                      <Button 
-                        variant="secondary" 
-                        size="sm" 
-                        className="flex items-center space-x-2 hover:shadow-md transition-all transform hover:scale-105"
-                      >
-                        <span>🔖</span>
-                        <span className="hidden sm:inline">Bookmark</span>
-                      </Button>
-                    </div>
+              {/* Right Content Area */}
+              <div className={`${isSidebarOpen ? 'lg:col-span-3' : 'col-span-1'}`}>
+                <div className="bg-white rounded-2xl lg:rounded-3xl shadow-xl border border-gray-200 overflow-hidden">
+                  {/* Content Header - Tanpa hamburger button di desktop, hanya di mobile via fixed button */}
+                  <div className="p-4 lg:p-6 border-b border-gray-200 flex items-center justify-between">
+                    <h1 className="text-lg lg:text-2xl font-bold text-gray-800 flex-1 pr-2">{currentModule.title}</h1>
                     
-                    <div className="flex items-center space-x-3">
-                      <div className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                        <span className="font-semibold text-indigo-600">{currentVideo + 1}</span> / {modules.length}
-                      </div>
-                      <div className="text-sm text-gray-500 bg-green-100 px-3 py-1 rounded-full">
-                        <span className="text-green-700">✓ {progressPercentage}%</span>
+                    {/* Hamburger button untuk desktop ketika sidebar closed */}
+                    {!isSidebarOpen && (
+                      <button
+                        onClick={() => setIsSidebarOpen(true)}
+                        className="hidden lg:flex bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-4 py-2 rounded-full font-bold transition-all shadow-lg items-center space-x-2"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                        <span>Materi</span>
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Video Player Area */}
+                  <div className="p-5 md:p-5 bg-gray-100">
+                    <div className="bg-gradient-to-br from-gray-900 to-gray-800 relative aspect-video rounded-xl overflow-hidden">
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        {!isPlaying ? (
+                          <button
+                            onClick={handlePlayVideo}
+                            className="w-16 h-16 lg:w-20 lg:h-20 bg-white rounded-full flex items-center justify-center hover:scale-110 transition-transform shadow-2xl"
+                          >
+                            <svg className="w-6 h-6 lg:w-8 lg:h-8 ml-1 text-gray-800" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/>
+                            </svg>
+                          </button>
+                        ) : (
+                          <iframe
+                            width="100%"
+                            height="100%"
+                            src="https://www.youtube.com/embed/wEmdOM7pt5c"
+                            title="YouTube video player"
+                            frameBorder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            allowFullScreen
+                            className="rounded-xl"
+                          ></iframe>
+                        )}
                       </div>
                     </div>
                   </div>
 
-                  {/* Video Description */}
-                  <div className="mb-6 p-5 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl border border-blue-100">
-                    <h3 className="text-lg font-bold text-gray-800 mb-3 flex items-center">
-                      <span className="mr-2">💡</span>
-                      Yang Akan Kamu Pelajari
-                    </h3>
-                    <p className="text-gray-700 text-sm leading-relaxed mb-3">
-                      Dalam video ini, kamu akan mempelajari konsep-konsep penting tentang {currentModule.title.toLowerCase()}. 
-                      Materi disajikan dengan cara yang mudah dipahami dan relevan dengan kehidupan sehari-hari.
+                  {/* Note/Reminder Section */}
+                  <div className="p-4 lg:p-6 bg-yellow-50 border-b border-yellow-200">
+                    <p className="text-center text-gray-700 font-medium text-xs lg:text-base">
+                      <span className="text-yellow-600">⚠️</span> Ingat: Tanda negatif bertemu negatif menjadi positif!
                     </p>
-                    <div className="flex items-center flex-wrap gap-4 text-xs text-gray-600">
-                      <span className="flex items-center">
-                        <span className="mr-1">📊</span>
-                        Tingkat: Pemula
-                      </span>
-                      <span className="flex items-center">
-                        <span className="mr-1">🎯</span>
-                        Interaktif
-                      </span>
-                      <span className="flex items-center">
-                        <span className="mr-1">📱</span>
-                        Mobile Friendly
-                      </span>
-                    </div>
                   </div>
 
-                  {/* Navigation Buttons */}
-                  <div className="flex justify-between items-center flex-wrap gap-4">
+                  {/* Description Content */}
+                  <div className="p-4 lg:p-6">
+                    <p className="text-gray-700 leading-relaxed mb-3 lg:mb-4 text-xs lg:text-base">
+                      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+                      Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure 
+                      dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+                    </p>
+                    <p className="text-gray-700 leading-relaxed text-xs lg:text-base">
+                      Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut 
+                      perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa 
+                      quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem.
+                    </p>
+                  </div>
+
+                  {/* Bottom Navigation Buttons */}
+                  <div className="p-4 lg:p-6 border-t border-gray-200 flex items-center justify-between gap-3">
                     <Button 
-                      variant="secondary" 
-                      size="lg"
+                      variant="success" 
+                      size="lg" 
                       onClick={handlePreviousLesson}
                       disabled={currentVideo === 0}
-                      className="flex items-center space-x-2 hover:shadow-md transition-all transform hover:scale-105 disabled:transform-none disabled:hover:scale-100"
+                      className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-4 lg:px-8 py-2 lg:py-3 rounded-full font-bold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-sm lg:text-base"
                     >
-                      <span>←</span>
-                      <span className="hidden sm:inline">Sebelumnya</span>
-                    </Button>
-
-                    <Button
-                      variant="success"
-                      size="lg"
-                      onClick={handleVideoComplete}
-                      className="flex items-center space-x-2 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 hover:shadow-md transition-all transform hover:scale-105"
-                    >
-                      <span>✅</span>
-                      <span className="hidden sm:inline">Tandai Selesai</span>
+                      Kembali
                     </Button>
 
                     <Button 
-                      variant="primary" 
-                      size="lg"
+                      variant="success" 
+                      size="lg" 
                       onClick={handleNextLesson}
-                      disabled={currentVideo === modules.length - 1}
-                      className="flex items-center space-x-2 bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 hover:shadow-md transition-all transform hover:scale-105 disabled:transform-none disabled:hover:scale-100"
+                      disabled={currentVideo === flatModules.length - 1}
+                      className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-4 lg:px-8 py-2 lg:py-3 rounded-full font-bold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-sm lg:text-base"
                     >
-                      <span className="hidden sm:inline">Selanjutnya</span>
-                      <span>→</span>
+                      Lanjut!
                     </Button>
                   </div>
                 </div>
               </div>
+
             </div>
           </div>
         </div>
