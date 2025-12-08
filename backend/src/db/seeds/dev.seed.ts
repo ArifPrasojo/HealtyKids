@@ -1,27 +1,40 @@
-// backend/src/db/seeds/dev.seed.ts
 import db from "../connection";
-import { kelas, siswa } from "../schema";
+import { users } from "../schema";
+import { hash } from 'bcryptjs'
 
 export async function runSeed() {
     console.log("🌱 Seeding database...");
 
-    const insertedClasses = await db
-        .insert(kelas)
-        .values([{ nama: "Kelas A" }, { nama: "Kelas B" }])
-        .returning();
+    const insertedStudent = await db
+        .insert(users)
+        .values([
+            {
+                name: "Arif",
+                username: "arif",
+                password: await hash("123456789", 10),
+                role: 'student',
+            },
+            {
+                name: "Fikri",
+                username: "fikri",
+                password: await hash("123456789", 10),
+                role: 'student',
+            },
+            {
+                name: "Aldi",
+                username: "aldi",
+                password: await hash("123456789", 10),
+                role: 'student',
+            },
+            {
+                name: "Guru",
+                username: "guru",
+                password: await hash("123456789", 10),
+                role: 'teacher',
+            },
 
-    await db.insert(siswa).values([
-        {
-            nama: "Budi Santoso",
-            email: "budi@example.com",
-            kelasId: insertedClasses[0].id,
-        },
-        {
-            nama: "Ani Lestari",
-            email: "ani@example.com",
-            kelasId: insertedClasses[1].id,
-        },
-    ]);
+        ])
+        .returning();
 
     console.log("✅ Seeding selesai!");
 }
