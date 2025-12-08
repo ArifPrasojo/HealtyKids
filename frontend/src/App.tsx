@@ -9,6 +9,8 @@ import LoadingScreen from './components/ui/LoadingScreen'
 import HealthMatchingGamePage from './pages/HealthMatchingGamePage'
 import GameCrossword from './pages/GameCrossword'
 import MateriHome from './pages/MateriHome'
+import QuizHome from './pages/QuizHome'
+import GameHome from './pages/GameHome'
 import './App.css'
 
 function App() {
@@ -128,6 +130,24 @@ function App() {
           element={
             isAuthenticated ? 
             <MateriHome onLogout={handleLogout} /> : 
+            <Navigate to="/login" replace />
+          } 
+        />
+
+        <Route 
+          path="/quizhome" 
+          element={
+            isAuthenticated ? 
+            <QuizHome onLogout={handleLogout} /> : 
+            <Navigate to="/login" replace />
+          } 
+        />
+
+        <Route 
+          path="/gamehome" 
+          element={
+            isAuthenticated ? 
+            <GameHome onLogout={handleLogout} /> : 
             <Navigate to="/login" replace />
           } 
         />
