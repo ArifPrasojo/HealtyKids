@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
+import CloudBackground from '../components/layouts/CloudBackground';
 
 interface LoginProps {
   onLogin?: () => void;
@@ -103,16 +104,12 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/4 -left-4 w-72 h-72 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-20"></div>
-        <div className="absolute top-1/3 -right-4 w-72 h-72 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-20"></div>
-        <div className="absolute -bottom-8 left-1/3 w-72 h-72 bg-indigo-200 rounded-full mix-blend-multiply filter blur-xl opacity-20"></div>
-      </div>
-
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-100 flex items-center justify-center p-4 relative">
+      {/* Cloud Background */}
+      <CloudBackground />
+      
       {/* Desktop Layout */}
-      <div className="hidden lg:block relative w-full max-w-4xl">
+      <div className="hidden lg:block relative w-full max-w-4xl z-10">
         <div className="relative bg-white rounded-[3rem] shadow-2xl overflow-hidden border border-gray-100 h-[600px]">
           
           {/* Sign In Form Container - Left Side */}
@@ -148,7 +145,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                     required
                     value={signInData.email}
                     onChange={handleSignInInputChange}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white"
                     placeholder="Email"
                   />
                 </div>
@@ -160,7 +157,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                     required
                     value={signInData.password}
                     onChange={handleSignInInputChange}
-                    className="w-full px-4 py-3 pr-12 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white"
+                    className="w-full px-4 py-3 pr-12 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white"
                     placeholder="Password"
                   />
                   <button
@@ -181,7 +178,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 <div className="text-center">
                   <button
                     type="button"
-                    className="text-sm text-purple-600 hover:text-purple-500 transition-colors"
+                    className="text-sm text-green-600 hover:text-green-500 transition-colors"
                   >
                     Forget Your Password?
                   </button>
@@ -191,7 +188,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                   type="submit"
                   size="lg"
                   disabled={isLoading}
-                  className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold py-3 px-8 rounded-2xl transition-all duration-300 transform hover:scale-105 disabled:transform-none disabled:opacity-70"
+                  className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold py-3 px-8 rounded-2xl transition-all duration-300 transform hover:scale-105 disabled:transform-none disabled:opacity-70"
                 >
                   {isLoading ? (
                     <div className="flex items-center justify-center space-x-2">
@@ -239,7 +236,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                     required
                     value={signUpData.name}
                     onChange={handleSignUpInputChange}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white"
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white"
                     placeholder="Name"
                   />
                 </div>
@@ -251,7 +248,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                     required
                     value={signUpData.email}
                     onChange={handleSignUpInputChange}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white"
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white"
                     placeholder="Email"
                   />
                 </div>
@@ -263,7 +260,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                     required
                     value={signUpData.password}
                     onChange={handleSignUpInputChange}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white"
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white"
                     placeholder="Password"
                   />
                 </div>
@@ -275,7 +272,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                     required
                     value={signUpData.confirmPassword}
                     onChange={handleSignUpInputChange}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white"
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white"
                     placeholder="Confirm Password"
                   />
                 </div>
@@ -284,7 +281,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                   type="submit"
                   size="lg"
                   disabled={isLoading}
-                  className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold py-3 px-8 rounded-2xl transition-all duration-300 transform hover:scale-105 disabled:transform-none disabled:opacity-70 mt-4"
+                  className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold py-3 px-8 rounded-2xl transition-all duration-300 transform hover:scale-105 disabled:transform-none disabled:opacity-70 mt-4"
                 >
                   {isLoading ? (
                     <div className="flex items-center justify-center space-x-2">
@@ -299,8 +296,8 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             </div>
           </div>
 
-          {/* Moving Purple Panel */}
-          <div className={`absolute top-0 h-full w-1/2 bg-gradient-to-br from-purple-600 via-purple-700 to-indigo-700 transition-all duration-1000 ease-in-out ${
+          {/* Moving Green Panel */}
+          <div className={`absolute top-0 h-full w-1/2 bg-gradient-to-br from-green-600 via-green-700 to-green-800 transition-all duration-1000 ease-in-out ${
             isSignUp ? 'left-0 rounded-r-[3rem]' : 'left-1/2 rounded-l-[3rem]'
           }`}>
             {/* Background decoration */}
@@ -342,7 +339,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                   isSignUp ? 'opacity-0 pointer-events-none transform -translate-x-8' : 'opacity-100 pointer-events-auto transform translate-x-0'
                 }`}>
                   <h2 className="text-3xl font-bold mb-4">Sign Up</h2>
-                  <p className="text-purple-100 text-base mb-8 leading-relaxed">
+                  <p className="text-green-100 text-base mb-8 leading-relaxed">
                     Register with your personal details to use all of site features
                   </p>
                   <button
@@ -358,7 +355,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                   isSignUp ? 'opacity-100 pointer-events-auto transform translate-x-0' : 'opacity-0 pointer-events-none transform translate-x-8'
                 }`}>
                   <h2 className="text-3xl font-bold mb-4">Welcome Back!</h2>
-                  <p className="text-purple-100 text-base mb-8 leading-relaxed">
+                  <p className="text-green-100 text-base mb-8 leading-relaxed">
                     To keep connected with us please login with your personal info
                   </p>
                   <button
@@ -375,11 +372,11 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
       </div>
 
       {/* Mobile Layout */}
-      <div className="lg:hidden relative w-full max-w-md">
+      <div className="lg:hidden relative w-full max-w-md z-10">
         <div className="bg-white/95 backdrop-blur-sm rounded-[2rem] shadow-2xl border border-white/50 overflow-hidden">
           
           {/* Mobile Header */}
-          <div className="bg-gradient-to-r from-purple-600 via-purple-700 to-indigo-700 px-8 py-8 text-center text-white relative overflow-hidden">
+          <div className="bg-gradient-to-r from-green-600 via-green-700 to-green-800 px-8 py-8 text-center text-white relative overflow-hidden">
             <div className="absolute top-0 right-0 w-24 h-24 opacity-10 transform rotate-12 translate-x-6 -translate-y-6">
               <div className="w-full h-full bg-white rounded-full"></div>
             </div>
@@ -409,7 +406,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
               </div>
               
               <h1 className="text-xl font-bold mb-2">HealthyKids</h1>
-              <p className="text-purple-100 text-sm">
+              <p className="text-green-100 text-sm">
                 Platform Pembelajaran Kesehatan Remaja
               </p>
             </div>
@@ -422,7 +419,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 onClick={switchToSignIn}
                 className={`flex-1 py-2 px-4 rounded-xl text-sm font-semibold transition-all duration-500 ${
                   !isSignUp 
-                    ? 'bg-white text-purple-600 shadow-sm' 
+                    ? 'bg-white text-green-600 shadow-sm' 
                     : 'text-gray-600'
                 }`}
               >
@@ -432,7 +429,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 onClick={switchToSignUp}
                 className={`flex-1 py-2 px-4 rounded-xl text-sm font-semibold transition-all duration-500 ${
                   isSignUp 
-                    ? 'bg-white text-purple-600 shadow-sm' 
+                    ? 'bg-white text-green-600 shadow-sm' 
                     : 'text-gray-600'
                 }`}
               >
@@ -463,7 +460,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                       required
                       value={signInData.email}
                       onChange={handleSignInInputChange}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-gray-50"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-gray-50"
                       placeholder="Email"
                     />
                   </div>
@@ -475,7 +472,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                       required
                       value={signInData.password}
                       onChange={handleSignInInputChange}
-                      className="w-full px-4 py-3 pr-12 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-gray-50"
+                      className="w-full px-4 py-3 pr-12 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-gray-50"
                       placeholder="Password"
                     />
                     <button
@@ -497,7 +494,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                     type="submit"
                     size="lg"
                     disabled={isLoading}
-                    className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold py-4 px-4 rounded-2xl transition-all duration-300 transform hover:scale-105 disabled:transform-none disabled:opacity-70"
+                    className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold py-4 px-4 rounded-2xl transition-all duration-300 transform hover:scale-105 disabled:transform-none disabled:opacity-70"
                   >
                     {isLoading ? (
                       <div className="flex items-center justify-center space-x-2">
@@ -532,7 +529,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                       required
                       value={signUpData.name}
                       onChange={handleSignUpInputChange}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-gray-50"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-gray-50"
                       placeholder="Full Name"
                     />
                   </div>
@@ -544,7 +541,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                       required
                       value={signUpData.email}
                       onChange={handleSignUpInputChange}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-gray-50"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-gray-50"
                       placeholder="Email"
                     />
                   </div>
@@ -556,7 +553,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                       required
                       value={signUpData.password}
                       onChange={handleSignUpInputChange}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-gray-50"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-gray-50"
                       placeholder="Password"
                     />
                   </div>
@@ -568,7 +565,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                       required
                       value={signUpData.confirmPassword}
                       onChange={handleSignUpInputChange}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-gray-50"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-gray-50"
                       placeholder="Confirm Password"
                     />
                   </div>
@@ -577,7 +574,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                     type="submit"
                     size="lg"
                     disabled={isLoading}
-                    className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold py-4 px-4 rounded-2xl transition-all duration-300 transform hover:scale-105 disabled:transform-none disabled:opacity-70"
+                    className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold py-4 px-4 rounded-2xl transition-all duration-300 transform hover:scale-105 disabled:transform-none disabled:opacity-70"
                   >
                     {isLoading ? (
                       <div className="flex items-center justify-center space-x-2">
