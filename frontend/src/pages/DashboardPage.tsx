@@ -32,7 +32,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
       textColor: 'text-green-700',
       iconBg: 'bg-gradient-to-br from-green-400 to-emerald-600',
       accentColor: 'bg-green-500',
-      route: '/quiz'
+      route: '/QuizHome'
     },
     {
       title: 'MINI GAMES',
@@ -43,7 +43,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
       textColor: 'text-purple-700',
       iconBg: 'bg-gradient-to-br from-purple-400 to-fuchsia-600',
       accentColor: 'bg-purple-500',
-      route: '/games'
+      route: '/GameHome'
     }
   ];
 
