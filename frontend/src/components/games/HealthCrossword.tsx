@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '../ui/Button';
+import { useNavigate } from 'react-router-dom';
+import CloudBackground from '../layouts/CloudBackground';
 
 interface CrosswordClue {
   id: number;
@@ -27,6 +29,7 @@ interface GameState {
 }
 
 const HealthCrossword: React.FC = () => {
+  const navigate = useNavigate();
   const [gameState, setGameState] = useState<GameState>({
     score: 0,
     correctAnswers: 0,
@@ -42,7 +45,7 @@ const HealthCrossword: React.FC = () => {
   const clues: CrosswordClue[] = [
     {
       id: 1,
-      clue: "Organ yang memompa darah ke seluruh tubuh",
+      clue: "Organ yang memompa darah ke seluruh tubuh (7 huruf)",
       answer: "JANTUNG",
       direction: "across",
       startRow: 1,
@@ -51,7 +54,7 @@ const HealthCrossword: React.FC = () => {
     },
     {
       id: 2,
-      clue: "Makanan yang mengandung banyak vitamin C",
+      clue: "Zat gizi yang diperlukan untuk pertumbuhan (7 huruf)",
       answer: "JERUK",
       direction: "down",
       startRow: 1,
@@ -60,7 +63,7 @@ const HealthCrossword: React.FC = () => {
     },
     {
       id: 3,
-      clue: "Aktivitas fisik untuk menjaga kebugaran",
+      clue: "Aktivitas fisik untuk menjaga kebugaran (8 huruf)",
       answer: "OLAHRAGA",
       direction: "across",
       startRow: 3,
@@ -69,7 +72,7 @@ const HealthCrossword: React.FC = () => {
     },
     {
       id: 4,
-      clue: "Zat gizi untuk pertumbuhan tulang",
+      clue: "Zat yang diperlukan untuk tulang kuat (7 huruf)",
       answer: "KALSIUM",
       direction: "down",
       startRow: 2,
@@ -78,38 +81,38 @@ const HealthCrossword: React.FC = () => {
     },
     {
       id: 5,
-      clue: "Kegiatan untuk menghilangkan stres",
-      answer: "MEDITASI",
-      direction: "across",
-      startRow: 5,
-      startCol: 1,
-      number: 4
-    },
-    {
-      id: 6,
-      clue: "Organ pernapasan utama manusia",
-      answer: "PARU",
-      direction: "down",
-      startRow: 1,
-      startCol: 4,
-      number: 5
-    },
-    {
-      id: 7,
-      clue: "Waktu istirahat yang dibutuhkan tubuh",
-      answer: "TIDUR",
-      direction: "across",
-      startRow: 7,
-      startCol: 2,
-      number: 6
-    },
-    {
-      id: 8,
-      clue: "Cairan penting untuk tubuh",
+      clue: "Cairan penting untuk tubuh (3 huruf)",
       answer: "AIR",
       direction: "down",
       startRow: 3,
       startCol: 7,
+      number: 4
+    },
+    {
+      id: 6,
+      clue: "Istirahat yang cukup untuk kesehatan (5 huruf)",
+      answer: "TIDUR",
+      direction: "across",
+      startRow: 7,
+      startCol: 2,
+      number: 5
+    },
+    {
+      id: 7,
+      clue: "Organ vital untuk bernapas (4 huruf)",
+      answer: "PARU",
+      direction: "down",
+      startRow: 1,
+      startCol: 4,
+      number: 6
+    },
+    {
+      id: 8,
+      clue: "Makanan sehat dari tumbuhan (7 huruf)",
+      answer: "SAYURAN",
+      direction: "across",
+      startRow: 5,
+      startCol: 1,
       number: 7
     }
   ];
@@ -299,6 +302,14 @@ const HealthCrossword: React.FC = () => {
     setGrid(initializeGrid());
   };
 
+  const backToDashboard = () => {
+    navigate('/gamehome');
+  };
+
+  const backToGameHome = () => {
+    navigate('/gamehome');
+  };
+
   const resetGame = () => {
     setGameState(prev => ({
       ...prev,
@@ -317,11 +328,11 @@ const HealthCrossword: React.FC = () => {
     
     if (direction === 'across') {
       if (row === startRow && col >= startCol && col < startCol + answer.length) {
-        return 'bg-blue-200 border-blue-400';
+        return 'bg-green-200 border-green-400';
       }
     } else {
       if (col === startCol && row >= startRow && row < startRow + answer.length) {
-        return 'bg-blue-200 border-blue-400';
+        return 'bg-green-200 border-green-400';
       }
     }
     
@@ -329,22 +340,22 @@ const HealthCrossword: React.FC = () => {
   };
 
   const renderGrid = () => (
-    <div className="grid grid-cols-10 gap-1 bg-gray-300 p-4 rounded-2xl">
+    <div className="grid grid-cols-10 gap-0.5 md:gap-1 bg-gray-300 p-2 md:p-4 rounded-xl md:rounded-2xl">
       {grid.map((row, rowIndex) =>
         row.map((cell, colIndex) => (
           <div
             key={`${rowIndex}-${colIndex}`}
-            className={`w-8 h-8 border-2 flex items-center justify-center text-xs font-bold cursor-pointer transition-all ${
+            className={`w-6 h-6 md:w-8 md:h-8 border-2 flex items-center justify-center text-xs font-bold cursor-pointer transition-all relative ${
               cell.isBlocked
-                ? 'bg-gray-800'
-                : `bg-white border-gray-400 hover:border-blue-300 ${getCellHighlight(rowIndex, colIndex)}`
+                ? 'bg-gray-700'
+                : `bg-white border-gray-400 hover:border-green-300 ${getCellHighlight(rowIndex, colIndex)}`
             }`}
             onClick={() => handleCellClick(rowIndex, colIndex)}
           >
             {!cell.isBlocked && (
               <>
                 {cell.number && (
-                  <div className="absolute text-xs text-blue-600 font-bold" style={{ fontSize: '8px', marginTop: '-12px', marginLeft: '-12px' }}>
+                  <div className="absolute text-[6px] md:text-[8px] text-green-600 font-bold top-0 left-0.5">
                     {cell.number}
                   </div>
                 )}
@@ -352,7 +363,7 @@ const HealthCrossword: React.FC = () => {
                   type="text"
                   value={cell.userInput}
                   onChange={(e) => handleInputChange(rowIndex, colIndex, e.target.value)}
-                  className="w-full h-full text-center border-none outline-none bg-transparent text-sm font-bold text-gray-800"
+                  className="w-full h-full text-center border-none outline-none bg-transparent text-xs md:text-sm font-bold text-gray-800"
                   maxLength={1}
                 />
               </>
@@ -364,27 +375,32 @@ const HealthCrossword: React.FC = () => {
   );
 
   const renderClues = () => (
-    <div className="space-y-4">
+    <div className="space-y-3 md:space-y-4">
       <div>
-        <h4 className="font-bold text-lg mb-3 text-gray-800">📝 Mendatar (Across)</h4>
-        <div className="space-y-2">
+        <h4 className="font-bold text-base md:text-lg mb-2 md:mb-3 text-gray-800 flex items-center">
+          <span className="text-green-500 mr-2">↗</span> Mendatar
+        </h4>
+        <div className="space-y-1.5 md:space-y-2">
           {clues
             .filter(clue => clue.direction === 'across')
             .map(clue => (
               <div
                 key={clue.id}
-                className={`p-3 rounded-lg cursor-pointer transition-all ${
-                  selectedClue === clue.id ? 'bg-blue-100 border-2 border-blue-400' : 'bg-gray-50 hover:bg-gray-100 border border-gray-200'
+                className={`p-2 md:p-3 rounded-lg cursor-pointer transition-all ${
+                  selectedClue === clue.id 
+                    ? 'bg-green-100 border-2 border-green-400' 
+                    : 'bg-green-50 hover:bg-green-100 border border-gray-200'
                 }`}
                 onClick={() => {
                   setSelectedClue(clue.id);
                   setSelectedDirection('across');
                 }}
               >
-                <div className="flex items-start space-x-3">
-                  <span className="font-bold text-blue-600 min-w-[24px]">{clue.number}.</span>
-                  <span className="text-sm text-gray-700">{clue.clue}</span>
-                  <span className="text-xs text-gray-400">({clue.answer.length} huruf)</span>
+                <div className="flex items-start space-x-2 md:space-x-3">
+                  <div className="flex-shrink-0 w-5 h-5 md:w-6 md:h-6 bg-green-500 text-white rounded-md flex items-center justify-center text-xs font-bold">
+                    {clue.number}
+                  </div>
+                  <span className="text-xs md:text-sm text-gray-700">{clue.clue}</span>
                 </div>
               </div>
             ))}
@@ -392,25 +408,30 @@ const HealthCrossword: React.FC = () => {
       </div>
 
       <div>
-        <h4 className="font-bold text-lg mb-3 text-gray-800">📝 Menurun (Down)</h4>
-        <div className="space-y-2">
+        <h4 className="font-bold text-base md:text-lg mb-2 md:mb-3 text-gray-800 flex items-center">
+          <span className="text-emerald-500 mr-2">↘</span> Menurun
+        </h4>
+        <div className="space-y-1.5 md:space-y-2">
           {clues
             .filter(clue => clue.direction === 'down')
             .map(clue => (
               <div
                 key={clue.id}
-                className={`p-3 rounded-lg cursor-pointer transition-all ${
-                  selectedClue === clue.id ? 'bg-blue-100 border-2 border-blue-400' : 'bg-gray-50 hover:bg-gray-100 border border-gray-200'
+                className={`p-2 md:p-3 rounded-lg cursor-pointer transition-all ${
+                  selectedClue === clue.id 
+                    ? 'bg-green-100 border-2 border-green-400' 
+                    : 'bg-green-50 hover:bg-green-100 border border-gray-200'
                 }`}
                 onClick={() => {
                   setSelectedClue(clue.id);
                   setSelectedDirection('down');
                 }}
               >
-                <div className="flex items-start space-x-3">
-                  <span className="font-bold text-blue-600 min-w-[24px]">{clue.number}.</span>
-                  <span className="text-sm text-gray-700">{clue.clue}</span>
-                  <span className="text-xs text-gray-400">({clue.answer.length} huruf)</span>
+                <div className="flex items-start space-x-2 md:space-x-3">
+                  <div className="flex-shrink-0 w-5 h-5 md:w-6 md:h-6 bg-green-500 text-white rounded-md flex items-center justify-center text-xs font-bold">
+                    {clue.number}
+                  </div>
+                  <span className="text-xs md:text-sm text-gray-700">{clue.clue}</span>
                 </div>
               </div>
             ))}
@@ -420,110 +441,137 @@ const HealthCrossword: React.FC = () => {
   );
 
   return (
-    <div className="max-w-6xl mx-auto p-6 bg-white rounded-3xl shadow-xl">
-      <div className="text-center mb-6">
-        <h2 className="text-3xl font-bold text-gray-800 mb-2">🧩 Teka Teki Silang Kesehatan</h2>
-        <p className="text-gray-600">Asah pengetahuan kesehatanmu dengan teka-teki yang menantang!</p>
-      </div>
-
+    <div className="w-full">
       {gameState.gameStatus === 'menu' && (
-        <div className="text-center">
-          <div className="mb-8">
-            <div className="text-6xl mb-4">🧩</div>
-            <h3 className="text-2xl font-bold text-gray-800 mb-4">Welcome to Health Crossword!</h3>
-            <div className="bg-blue-50 rounded-2xl p-6 mb-6 text-left max-w-2xl mx-auto">
-              <h4 className="font-bold text-lg mb-3">🎯 How to Play:</h4>
-              <ul className="space-y-2 text-gray-700">
-                <li>🖱️ Klik pada kotak putih untuk memilih kata</li>
-                <li>⌨️ Ketik huruf untuk mengisi kotak</li>
-                <li>📝 Baca petunjuk di sebelah kanan untuk mengetahui jawabannya</li>
-                <li>💡 Gunakan tombol hint jika kesulitan (maksimal 3 kali)</li>
-                <li>🎯 Isi semua kata dengan benar untuk menyelesaikan permainan</li>
-                <li>🏆 Setiap kata yang benar memberikan 10 poin</li>
-              </ul>
-            </div>
-            <div className="bg-green-50 rounded-2xl p-4 mb-6 max-w-xl mx-auto border border-green-200">
-              <h4 className="font-bold text-green-800 mb-2">🏆 Learning Goals:</h4>
-              <p className="text-green-700 text-sm">
-                Belajar istilah-istilah kesehatan sambil melatih kemampuan berpikir dan konsentrasi!
-              </p>
+        <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-100 relative flex items-center justify-center">
+          <CloudBackground />
+          
+          <div className="relative z-10 p-4 md:p-6 w-full flex items-center justify-center">
+            <div className="max-w-4xl mx-auto w-full">
+              <div className="text-center bg-gradient-to-br from-green-500 to-emerald-600 text-white rounded-2xl p-6 md:p-8 shadow-xl">
+                <h2 className="text-2xl md:text-4xl font-bold mb-3 md:mb-4">🧩 Teka-Teki Silang Kesehatan</h2>
+                <p className="text-sm md:text-lg mb-4 md:mb-6">
+                  Asah pengetahuanmu dengan teka-teki yang menantang!
+                </p>
+                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 md:p-6 mb-4 md:mb-6 text-left">
+                  <h4 className="font-bold text-base md:text-lg mb-2 md:mb-3 flex items-center">
+                    <span className="text-pink-300 mr-2">🎯</span> Cara Bermain:
+                  </h4>
+                  <ul className="space-y-1.5 md:space-y-2 text-xs md:text-sm text-green-50">
+                    <li className="flex items-start">
+                      <span className="mr-2">🖱️</span>
+                      <span>Klik pada kotak putih untuk memilih kata</span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="mr-2">⌨️</span>
+                      <span>Ketik huruf untuk mengisi kotak</span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="mr-2">📝</span>
+                      <span>Baca petunjuk untuk mengetahui jawabannya</span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="mr-2">💡</span>
+                      <span>Gunakan tombol hint jika kesulitan (maksimal 3 kali)</span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="mr-2">🏆</span>
+                      <span>Setiap kata benar memberikan 10 poin</span>
+                    </li>
+                  </ul>
+                </div>
+                <div className="flex flex-col md:flex-row gap-3 md:gap-4 justify-center">
+                  <Button 
+                    onClick={startGame}
+                    className="w-full md:w-auto bg-yellow-500 hover:bg-yellow-600 text-black text-base md:text-xl px-6 md:px-8 py-3 md:py-4 rounded-xl font-bold transform hover:scale-105 transition-transform"
+                  >
+                    🚀 Mulai Bermain
+                  </Button>
+                  <Button 
+                    onClick={backToDashboard}
+                    variant="secondary"
+                    className="w-full md:w-auto px-6 py-3 text-sm md:text-base"
+                  >
+                    ← Back to Dashboard
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
-          <Button 
-            onClick={startGame}
-            size="lg"
-            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-8 py-3"
-          >
-            🚀 Mulai Bermain
-          </Button>
         </div>
       )}
 
       {gameState.gameStatus === 'playing' && (
-        <div>
-          {/* Game Stats */}
-          <div className="flex justify-between items-center mb-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-4">
-            <div className="flex space-x-6 text-sm font-semibold">
-              <div className="text-center">
-                <div className="text-lg font-bold text-blue-600">{gameState.score}</div>
-                <div className="text-gray-600">Score</div>
-              </div>
-              <div className="text-center">
-                <div className="text-lg font-bold text-green-600">{gameState.correctAnswers}/{gameState.totalClues}</div>
-                <div className="text-gray-600">Completed</div>
-              </div>
-              <div className="text-center">
-                <div className="text-lg font-bold text-orange-600">{gameState.hintsUsed}/3</div>
-                <div className="text-gray-600">Hints Used</div>
+        <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-100 p-4 md:p-6 relative">
+          <CloudBackground />
+          
+          <div className="max-w-7xl mx-auto relative z-10">
+            {/* Game Stats */}
+            <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3 mb-4 md:mb-6">
+              <h2 className="text-xl md:text-2xl font-bold text-gray-800">Teka-Teki Silang Kesehatan</h2>
+              <div className="flex gap-3">
+                <div className="bg-white/90 backdrop-blur-sm rounded-xl px-3 md:px-4 py-2 shadow-md flex-1 md:flex-none">
+                  <div className="text-xs text-gray-600">Score</div>
+                  <div className="text-lg md:text-xl font-bold text-green-600">{gameState.score}</div>
+                </div>
+                <div className="bg-white/90 backdrop-blur-sm rounded-xl px-3 md:px-4 py-2 shadow-md flex-1 md:flex-none">
+                  <div className="text-xs text-gray-600">Selesai</div>
+                  <div className="text-lg md:text-xl font-bold text-emerald-600">{gameState.correctAnswers}/{gameState.totalClues}</div>
+                </div>
+                <div className="bg-white/90 backdrop-blur-sm rounded-xl px-3 md:px-4 py-2 shadow-md flex-1 md:flex-none">
+                  <div className="text-xs text-gray-600">Hint</div>
+                  <div className="text-lg md:text-xl font-bold text-orange-600">{gameState.hintsUsed}/3</div>
+                </div>
               </div>
             </div>
 
-            <div className="flex space-x-3">
-              <Button 
-                onClick={getHint} 
-                variant="secondary" 
-                size="sm"
-                disabled={!selectedClue || gameState.hintsUsed >= 3}
-                className="flex items-center space-x-2"
-              >
-                <span>💡</span>
-                <span>Hint</span>
-              </Button>
-              <Button onClick={clearGrid} variant="secondary" size="sm">
-                🗑️ Clear
-              </Button>
-              <Button onClick={resetGame} variant="secondary" size="sm">
-                🏠 Menu
-              </Button>
-            </div>
-          </div>
-
-          {/* Main Game Area */}
-          <div className="grid lg:grid-cols-3 gap-8">
-            {/* Crossword Grid */}
-            <div className="lg:col-span-2">
-              <div className="bg-gray-50 rounded-2xl p-6">
-                <h3 className="text-lg font-bold text-gray-800 mb-4 text-center">🎯 Crossword Grid</h3>
-                <div className="flex justify-center">
+            {/* Main Game Area */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6">
+              {/* Crossword Grid */}
+              <div className="lg:col-span-8 bg-white/95 backdrop-blur-sm rounded-2xl p-4 md:p-6 shadow-lg">
+                <h3 className="text-base md:text-lg font-bold text-gray-800 mb-3 md:mb-4 text-center">Papan Teka-Teki</h3>
+                <div className="flex justify-center mb-4">
                   {renderGrid()}
                 </div>
                 {selectedClue && (
-                  <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <div className="text-sm font-semibold text-blue-800">
-                      Selected: {clues.find(c => c.id === selectedClue)?.number} {selectedDirection === 'across' ? 'Mendatar' : 'Menurun'}
+                  <div className="mt-3 md:mt-4 p-3 md:p-4 bg-green-50 rounded-lg border border-green-200">
+                    <div className="text-xs md:text-sm font-semibold text-green-800 mb-1">
+                      Terpilih: {clues.find(c => c.id === selectedClue)?.number} {selectedDirection === 'across' ? 'Mendatar' : 'Menurun'}
                     </div>
-                    <div className="text-sm text-blue-700">
+                    <div className="text-xs md:text-sm text-green-700">
                       {clues.find(c => c.id === selectedClue)?.clue}
                     </div>
                   </div>
                 )}
-              </div>
-            </div>
 
-            {/* Clues */}
-            <div className="lg:col-span-1">
-              <div className="bg-gray-50 rounded-2xl p-6 max-h-96 overflow-y-auto">
-                {renderClues()}
+                {/* Action Buttons */}
+                <div className="flex flex-col md:flex-row gap-2 md:gap-3 mt-4">
+                  <Button 
+                    onClick={getHint} 
+                    variant="secondary" 
+                    size="sm"
+                    disabled={!selectedClue || gameState.hintsUsed >= 3}
+                    className="w-full md:w-auto flex items-center justify-center space-x-2 text-xs md:text-sm"
+                  >
+                    <span>💡</span>
+                    <span>Hint</span>
+                  </Button>
+                  <Button 
+                    onClick={clearGrid} 
+                    variant="secondary" 
+                    size="sm"
+                    className="w-full md:w-auto text-xs md:text-sm"
+                  >
+                    🗑️ Clear
+                  </Button>
+                </div>
+              </div>
+
+              {/* Clues */}
+              <div className="lg:col-span-4">
+                <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-4 md:p-6 shadow-lg max-h-[600px] overflow-y-auto">
+                  {renderClues()}
+                </div>
               </div>
             </div>
           </div>
@@ -531,32 +579,47 @@ const HealthCrossword: React.FC = () => {
       )}
 
       {gameState.gameStatus === 'completed' && (
-        <div className="text-center">
-          <div className="text-6xl mb-4">🏆</div>
-          <h3 className="text-2xl font-bold text-green-600 mb-4">Selamat! Kamu Berhasil!</h3>
-          <div className="bg-green-50 rounded-2xl p-6 mb-6 border border-green-200">
-            <p className="text-lg mb-2">Final Score: <span className="font-bold text-green-600">{gameState.score}</span></p>
-            <p className="text-gray-600 mb-4">
-              Kamu berhasil menyelesaikan semua {gameState.totalClues} kata dengan menggunakan {gameState.hintsUsed} hint!
-            </p>
-            <div className="text-sm text-gray-600 space-y-1">
-              <p>💡 Pengetahuan kesehatan yang sudah kamu pelajari:</p>
-              <div className="flex flex-wrap justify-center gap-2 mt-2">
-                {clues.map(clue => (
-                  <span key={clue.id} className="bg-white px-2 py-1 rounded text-xs font-semibold text-gray-700">
-                    {clue.answer}
-                  </span>
-                ))}
+        <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-100 p-4 md:p-6 relative flex items-center justify-center">
+          <CloudBackground />
+          
+          <div className="relative z-10 w-full flex items-center justify-center">
+            <div className="max-w-4xl mx-auto w-full">
+              <div className="text-center bg-white/95 backdrop-blur-sm rounded-2xl p-6 md:p-8 shadow-xl">
+                <div className="text-5xl md:text-6xl mb-3 md:mb-4">🏆</div>
+                <h3 className="text-2xl md:text-3xl font-bold text-green-600 mb-3 md:mb-4">Selamat! Kamu Berhasil!</h3>
+                <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-6 md:p-8 mb-4 md:mb-6 border-2 border-green-200">
+                  <p className="text-base md:text-lg mb-2">Final Score: <span className="font-bold text-green-600">{gameState.score}</span></p>
+                  <p className="text-sm md:text-base text-gray-600 mb-4">
+                    Kamu berhasil menyelesaikan semua {gameState.totalClues} kata dengan menggunakan {gameState.hintsUsed} hint!
+                  </p>
+                  <div className="text-xs md:text-sm text-gray-600 space-y-1">
+                    <p className="font-semibold">💡 Pengetahuan kesehatan yang sudah kamu pelajari:</p>
+                    <div className="flex flex-wrap justify-center gap-2 mt-2">
+                      {clues.map(clue => (
+                        <span key={clue.id} className="bg-white px-2 py-1 rounded text-xs font-semibold text-gray-700 border border-green-200">
+                          {clue.answer}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex flex-col md:flex-row gap-3 md:gap-4 justify-center">
+                  <Button 
+                    onClick={startGame} 
+                    className="w-full md:w-auto bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-6 py-3 text-sm md:text-base"
+                  >
+                    🔄 Main Lagi
+                  </Button>
+                  <Button 
+                    onClick={backToGameHome} 
+                    variant="secondary"
+                    className="w-full md:w-auto px-6 py-3 text-sm md:text-base"
+                  >
+                    🏠 Kembali ke Game Home
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
-          <div className="flex gap-3 justify-center">
-            <Button onClick={startGame} className="bg-blue-500 hover:bg-blue-600">
-              🔄 Main Lagi
-            </Button>
-            <Button onClick={resetGame} variant="secondary">
-              🏠 Menu
-            </Button>
           </div>
         </div>
       )}

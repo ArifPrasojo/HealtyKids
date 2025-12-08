@@ -26,7 +26,7 @@ const GameHome: React.FC<GameHomeProps> = ({ onLogout }) => {
       title: 'Health Matching Game',
       description: 'Cocokkan gambar dengan kata yang tepat untuk belajar kesehatan reproduksi',
       icon: '🧩',
-      route: '/health-matching',
+      route: '/game/matching',
       difficulty: 'Mudah'
     },
     {
@@ -34,7 +34,7 @@ const GameHome: React.FC<GameHomeProps> = ({ onLogout }) => {
       title: 'Health Crossword',
       description: 'Isi kotak kosong dengan kata-kata kesehatan yang benar',
       icon: '📝',
-      route: '/game-crossword',
+      route: '/game/crossword',
       difficulty: 'Sedang'
     }
   ];
