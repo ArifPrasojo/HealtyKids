@@ -9,18 +9,11 @@ interface LoginProps {
 
 const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const navigate = useNavigate();
-  const [isSignUp, setIsSignUp] = useState(false);
+  const [showAbout, setShowAbout] = useState(false);
   
   const [signInData, setSignInData] = useState({
     email: '',
     password: ''
-  });
-  
-  const [signUpData, setSignUpData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: ''
   });
   
   const [isLoading, setIsLoading] = useState(false);
@@ -30,15 +23,6 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const handleSignInInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setSignInData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    if (error) setError('');
-  };
-
-  const handleSignUpInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setSignUpData(prev => ({
       ...prev,
       [name]: value
     }));
@@ -65,37 +49,13 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     }, 1500);
   };
 
-  const handleSignUpSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError('');
-    
-    if (!signUpData.name || !signUpData.email || !signUpData.password || !signUpData.confirmPassword) {
-      setError('Please fill in all fields');
-      setIsLoading(false);
-      return;
-    }
-
-    if (signUpData.password !== signUpData.confirmPassword) {
-      setError('Passwords do not match');
-      setIsLoading(false);
-      return;
-    }
-
-    setTimeout(() => {
-      setIsLoading(false);
-      // Switch to sign in after successful registration
-      switchToSignIn();
-    }, 1500);
-  };
-
-  const switchToSignUp = () => {
-    setIsSignUp(true);
+  const switchToAbout = () => {
+    setShowAbout(true);
     setError('');
   };
 
   const switchToSignIn = () => {
-    setIsSignUp(false);
+    setShowAbout(false);
     setError('');
   };
 
@@ -114,7 +74,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           
           {/* Sign In Form Container - Left Side */}
           <div className={`absolute left-0 top-0 w-1/2 h-full p-12 flex flex-col justify-center z-10 transition-all duration-1000 ease-in-out ${
-            isSignUp ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'
+            showAbout ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'
           }`}>
             <div className="w-full max-w-sm mx-auto">
               <div className="mb-8">
@@ -129,7 +89,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
               </div>
 
               <form onSubmit={handleSignInSubmit} className="space-y-4">
-                {error && !isSignUp && (
+                {error && (
                   <div className="bg-red-50 border border-red-200 rounded-2xl p-3">
                     <div className="flex items-center">
                       <span className="text-red-500 mr-2 text-sm">⚠️</span>
@@ -180,7 +140,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                     type="button"
                     className="text-sm text-green-600 hover:text-green-500 transition-colors"
                   >
-                    Forget Your Password?
+                  
                   </button>
                 </div>
 
@@ -203,102 +163,70 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             </div>
           </div>
 
-          {/* Sign Up Form Container - Right Side */}
+          {/* About Us Container - Right Side */}
           <div className={`absolute right-0 top-0 w-1/2 h-full p-12 flex flex-col justify-center z-10 transition-all duration-1000 ease-in-out ${
-            isSignUp ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+            showAbout ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
           }`}>
             <div className="w-full max-w-sm mx-auto">
               <div className="mb-6">
-                <h1 className="text-3xl font-bold text-gray-800 mb-2">Create Account</h1>
-                <p className="text-gray-600 text-sm">
-                  Join HealthyKids today
-                </p>
+                <h1 className="text-3xl font-bold text-gray-800 mb-4">Tentang Kami</h1>
               </div>
 
-              <div className="text-center text-sm text-gray-500 mb-4">
-                or use your email for registration
-              </div>
-
-              <form onSubmit={handleSignUpSubmit} className="space-y-3">
-                {error && isSignUp && (
-                  <div className="bg-red-50 border border-red-200 rounded-2xl p-3">
-                    <div className="flex items-center">
-                      <span className="text-red-500 mr-2 text-sm">⚠️</span>
-                      <span className="text-red-700 text-sm">{error}</span>
-                    </div>
+              <div className="space-y-4 text-gray-700">
+                <div className="flex items-start space-x-3">
+                  <div className="flex-shrink-0 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mt-1">
+                    <span className="text-green-600 text-lg">🌱</span>
                   </div>
-                )}
-                
-                <div>
-                  <input
-                    name="name"
-                    type="text"
-                    required
-                    value={signUpData.name}
-                    onChange={handleSignUpInputChange}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white"
-                    placeholder="Name"
-                  />
+                  <div>
+                    <h3 className="font-semibold text-gray-800 mb-1">Platform Edukasi</h3>
+                    <p className="text-sm text-gray-600">
+                      HealthyKids adalah platform pembelajaran kesehatan yang dirancang khusus untuk remaja.
+                    </p>
+                  </div>
                 </div>
 
-                <div>
-                  <input
-                    name="email"
-                    type="email"
-                    required
-                    value={signUpData.email}
-                    onChange={handleSignUpInputChange}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white"
-                    placeholder="Email"
-                  />
+                <div className="flex items-start space-x-3">
+                  <div className="flex-shrink-0 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mt-1">
+                    <span className="text-green-600 text-lg">📚</span>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-800 mb-1">Konten Interaktif</h3>
+                    <p className="text-sm text-gray-600">
+                      Menyediakan materi kesehatan, quiz interaktif, dan video edukatif yang mudah dipahami.
+                    </p>
+                  </div>
                 </div>
 
-                <div>
-                  <input
-                    name="password"
-                    type="password"
-                    required
-                    value={signUpData.password}
-                    onChange={handleSignUpInputChange}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white"
-                    placeholder="Password"
-                  />
+                <div className="flex items-start space-x-3">
+                  <div className="flex-shrink-0 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mt-1">
+                    <span className="text-green-600 text-lg">🎯</span>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-800 mb-1">Tujuan Kami</h3>
+                    <p className="text-sm text-gray-600">
+                      Membantu remaja memahami pentingnya kesehatan dan pola hidup sehat sejak dini.
+                    </p>
+                  </div>
                 </div>
 
-                <div>
-                  <input
-                    name="confirmPassword"
-                    type="password"
-                    required
-                    value={signUpData.confirmPassword}
-                    onChange={handleSignUpInputChange}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white"
-                    placeholder="Confirm Password"
-                  />
+                <div className="flex items-start space-x-3">
+                  <div className="flex-shrink-0 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mt-1">
+                    <span className="text-green-600 text-lg">✨</span>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-800 mb-1">Fitur Unggulan</h3>
+                    <p className="text-sm text-gray-600">
+                      Progress tracking, badges achievement, dan komunitas belajar yang supportif.
+                    </p>
+                  </div>
                 </div>
-
-                <Button
-                  type="submit"
-                  size="lg"
-                  disabled={isLoading}
-                  className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold py-3 px-8 rounded-2xl transition-all duration-300 transform hover:scale-105 disabled:transform-none disabled:opacity-70 mt-4"
-                >
-                  {isLoading ? (
-                    <div className="flex items-center justify-center space-x-2">
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      <span>CREATING ACCOUNT...</span>
-                    </div>
-                  ) : (
-                    <span>SIGN UP</span>
-                  )}
-                </Button>
-              </form>
+              </div>
             </div>
           </div>
 
           {/* Moving Green Panel */}
           <div className={`absolute top-0 h-full w-1/2 bg-gradient-to-br from-green-600 via-green-700 to-green-800 transition-all duration-1000 ease-in-out ${
-            isSignUp ? 'left-0 rounded-r-[3rem]' : 'left-1/2 rounded-l-[3rem]'
+            showAbout ? 'left-0 rounded-r-[3rem]' : 'left-1/2 rounded-l-[3rem]'
           }`}>
             {/* Background decoration */}
             <div className="absolute top-0 left-0 w-64 h-64 opacity-10 transform -rotate-12 -translate-x-16 -translate-y-16">
@@ -334,29 +262,29 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
               
               {/* Panel Content Container */}
               <div className="relative h-48">
-                {/* Sign In Panel Content (When showing Sign In form - promote Sign Up) */}
+                {/* Sign In Panel Content (When showing Sign In form - promote About) */}
                 <div className={`absolute inset-0 transition-all duration-1000 ease-in-out ${
-                  isSignUp ? 'opacity-0 pointer-events-none transform -translate-x-8' : 'opacity-100 pointer-events-auto transform translate-x-0'
+                  showAbout ? 'opacity-0 pointer-events-none transform -translate-x-8' : 'opacity-100 pointer-events-auto transform translate-x-0'
                 }`}>
-                  <h2 className="text-3xl font-bold mb-4">Sign Up</h2>
+                  <h2 className="text-3xl font-bold mb-4">Tentang Kami</h2>
                   <p className="text-green-100 text-base mb-8 leading-relaxed">
-                    Register with your personal details to use all of site features
+                    Kenali lebih dekat platform pembelajaran kesehatan untuk remaja
                   </p>
                   <button
-                    onClick={switchToSignUp}
+                    onClick={switchToAbout}
                     className="bg-white/20 backdrop-blur-sm border border-white/30 text-white font-semibold py-3 px-8 rounded-2xl transition-all duration-300 transform hover:scale-105 hover:bg-white/30"
                   >
-                    SIGN UP
+                    TENTANG KAMI
                   </button>
                 </div>
 
-                {/* Sign Up Panel Content (When showing Sign Up form - promote Sign In) */}
+                {/* About Panel Content (When showing About - promote Sign In) */}
                 <div className={`absolute inset-0 transition-all duration-1000 ease-in-out ${
-                  isSignUp ? 'opacity-100 pointer-events-auto transform translate-x-0' : 'opacity-0 pointer-events-none transform translate-x-8'
+                  showAbout ? 'opacity-100 pointer-events-auto transform translate-x-0' : 'opacity-0 pointer-events-none transform translate-x-8'
                 }`}>
-                  <h2 className="text-3xl font-bold mb-4">Welcome Back!</h2>
+                  <h2 className="text-3xl font-bold mb-4">Selamat Datang!</h2>
                   <p className="text-green-100 text-base mb-8 leading-relaxed">
-                    To keep connected with us please login with your personal info
+                    Sudah punya akun? Masuk untuk melanjutkan perjalanan belajarmu
                   </p>
                   <button
                     onClick={switchToSignIn}
@@ -413,12 +341,12 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           </div>
 
           {/* Mobile Toggle */}
-          <div className="p-6">
+          <div className="p-5">
             <div className="flex bg-gray-100 rounded-2xl p-1 mb-6">
               <button
                 onClick={switchToSignIn}
                 className={`flex-1 py-2 px-4 rounded-xl text-sm font-semibold transition-all duration-500 ${
-                  !isSignUp 
+                  !showAbout 
                     ? 'bg-white text-green-600 shadow-sm' 
                     : 'text-gray-600'
                 }`}
@@ -426,14 +354,14 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 Sign In
               </button>
               <button
-                onClick={switchToSignUp}
+                onClick={switchToAbout}
                 className={`flex-1 py-2 px-4 rounded-xl text-sm font-semibold transition-all duration-500 ${
-                  isSignUp 
+                  showAbout 
                     ? 'bg-white text-green-600 shadow-sm' 
                     : 'text-gray-600'
                 }`}
               >
-                Sign Up
+                Tentang Kami
               </button>
             </div>
 
@@ -441,14 +369,14 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             <div className="relative overflow-hidden">
               {/* Sign In Form */}
               <div className={`transition-all duration-700 ease-in-out ${
-                !isSignUp ? 'opacity-100 transform translate-x-0' : 'opacity-0 transform -translate-x-full absolute inset-0 pointer-events-none'
+                !showAbout ? 'opacity-100 transform translate-x-0' : 'opacity-0 transform -translate-x-full absolute inset-0 pointer-events-none'
               }`}>
-                <form onSubmit={handleSignInSubmit} className="space-y-4">
-                  {error && !isSignUp && (
-                    <div className="bg-red-50 border border-red-200 rounded-2xl p-3">
+                <form onSubmit={handleSignInSubmit} className="space-y-3">
+                  {error && (
+                    <div className="bg-red-50 border border-red-200 rounded-xl p-2.5">
                       <div className="flex items-center">
-                        <span className="text-red-500 mr-2">⚠️</span>
-                        <span className="text-red-700 text-sm">{error}</span>
+                        <span className="text-red-500 mr-2 text-xs">⚠️</span>
+                        <span className="text-red-700 text-xs">{error}</span>
                       </div>
                     </div>
                   )}
@@ -460,7 +388,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                       required
                       value={signInData.email}
                       onChange={handleSignInInputChange}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-gray-50"
+                      className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-0 focus:border-green-500 transition-all duration-200 bg-gray-50 text-sm"
                       placeholder="Email"
                     />
                   </div>
@@ -472,15 +400,15 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                       required
                       value={signInData.password}
                       onChange={handleSignInInputChange}
-                      className="w-full px-4 py-3 pr-12 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-gray-50"
+                      className="w-full px-3 py-2 pr-9 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-0 focus:border-green-500 transition-all duration-200 bg-gray-50 text-sm"
                       placeholder="Password"
                     />
                     <button
                       type="button"
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                      className="absolute inset-y-0 right-0 pr-2 flex items-center"
                       onClick={togglePasswordVisibility}
                     >
-                      <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         {showPassword ? (
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
                         ) : (
@@ -494,11 +422,11 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                     type="submit"
                     size="lg"
                     disabled={isLoading}
-                    className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold py-4 px-4 rounded-2xl transition-all duration-300 transform hover:scale-105 disabled:transform-none disabled:opacity-70"
+                    className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold py-2.5 px-4 rounded-xl transition-all duration-300 transform hover:scale-105 disabled:transform-none disabled:opacity-70 text-sm"
                   >
                     {isLoading ? (
                       <div className="flex items-center justify-center space-x-2">
-                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                         <span>Signing In...</span>
                       </div>
                     ) : (
@@ -508,84 +436,59 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 </form>
               </div>
 
-              {/* Sign Up Form */}
+              {/* About Us Content */}
               <div className={`transition-all duration-700 ease-in-out ${
-                isSignUp ? 'opacity-100 transform translate-x-0' : 'opacity-0 transform translate-x-full absolute inset-0 pointer-events-none'
+                showAbout ? 'opacity-100 transform translate-x-0' : 'opacity-0 transform translate-x-full absolute inset-0 pointer-events-none'
               }`}>
-                <form onSubmit={handleSignUpSubmit} className="space-y-4">
-                  {error && isSignUp && (
-                    <div className="bg-red-50 border border-red-200 rounded-2xl p-3">
-                      <div className="flex items-center">
-                        <span className="text-red-500 mr-2">⚠️</span>
-                        <span className="text-red-700 text-sm">{error}</span>
-                      </div>
+                <div className="space-y-3">
+                  <div className="flex items-start space-x-3 p-3 bg-green-50 rounded-xl">
+                    <div className="flex-shrink-0 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                      <span className="text-green-600">🌱</span>
                     </div>
-                  )}
-                  
-                  <div>
-                    <input
-                      name="name"
-                      type="text"
-                      required
-                      value={signUpData.name}
-                      onChange={handleSignUpInputChange}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-gray-50"
-                      placeholder="Full Name"
-                    />
+                    <div>
+                      <h3 className="font-semibold text-gray-800 text-sm mb-1">Platform Edukasi</h3>
+                      <p className="text-xs text-gray-600">
+                        Platform pembelajaran kesehatan dirancang khusus untuk remaja.
+                      </p>
+                    </div>
                   </div>
 
-                  <div>
-                    <input
-                      name="email"
-                      type="email"
-                      required
-                      value={signUpData.email}
-                      onChange={handleSignUpInputChange}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-gray-50"
-                      placeholder="Email"
-                    />
+                  <div className="flex items-start space-x-3 p-3 bg-green-50 rounded-xl">
+                    <div className="flex-shrink-0 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                      <span className="text-green-600">📚</span>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-800 text-sm mb-1">Konten Interaktif</h3>
+                      <p className="text-xs text-gray-600">
+                        Materi kesehatan, quiz interaktif, dan video edukatif yang mudah dipahami.
+                      </p>
+                    </div>
                   </div>
 
-                  <div>
-                    <input
-                      name="password"
-                      type="password"
-                      required
-                      value={signUpData.password}
-                      onChange={handleSignUpInputChange}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-gray-50"
-                      placeholder="Password"
-                    />
+                  <div className="flex items-start space-x-3 p-3 bg-green-50 rounded-xl">
+                    <div className="flex-shrink-0 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                      <span className="text-green-600">🎯</span>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-800 text-sm mb-1">Tujuan Kami</h3>
+                      <p className="text-xs text-gray-600">
+                        Membantu remaja memahami pentingnya kesehatan dan pola hidup sehat.
+                      </p>
+                    </div>
                   </div>
 
-                  <div>
-                    <input
-                      name="confirmPassword"
-                      type="password"
-                      required
-                      value={signUpData.confirmPassword}
-                      onChange={handleSignUpInputChange}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-gray-50"
-                      placeholder="Confirm Password"
-                    />
+                  <div className="flex items-start space-x-3 p-3 bg-green-50 rounded-xl">
+                    <div className="flex-shrink-0 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                      <span className="text-green-600">✨</span>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-800 text-sm mb-1">Fitur Unggulan</h3>
+                      <p className="text-xs text-gray-600">
+                        Progress tracking, badges achievement, dan komunitas belajar.
+                      </p>
+                    </div>
                   </div>
-
-                  <Button
-                    type="submit"
-                    size="lg"
-                    disabled={isLoading}
-                    className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold py-4 px-4 rounded-2xl transition-all duration-300 transform hover:scale-105 disabled:transform-none disabled:opacity-70"
-                  >
-                    {isLoading ? (
-                      <div className="flex items-center justify-center space-x-2">
-                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                        <span>Creating Account...</span>
-                      </div>
-                    ) : (
-                      <span>Sign Up</span>
-                    )}
-                  </Button>
-                </form>
+                </div>
               </div>
             </div>
 
