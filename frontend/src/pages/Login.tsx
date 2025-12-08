@@ -66,7 +66,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-100 flex items-center justify-center p-4 relative">
       {/* Cloud Background */}
-      <CloudBackground />
+      <CloudBackground planeCount={3} planeSize="large"/>
       
       {/* Desktop Layout */}
       <div className="hidden lg:block relative w-full max-w-4xl z-10">
