@@ -15,7 +15,12 @@ export const getAllUser = async () => {
             username: users.username,
         })
         .from(users)
-        .where(eq(users.isActive, true))
+        .where(
+            and(
+                eq(users.isActive, true),
+                eq(users.role, 'student')
+            )
+        )
 
     return result
 }
