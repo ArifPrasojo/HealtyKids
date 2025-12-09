@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Layout from '../components/layouts/Layout';
-import { Button } from '../components/ui/Button';
+import Layout from '../../components/layouts/Layout';
+import { Button } from '../../components/ui/Button';
 
 interface ModuleItem {
   id: number;

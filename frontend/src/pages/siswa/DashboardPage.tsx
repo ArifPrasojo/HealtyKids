@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import Layout from '../components/layouts/Layout';
-import CloudBackground from '../components/layouts/CloudBackground';
+import Layout from '../../components/layouts/Layout';
+import CloudBackground from '../../components/layouts/CloudBackground';
 import { BookOpen, Target, Gamepad } from 'lucide-react';
 
 interface DashboardPageProps {
@@ -32,7 +32,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
       textColor: 'text-green-700',
       iconBg: 'bg-gradient-to-br from-green-400 to-emerald-600',
       accentColor: 'bg-green-500',
-      route: '/QuizHome'
+      route: '/Quiz'
     },
     {
       title: 'MINI GAMES',
