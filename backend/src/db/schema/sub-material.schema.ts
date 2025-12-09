@@ -1,6 +1,7 @@
 import { pgTable, serial, text, varchar, boolean, integer, timestamp } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { materials } from "./material.schema";
+import { progresses } from "./progresses.schema";
 
 export const subMaterial = pgTable("sub_material", {
     id: serial("id").primaryKey(),
@@ -18,9 +19,10 @@ export const subMaterial = pgTable("sub_material", {
     updatedAt: timestamp("updated_at")
 })
 
-export const subMaterialRelation = relations(subMaterial, ({ one }) => ({
+export const subMaterialRelation = relations(subMaterial, ({ one, many }) => ({
     material: one(materials, {
         fields: [subMaterial.materialId],
         references: [materials.id]
-    })
+    }),
+    progresses: many(progresses)
 }))
