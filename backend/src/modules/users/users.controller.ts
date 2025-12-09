@@ -44,3 +44,13 @@ export const update = async (c: Context) => {
         return c.json(response.errorResponse(err), 400)
     }
 }
+
+export const deleteUser = async (c: Context) => {
+    try {
+        const userId = Number(c.req.param('id'))
+        const result = await service.deleteUser(userId)
+        return c.json(response.successResponse("Berhasil menghapus data siswa"))
+    } catch (err) {
+        return c.json(response.errorResponse(err), 400)
+    }
+}

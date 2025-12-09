@@ -140,3 +140,30 @@ export const updateUser = async (userId: number, data: updateUserInput) => {
     return result
 
 }
+
+export const deleteUser = async (userId: number) => {
+    const [existingUser] = await db
+        .select()
+        .from(users)
+        .where(
+            and(
+                eq(users.id, userId),
+                eq(users.role, 'student'),
+                eq(users.isActive, true)
+            )
+        )
+
+    if (existingUser == null) {
+        throw new Error('Gagal menghapus data')
+    }
+
+    const result = await db
+        .update(users)
+        .set({
+            isActive: false,
+            updatedAt: new Date(Date.now())
+        })
+        .where(eq(users.id, existingUser.id))
+
+    return result
+}
