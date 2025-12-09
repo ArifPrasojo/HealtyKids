@@ -1,29 +1,35 @@
 import React, { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
-import DashboardPage from './pages/DashboardPage'
-import Materi from './pages/Materi'
-import Quiz from './pages/Quiz'
-import Result from './pages/Result'
+import DashboardPage from './pages/siswa/DashboardPage'
+import Dashboard from './pages/admin/Dashbboard' // Import Dashboard admin
+import Materi from './pages/siswa/Materi'
+import Quiz from './pages/siswa/Quiz'
+import Result from './pages/siswa/Result'
 import Login from './pages/Login'
 import LoadingScreen from './components/ui/LoadingScreen'
-import HealthMatchingGamePage from './pages/HealthMatchingGamePage'
-import GameCrossword from './pages/GameCrossword'
-import MateriHome from './pages/MateriHome'
-import QuizHome from './pages/QuizHome'
-import GameHome from './pages/GameHome'
+import HealthMatchingGamePage from './pages/siswa/HealthMatchingGamePage'
+import GameCrossword from './pages/siswa/GameCrossword'
+import MateriHome from './pages/siswa/MateriHome'
+import GameHome from './pages/siswa/GameHome'
+import ProtectedRoute from './routes/ProtectedRoute'
+import ManageMateri from './pages/admin/ManageMateri'
+import SubMateri from './pages/admin/Submateri'
 import './App.css'
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userRole, setUserRole] = useState<'admin' | 'siswa' | null>(null); // Tambah state untuk role
 
   useEffect(() => {
     // Check if user is logged in (check localStorage, token, etc.)
     const token = localStorage.getItem('authToken');
     const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+    const role = localStorage.getItem('userRole') as 'admin' | 'siswa' | null; // Ambil role dari localStorage
     
-    if (token && isLoggedIn) {
+    if (token && isLoggedIn && role) {
       setIsAuthenticated(true);
+      setUserRole(role);
     }
   }, []);
 
@@ -31,17 +37,21 @@ function App() {
     setIsLoading(false);
   };
 
-  const handleLogin = () => {
+  const handleLogin = (role: 'admin' | 'siswa') => { // Update handleLogin untuk menerima role
     setIsAuthenticated(true);
+    setUserRole(role);
     localStorage.setItem('isLoggedIn', 'true');
     localStorage.setItem('authToken', 'dummy-token'); // In real app, use actual JWT token
+    localStorage.setItem('userRole', role); // Simpan role
   };
 
   const handleLogout = () => {
     setIsAuthenticated(false);
+    setUserRole(null);
     localStorage.removeItem('isLoggedIn');
     localStorage.removeItem('authToken');
     localStorage.removeItem('userData');
+    localStorage.removeItem('userRole'); // Hapus role
     localStorage.clear(); // Clear all stored data
     sessionStorage.clear();
   };
@@ -76,79 +86,93 @@ function App() {
         <Route 
           path="/dashboard" 
           element={
-            isAuthenticated ? 
-            <DashboardPage onLogout={handleLogout} /> : 
-            <Navigate to="/login" replace />
+            <ProtectedRoute isAuthenticated={isAuthenticated} userRole={userRole}>
+              {userRole === 'admin' ? 
+                <Dashboard onLogout={handleLogout} /> : 
+                <DashboardPage onLogout={handleLogout} />
+              }
+            </ProtectedRoute>
+          } 
+        />
+        
+        <Route 
+        path="/admin/submateri"
+        element={
+          <ProtectedRoute isAuthenticated={isAuthenticated} userRole={userRole}>
+            {userRole === 'admin' ? <SubMateri /> : <Navigate to="/dashboard" replace />}
+          </ProtectedRoute>
+        }
+        />
+
+        <Route 
+          path="/admin/managemateri" 
+          element={
+            <ProtectedRoute isAuthenticated={isAuthenticated} userRole={userRole}>
+              {userRole === 'admin' ? <ManageMateri /> : <Navigate to="/dashboard" replace />}
+            </ProtectedRoute>
           } 
         />
         
         <Route 
           path="/materi" 
           element={
-            isAuthenticated ? 
-            <Materi /> :
-            <Navigate to="/login" replace />
+            <ProtectedRoute isAuthenticated={isAuthenticated}>
+              <Materi />
+            </ProtectedRoute>
           } 
         />
         
         <Route 
           path="/quiz" 
           element={
-            isAuthenticated ? <Quiz /> :
-            <Navigate to="/login" replace />
+            <ProtectedRoute isAuthenticated={isAuthenticated}>
+              <Quiz />
+            </ProtectedRoute>
           } 
         />
         
         <Route 
           path="/result" 
           element={
-            isAuthenticated ? <Result /> :
-            <Navigate to="/login" replace />
+            <ProtectedRoute isAuthenticated={isAuthenticated}>
+              <Result />
+            </ProtectedRoute>
           } 
         />
         
         <Route 
           path="/game/matching" 
           element={
-            isAuthenticated ? 
-            <HealthMatchingGamePage /> :
-            <Navigate to="/login" replace />
+            <ProtectedRoute isAuthenticated={isAuthenticated}>
+              <HealthMatchingGamePage />
+            </ProtectedRoute>
           } 
         />
         
         <Route 
           path="/game/crossword" 
           element={
-            isAuthenticated ? 
-            <GameCrossword /> :
-            <Navigate to="/login" replace />
+            <ProtectedRoute isAuthenticated={isAuthenticated}>
+              <GameCrossword />
+            </ProtectedRoute>
           } 
         />
 
         <Route 
           path="/materihome" 
           element={
-            isAuthenticated ? 
-            <MateriHome onLogout={handleLogout} /> : 
-            <Navigate to="/login" replace />
-          } 
-        />
-
-        <Route 
-          path="/quizhome" 
-          element={
-            isAuthenticated ? 
-            <QuizHome onLogout={handleLogout} /> : 
-            <Navigate to="/login" replace />
+            <ProtectedRoute isAuthenticated={isAuthenticated}>
+              <MateriHome onLogout={handleLogout} />
+            </ProtectedRoute>
           } 
         />
 
         <Route 
           path="/gamehome" 
           element={
-            isAuthenticated ? 
-            <GameHome onLogout={handleLogout} /> : 
-            <Navigate to="/login" replace />
+            <ProtectedRoute isAuthenticated={isAuthenticated}>
+              <GameHome onLogout={handleLogout} />
+            </ProtectedRoute>
           } 
         />
 
