@@ -5,12 +5,6 @@ import { subMaterial } from './sub-material.schema'
 
 export const materials = pgTable("materials", {
     id: serial("id").primaryKey(),
-    teacherId: integer("teacher_id")
-        .notNull()
-        .references(() => users.id, {
-            onDelete: "cascade",
-            onUpdate: "cascade"
-        }),
     title: varchar("title").notNull(),
     description: text("description"),
     isDelete: boolean("is_delete").notNull().default(false),
@@ -18,10 +12,6 @@ export const materials = pgTable("materials", {
     updatedAt: timestamp("updated_at")
 });
 
-export const materialRelation = relations(materials, ({ one, many }) => ({
-    teacher: one(users, {
-        fields: [materials.teacherId],
-        references: [users.id]
-    }),
+export const materialRelation = relations(materials, ({ many }) => ({
     subMaterial: many(subMaterial)
 }))

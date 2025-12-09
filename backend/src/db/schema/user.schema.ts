@@ -17,6 +17,5 @@ export const users = pgTable("users", {
 })
 
 export const userRelation = relations(users, ({ many }) => ({
-    materials: many(materials),
     progresses: many(progresses)
 }))
