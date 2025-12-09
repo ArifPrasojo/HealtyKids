@@ -39,7 +39,75 @@ export const createUser = async (data: createUserInput) => {
             username: username,
             password: hashedPassword
         })
-        .returning()
+        .returning({
+            id: users.id,
+            name: users.name,
+            username: users.username,
+            role: users.role,
+            createdAt: users.createdAt
+        })
 
     return result
+}
+
+export const updateUser = async (userId: number, data: updateUserInput) => {
+    const [existingUser] = await db
+        .select()
+        .from(users)
+        .where(
+            and(
+                eq(users.id, userId),
+                eq(users.role, 'student'),
+                eq(users.isActive, true)
+            )
+        )
+
+    if (existingUser == null) {
+        throw new Error('Gagal melakukan update data')
+    }
+
+    const { name, username, password } = data
+    const [existingUsername] = await db
+        .select()
+        .from(users)
+        .where(
+            and(
+                eq(users.username, username),
+                ne(users.id, existingUser.id)
+            )
+        )
+
+    if (existingUsername) {
+        throw new Error('Username sudah digunakan')
+    }
+
+    const userUpdateData: Partial<updateUserInput> = {
+        name,
+        username
+    }
+
+    if (password && password.trim() !== '') {
+        const hashedPassword = await hash(password, 10)
+        userUpdateData.password = hashedPassword
+    }
+
+    const result = await db
+        .update(users)
+        .set({
+            ...userUpdateData,
+            updatedAt: new Date(Date.now())
+        })
+        .where(
+            and(
+                eq(users.id, userId),
+                eq(users.isActive, true)
+            )
+        )
+        .returning({
+            name: users.name,
+            username: users.username
+        })
+
+    return result
+
 }

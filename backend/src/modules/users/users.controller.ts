@@ -22,3 +22,15 @@ export const create = async (c: Context) => {
         return c.json(response.errorResponse(err), 400)
     }
 }
+
+export const update = async (c: Context) => {
+    try {
+        const body = await c.req.json()
+        const data = updateUserSchema.parse(body)
+        const userId = Number(c.req.param('id'))
+        const result = await service.updateUser(userId, data)
+        return c.json(response.successResponse(result))
+    } catch (err) {
+        return c.json(response.errorResponse(err), 400)
+    }
+}

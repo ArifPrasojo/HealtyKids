@@ -5,5 +5,6 @@ const userAdminRoute = new Hono()
 
 userAdminRoute.get('/', controller.getAll)
 userAdminRoute.post('/', controller.create)
+userAdminRoute.put('/:id{[0-9]+}', controller.update)
 
 export { userAdminRoute }
