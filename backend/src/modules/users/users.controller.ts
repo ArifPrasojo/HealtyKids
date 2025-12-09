@@ -12,6 +12,16 @@ export const getAll = async (c: Context) => {
     }
 }
 
+export const getById = async (c: Context) => {
+    try {
+        const userId = Number(c.req.param('id'))
+        const result = await service.getUserById(userId)
+        return c.json(response.successResponse(result))
+    } catch (err) {
+        return c.json(response.errorResponse(err), 400)
+    }
+}
+
 export const create = async (c: Context) => {
     try {
         const body = await c.req.json()

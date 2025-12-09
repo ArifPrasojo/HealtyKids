@@ -20,6 +20,30 @@ export const getAllUser = async () => {
     return result
 }
 
+export const getUserById = async (userId: number) => {
+    const [existingUser] = await db
+        .select({
+            id: users.id,
+            name: users.name,
+            username: users.username,
+            createdAt: users.createdAt
+        })
+        .from(users)
+        .where(
+            and(
+                eq(users.id, userId),
+                eq(users.role, 'student'),
+                eq(users.isActive, true)
+            )
+        )
+
+    if (existingUser == null) {
+        throw new Error('Gagal melakukan update data')
+    }
+
+    return existingUser
+}
+
 export const createUser = async (data: createUserInput) => {
     const { name, username, password } = data
     const [existingUsername] = await db
