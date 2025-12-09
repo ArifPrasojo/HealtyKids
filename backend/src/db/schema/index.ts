@@ -1,6 +1,7 @@
 export * from './user.schema'
 export * from './material.schema'
 export * from './sub-material.schema'
+export * from './progresses.schema'
 export * from './quiz.schema'
 export * from './quiz-question.schema'
 export * from './question-answer.schema'
