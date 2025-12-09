@@ -11,8 +11,10 @@ type updateUserInput = z.infer<typeof updateUserSchema>
 export const getAllUser = async () => {
     const result = await db
         .select({
+            id: users.id,
             name: users.name,
             username: users.username,
+            createdAt: users.createdAt
         })
         .from(users)
         .where(
