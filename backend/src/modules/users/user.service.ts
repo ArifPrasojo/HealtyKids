@@ -8,6 +8,18 @@ import { createUserSchema, updateUserSchema } from '@/modules/users/users.valida
 type createUserInput = z.infer<typeof createUserSchema>
 type updateUserInput = z.infer<typeof updateUserSchema>
 
+export const getAllUser = async () => {
+    const result = await db
+        .select({
+            name: users.name,
+            username: users.username,
+        })
+        .from(users)
+        .where(eq(users.isActive, true))
+
+    return result
+}
+
 export const createUser = async (data: createUserInput) => {
     const { name, username, password } = data
     const [existingUsername] = await db

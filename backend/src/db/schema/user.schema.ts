@@ -8,7 +8,7 @@ export const roleEnum = pgEnum("role", ["student", "teacher"])
 export const users = pgTable("users", {
     id: serial("id").primaryKey(),
     name: varchar("name").notNull(),
-    username: char("username", { length: 30 }).unique(),
+    username: varchar("username", { length: 30 }).unique(),
     password: varchar("password").notNull(),
     role: roleEnum("role").default('student').notNull(),
     isActive: boolean("is_active").notNull().default(true),
