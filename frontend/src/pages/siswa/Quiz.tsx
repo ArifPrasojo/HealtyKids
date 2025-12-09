@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom'; // Tambah import
-import { Button } from '../components/ui/Button';
-import CloudBackground from '../components/layouts/CloudBackground';
+import { Button } from '../../components/ui/Button';
+import CloudBackground from '../../components/layouts/CloudBackground';
 
 interface QuizQuestion {
   id: number;
@@ -20,6 +20,25 @@ const Quiz: React.FC = () => {
   const [showResults, setShowResults] = useState(false);
   const [score, setScore] = useState(0);
   const [totalXP, setTotalXP] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(600); // 10 menit dalam detik
+
+  // Timer effect
+  useEffect(() => {
+    if (timeLeft > 0) {
+      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
+      return () => clearTimeout(timer);
+    } else {
+      // Waktu habis, submit quiz otomatis
+      handleSubmitQuiz();
+    }
+  }, [timeLeft]);
+
+  // Format waktu ke MM:SS
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
 
   const questions: QuizQuestion[] = [
     {
@@ -194,7 +213,8 @@ const Quiz: React.FC = () => {
       incorrectAnswers: questions.length - correctCount,
       totalXP: xpEarned,
       selectedAnswers,
-      questions
+      questions,
+      timeTaken: 600 - timeLeft // Waktu yang digunakan
     };
 
     // Simpan ke localStorage
@@ -227,9 +247,22 @@ const Quiz: React.FC = () => {
                   {currentQuestion + 1}/{questions.length}
                 </div>
               </div>
-              <p className="text-[10px] md:text-xs text-gray-500 mt-1">
-                {selectedAnswers.filter(a => a !== -1).length} dari {questions.length} soal dijawab
-              </p>
+              
+              {/* Timer dan Soal Dijawab di Samping */}
+              <div className="flex items-center justify-between mt-1">
+                <p className="text-[10px] md:text-xs text-gray-500">
+                  {selectedAnswers.filter(a => a !== -1).length} dari {questions.length} soal dijawab
+                </p>
+                <div className="flex items-center space-x-2">
+                  <span className="text-xs md:text-sm font-bold text-gray-700">Waktu Tersisa:</span>
+                  <div className={`text-sm md:text-lg font-bold px-2 py-1 rounded-lg ${
+                    timeLeft > 300 ? 'text-green-600 bg-green-50' : 
+                    timeLeft > 60 ? 'text-yellow-600 bg-yellow-50' : 'text-red-600 bg-red-50'
+                  }`}>
+                    {formatTime(timeLeft)}
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Question Navigation */}
