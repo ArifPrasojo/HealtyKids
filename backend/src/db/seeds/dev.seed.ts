@@ -1,5 +1,5 @@
-import db from "../connection";
-import { users } from "../schema";
+import { db } from "@/db/connection";
+import { users } from "@/db/schema";
 import { hash } from 'bcryptjs'
 
 export async function runSeed() {
