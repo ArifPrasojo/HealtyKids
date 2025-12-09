@@ -1,8 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import HealthCrossword from '../components/games/HealthCrossword';
-import { Button } from '../components/ui/Button';
-import CloudBackground from '../components/layouts/CloudBackground';
+import HealthCrossword from '../../components/games/HealthCrossword';
+import { Button } from '../../components/ui/Button';
+import CloudBackground from '../../components/layouts/CloudBackground';
 
 const GameCrossword: React.FC = () => {
   const navigate = useNavigate();

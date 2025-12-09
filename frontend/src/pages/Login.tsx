@@ -4,7 +4,7 @@ import { Button } from '../components/ui/Button';
 import CloudBackground from '../components/layouts/CloudBackground';
 
 interface LoginProps {
-  onLogin?: () => void;
+  onLogin?: (role: 'admin' | 'siswa') => void;
 }
 
 const Login: React.FC<LoginProps> = ({ onLogin }) => {
@@ -14,6 +14,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [signInData, setSignInData] = useState({
     email: '',
     password: ''
+    // Hapus field role
   });
   
   const [isLoading, setIsLoading] = useState(false);
@@ -26,27 +27,47 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
       ...prev,
       [name]: value
     }));
-    if (error) setError('');
   };
 
   const handleSignInSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
-    
-    if (!signInData.email || !signInData.password) {
-      setError('Please fill in all fields');
-      setIsLoading(false);
-      return;
-    }
 
-    setTimeout(() => {
-      setIsLoading(false);
-      if (onLogin) {
-        onLogin();
+    try {
+      // Simulasi login - ganti dengan API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Dummy authentication logic - otomatis deteksi role berdasarkan email
+      let role: 'admin' | 'siswa';
+      if (signInData.email.includes('admin') || signInData.email === 'admin@healthykids.com') {
+        role = 'admin';
+      } else {
+        role = 'siswa';
       }
+
+      // Validasi credentials
+      const validCredentials = [
+        { email: 'admin@healthykids.com', password: 'admin123', role: 'admin' as const },
+        { email: 'siswa@healthykids.com', password: 'siswa123', role: 'siswa' as const },
+        // Tambah lebih banyak jika perlu
+      ];
+
+      const isValid = validCredentials.some(
+        cred => cred.email === signInData.email && cred.password === signInData.password
+      );
+
+      if (!isValid) {
+        throw new Error('Email atau password salah');
+      }
+
+      onLogin?.(role);
       navigate('/dashboard');
-    }, 1500);
+    } catch (error: any) {
+      setError(error.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const switchToAbout = () => {
@@ -88,77 +109,67 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 or use your email password
               </div>
 
-              <form onSubmit={handleSignInSubmit} className="space-y-4">
-                {error && (
-                  <div className="bg-red-50 border border-red-200 rounded-2xl p-3">
-                    <div className="flex items-center">
-                      <span className="text-red-500 mr-2 text-sm">⚠️</span>
-                      <span className="text-red-700 text-sm">{error}</span>
-                    </div>
-                  </div>
-                )}
-                
+              <form onSubmit={handleSignInSubmit} className="space-y-4 md:space-y-6">
+                {/* Email Input */}
                 <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                    Email
+                  </label>
                   <input
-                    name="email"
                     type="email"
-                    required
+                    id="email"
+                    name="email"
                     value={signInData.email}
                     onChange={handleSignInInputChange}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white"
-                    placeholder="Email"
-                  />
-                </div>
-
-                <div className="relative">
-                  <input
-                    name="password"
-                    type={showPassword ? "text" : "password"}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+                    placeholder="Masukkan email Anda"
                     required
-                    value={signInData.password}
-                    onChange={handleSignInInputChange}
-                    className="w-full px-4 py-3 pr-12 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white"
-                    placeholder="Password"
                   />
-                  <button
-                    type="button"
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                    onClick={togglePasswordVisibility}
-                  >
-                    <svg className="h-5 w-5 text-gray-400 hover:text-gray-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      {showPassword ? (
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
-                      ) : (
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      )}
-                    </svg>
-                  </button>
                 </div>
 
-                <div className="text-center">
-                  <button
-                    type="button"
-                    className="text-sm text-green-600 hover:text-green-500 transition-colors"
-                  >
-                  
-                  </button>
+                {/* Password Input */}
+                <div>
+                  <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                    Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      id="password"
+                      name="password"
+                      value={signInData.password}
+                      onChange={handleSignInInputChange}
+                      className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+                      placeholder="Masukkan password Anda"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={togglePasswordVisibility}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    >
+                      {showPassword ? '🙈' : '👁️'}
+                    </button>
+                  </div>
                 </div>
 
-                <Button
+                {/* Hapus Role Selection */}
+
+                {/* Error Message */}
+                {error && (
+                  <div className="text-red-600 text-sm text-center bg-red-50 p-3 rounded-lg">
+                    {error}
+                  </div>
+                )}
+
+                {/* Submit Button */}
+                <button
                   type="submit"
-                  size="lg"
                   disabled={isLoading}
-                  className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold py-3 px-8 rounded-2xl transition-all duration-300 transform hover:scale-105 disabled:transform-none disabled:opacity-70"
+                  className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                 >
-                  {isLoading ? (
-                    <div className="flex items-center justify-center space-x-2">
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      <span>SIGNING IN...</span>
-                    </div>
-                  ) : (
-                    <span>SIGN IN</span>
-                  )}
-                </Button>
+                  {isLoading ? 'Sedang Masuk...' : 'Masuk'}
+                </button>
               </form>
             </div>
           </div>
