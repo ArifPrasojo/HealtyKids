@@ -1,6 +1,7 @@
 import { pgTable, serial, varchar, boolean, timestamp, char, pgEnum } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { materials } from "./material.schema";
+import { progresses } from "./progresses.schema";
 
 export const roleEnum = pgEnum("role", ["student", "teacher"])
 
@@ -16,5 +17,6 @@ export const users = pgTable("users", {
 })
 
 export const userRelation = relations(users, ({ many }) => ({
-    materials: many(materials)
+    materials: many(materials),
+    progresses: many(progresses)
 }))

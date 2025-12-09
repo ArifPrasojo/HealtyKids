@@ -10,6 +10,7 @@ const tables = [
   "question_answer",
   "quiz_question",
   "quiz",
+  "progresses",
   "sub_material",
   "materials",
   "users"
