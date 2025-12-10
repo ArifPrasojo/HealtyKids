@@ -11,7 +11,7 @@ export const subMaterial = pgTable("sub_material", {
             onDelete: "cascade",
             onUpdate: "cascade"
         }),
-    title: varchar("title").notNull(),
+    title: varchar("title", { length: 100 }).notNull(),
     videoUrl: text("video_url"),
     content: text("content").notNull(),
     isDelete: boolean("is_delete").notNull().default(false),

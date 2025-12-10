@@ -1,27 +1,16 @@
 import { pgTable, serial, text, varchar, integer, boolean, timestamp } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
-import { users } from './user.schema'
 import { subMaterial } from './sub-material.schema'
 
 export const materials = pgTable("materials", {
     id: serial("id").primaryKey(),
-    teacherId: integer("teacher_id")
-        .notNull()
-        .references(() => users.id, {
-            onDelete: "cascade",
-            onUpdate: "cascade"
-        }),
-    title: varchar("title").notNull(),
-    description: text("description"),
+    title: varchar("title", { length: 100 }).notNull(),
+    description: varchar("description", { length: 150 }),
     isDelete: boolean("is_delete").notNull().default(false),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at")
 });
 
-export const materialRelation = relations(materials, ({ one, many }) => ({
-    teacher: one(users, {
-        fields: [materials.teacherId],
-        references: [users.id]
-    }),
+export const materialRelation = relations(materials, ({ many }) => ({
     subMaterial: many(subMaterial)
 }))
