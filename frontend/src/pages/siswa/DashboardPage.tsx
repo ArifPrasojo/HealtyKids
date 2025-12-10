@@ -75,7 +75,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
                   <span className="relative">
                     di{' '}
                     <span className="bg-gradient-to-t from-green-500 via-teal-400 to-slate-100 bg-clip-text text-transparent">
-                      HealthyKids
+                      Sexophone
                     </span>
                     <svg className="absolute -bottom-1 md:-bottom-2 left-0 w-full h-2 md:h-3" viewBox="0 0 200 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path 
@@ -101,14 +101,14 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
             {/* Description */}
             <div className="max-w-3xl mx-auto space-y-4 md:space-y-20">
               <p className="text-gray-600 text-base md:text-xl lg:text-2xl leading-relaxed font-light px-4">
-                Belajar dengan cara yang{' '}
+                Sex{' '} 
                 <span className="relative inline-block">
-                  <span className="relative z-10 font-bold text-indigo-600">menyenangkan</span>
+                  <span className="relative z-10 font-bold text-indigo-600">Education</span>
                   <span className="absolute bottom-1 left-0 w-full h-2 md:h-3 bg-indigo-200/50 -rotate-1"></span>
                 </span>
-                {' '}dan{' '}
+                {' '}On{' '}
                 <span className="relative inline-block">
-                  <span className="relative z-10 font-bold text-purple-600">interaktif</span>
+                  <span className="relative z-10 font-bold text-purple-600">Phone</span>
                   <span className="absolute bottom-1 left-0 w-full h-2 md:h-3 bg-purple-200/50 rotate-1"></span>
                 </span>
               </p>

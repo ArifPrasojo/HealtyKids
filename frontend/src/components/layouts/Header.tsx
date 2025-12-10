@@ -18,9 +18,7 @@ const Header: React.FC<HeaderProps> = ({ onLogout, hideLogoMobile = false }) => 
             alt="HealthyKids Logo"
             className="w-10 h-10 object-contain rounded-xl"
           />
-          <span className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent hidden sm:block">
-            HealthyKids
-          </span>
+
         </div>
       )}
 
@@ -32,9 +30,6 @@ const Header: React.FC<HeaderProps> = ({ onLogout, hideLogoMobile = false }) => 
             alt="HealthyKids Logo"
             className="w-10 h-10 object-contain rounded-xl"
           />
-          <span className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-            HealthyKids
-          </span>
         </div>
       )}
 
