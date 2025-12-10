@@ -33,32 +33,6 @@ const Materi: React.FC = () => {
         { id: 3, title: 'Genre-Genre Game', duration: '6 min', completed: false, emoji: '🎮', description: 'Mengenal genre game' }
       ]
     },
-    {
-      id: 2,
-      title: 'Minggu 2: Tools & Software',
-      icon: '⚙️',
-      items: [
-        { id: 4, title: 'Pengenalan Engine', duration: '10 min', completed: false, emoji: '⚙️', description: 'Unity / Godot overview' },
-        { id: 5, title: 'Editor & Workflow', duration: '12 min', completed: false, emoji: '🛠️', description: 'Setup workflow' }
-      ]
-    },
-    {
-      id: 3,
-      title: 'Minggu 3: Game Art & Design',
-      icon: '🎨',
-      items: [
-        { id: 6, title: 'Pixel Art Basics', duration: '9 min', completed: false, emoji: '🖌️', description: 'Dasar pixel art' },
-        { id: 7, title: 'Level Design', duration: '11 min', completed: false, emoji: '🗺️', description: 'Mendesain level yang menarik' }
-      ]
-    },
-    {
-      id: 4,
-      title: 'Minggu 4: Programming Basics',
-      icon: '💻',
-      items: [
-        { id: 8, title: 'Logika & Algoritma', duration: '14 min', completed: false, emoji: '💡', description: 'Dasar logika pemrograman' },
-      ]
-    }
   ];
 
   // flat list for indexing content area
