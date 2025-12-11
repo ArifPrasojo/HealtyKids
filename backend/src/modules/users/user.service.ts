@@ -2,6 +2,7 @@ import z from "zod";
 import { db } from "@/db"
 import { users } from "@/db/schema"
 import { eq, and, ne, sql } from 'drizzle-orm'
+import { HttpError } from '@/utils/httpError'
 import { hash } from 'bcryptjs'
 import { createUserSchema, updateUserSchema } from '@/modules/users/users.validator'
 
@@ -45,7 +46,7 @@ export const getUserById = async (userId: number) => {
         )
 
     if (existingUser == null) {
-        throw new Error('Gagal melakukan update data')
+        throw new HttpError(404, 'User tidak ditemukan')
     }
 
     return existingUser
@@ -59,11 +60,11 @@ export const createUser = async (data: createUserInput) => {
         .where(eq(users.username, username))
 
     if (existingUsername) {
-        throw new Error('Username sudah digunakan')
+        throw new HttpError(409, 'Username sudah digunakan')
     }
 
     const hashedPassword = await hash(password, 10)
-    const result = await db
+    const [result] = await db
         .insert(users)
         .values({
             name: name,
@@ -94,7 +95,7 @@ export const updateUser = async (userId: number, data: updateUserInput) => {
         )
 
     if (existingUser == null) {
-        throw new Error('Gagal melakukan update data')
+        throw new HttpError(404, 'User tidak ditemukan')
     }
 
     const { name, username, password } = data
@@ -109,7 +110,7 @@ export const updateUser = async (userId: number, data: updateUserInput) => {
         )
 
     if (existingUsername) {
-        throw new Error('Username sudah digunakan')
+        throw new HttpError(409, 'Username sudah digunakan')
     }
 
     const userUpdateData: Partial<updateUserInput> = {
@@ -122,7 +123,7 @@ export const updateUser = async (userId: number, data: updateUserInput) => {
         userUpdateData.password = hashedPassword
     }
 
-    const result = await db
+    const [result] = await db
         .update(users)
         .set({
             ...userUpdateData,
@@ -156,7 +157,7 @@ export const deleteUser = async (userId: number) => {
         )
 
     if (existingUser == null) {
-        throw new Error('Gagal menghapus data')
+        throw new HttpError(404, 'User tidak ditemukan')
     }
 
     const result = await db
