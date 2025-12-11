@@ -17,3 +17,17 @@ export const getAllMaterial = async () => {
 
     return result
 }
+
+export const getMaterialById = async (materialId: number) => {
+    const [result] = await db
+    .select()
+    .from(materials)
+    .where(
+        and(
+            eq(materials.id, materialId),
+            eq(materials.isDelete, false)
+        )
+    )
+
+    return result
+}
