@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react'; // Pastikan useState diimpor
 import { useNavigate } from 'react-router-dom';
 import Layout from '../../components/layouts/Layout';
 import CloudBackground from '../../components/layouts/CloudBackground';
 import { BookOpen, Target, Gamepad } from 'lucide-react';
+
 
 interface DashboardPageProps {
   onLogout?: () => void;
@@ -10,6 +11,8 @@ interface DashboardPageProps {
 
 const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
   const navigate = useNavigate();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [pendingRoute, setPendingRoute] = useState<string | null>(null);
 
   const menuItems = [
     {
@@ -48,7 +51,25 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
   ];
 
   const handleMenuClick = (route: string) => {
-    navigate(route);
+    if (route === '/Quiz') {
+      setPendingRoute(route);
+      setIsModalOpen(true);
+    } else {
+      navigate(route);
+    }
+  };
+
+  const handleConfirm = () => {
+    if (pendingRoute) {
+      navigate(pendingRoute);
+    }
+    setIsModalOpen(false);
+    setPendingRoute(null);
+  };
+
+  const handleCancel = () => {
+    setIsModalOpen(false);
+    setPendingRoute(null);
   };
 
   return (
@@ -170,6 +191,35 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
         {/* Bottom decoration */}
         <div className="h-12 md:h-16 bg-gradient-to-t from-green-100 to-transparent"></div>
       </div>
+
+      {/* Custom Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-white/50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-3xl shadow-2xl p-6 md:p-8 max-w-md w-full mx-4 animate__animated animate__zoomIn">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-3xl">❓</span>
+              </div>
+              <h2 className="text-2xl font-bold text-gray-800 mb-2">Konfirmasi</h2>
+              <p className="text-gray-600 mb-6">Apakah Anda yakin ingin mengerjakan quiz ini dengan baik dan jujur?</p>
+              <div className="flex gap-4">
+                <button
+                  onClick={handleCancel}
+                  className="flex-1 bg-red-500 text-white py-3 px-6 rounded-2xl font-semibold hover:bg-red-600 transition-colors"
+                >
+                  Tidak, Kembali
+                </button>
+                <button
+                  onClick={handleConfirm}
+                  className="flex-1 bg-green-500 text-white py-3 px-6 rounded-2xl font-semibold hover:bg-green-600 transition-colors"
+                >
+                  Ya, Mulai Quiz
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 };
