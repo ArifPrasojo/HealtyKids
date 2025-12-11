@@ -13,7 +13,7 @@ import MateriHome from './pages/siswa/MateriHome'
 import GameHome from './pages/siswa/GameHome'
 import ProtectedRoute from './routes/ProtectedRoute'
 import ManageMateri from './pages/admin/ManageMateri'
-import SubMateri from './pages/admin/Submateri'
+import SubMateri from './pages/admin/SubMateri'
 import './App.css'
 
 function App() {
