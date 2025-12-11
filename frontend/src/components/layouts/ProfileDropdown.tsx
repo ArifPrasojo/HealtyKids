@@ -118,10 +118,6 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
               )}
               <div className="flex-1">
                 <h3 className="font-semibold text-gray-800 text-sm">{userName}</h3>
-                <p className="text-gray-500 text-xs flex items-center">
-                  <span className="mr-1">🎓</span>
-                  Kelas {userClass}
-                </p>
                 <div className="flex items-center mt-1">
                   <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
                   <span className="text-xs text-green-600 font-medium">Online</span>
@@ -147,34 +143,6 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
                   <div className="text-xs text-gray-500">Lihat dan edit profil</div>
                 </div>
               </button>
-
-              <button className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors flex items-center space-x-3">
-                <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                  <span className="text-purple-600">⚙️</span>
-                </div>
-                <div>
-                  <div className="font-medium">Pengaturan</div>
-                  <div className="text-xs text-gray-500">Preferensi aplikasi</div>
-                </div>
-              </button>
-            </div>
-
-            {/* Progress Section */}
-            <div className="px-4 py-2 border-t border-gray-100">
-              <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                Progress Belajar
-              </div>
-              
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-3">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-700">Level Progress</span>
-                  <span className="text-sm font-bold text-indigo-600">65%</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div className="bg-gradient-to-r from-indigo-500 to-purple-600 h-2 rounded-full" style={{ width: '65%' }}></div>
-                </div>
-                <p className="text-xs text-gray-600 mt-1">3 dari 5 materi selesai</p>
-              </div>
             </div>
 
             {/* Logout Section */}
