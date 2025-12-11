@@ -45,7 +45,7 @@ export const getUserById = async (userId: number) => {
         )
 
     if (existingUser == null) {
-        throw new Error('Gagal melakukan update data')
+        throw new Error('Gagal menampilkan data')
     }
 
     return existingUser
@@ -63,7 +63,7 @@ export const createUser = async (data: createUserInput) => {
     }
 
     const hashedPassword = await hash(password, 10)
-    const result = await db
+    const [result] = await db
         .insert(users)
         .values({
             name: name,
@@ -122,7 +122,7 @@ export const updateUser = async (userId: number, data: updateUserInput) => {
         userUpdateData.password = hashedPassword
     }
 
-    const result = await db
+    const [result] = await db
         .update(users)
         .set({
             ...userUpdateData,
