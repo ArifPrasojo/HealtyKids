@@ -181,30 +181,30 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           }`}>
             <div className="w-full max-w-sm mx-auto">
               <div className="mb-6">
-                <h1 className="text-3xl font-bold text-gray-800 mb-4">Tentang Kami</h1>
+                <h1 className="text-3xl font-bold text-gray-800 mb-4">Tentang Sexophone</h1>
               </div>
 
               <div className="space-y-4 text-gray-700">
                 <div className="flex items-start space-x-3">
                   <div className="flex-shrink-0 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mt-1">
-                    <span className="text-green-600 text-lg">🌱</span>
+                    <span className="text-green-600 text-lg">📱</span>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-800 mb-1">Platform Edukasi</h3>
+                    <h3 className="font-semibold text-gray-800 mb-1">Sex Education On Phone</h3>
                     <p className="text-sm text-gray-600">
-                      HealthyKids adalah platform pembelajaran kesehatan yang dirancang khusus untuk remaja.
+                      Platform pendidikan kesehatan reproduksi dan seksualitas yang aman dan mudah diakses.
                     </p>
                   </div>
                 </div>
 
                 <div className="flex items-start space-x-3">
                   <div className="flex-shrink-0 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mt-1">
-                    <span className="text-green-600 text-lg">📚</span>
+                    <span className="text-green-600 text-lg">🎓</span>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-800 mb-1">Konten Interaktif</h3>
+                    <h3 className="font-semibold text-gray-800 mb-1">Materi Edukatif</h3>
                     <p className="text-sm text-gray-600">
-                      Menyediakan materi kesehatan, quiz interaktif, dan video edukatif yang mudah dipahami.
+                      Informasi akurat tentang pubertas, kesehatan reproduksi, dan hubungan sehat untuk remaja.
                     </p>
                   </div>
                 </div>
@@ -216,19 +216,19 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                   <div>
                     <h3 className="font-semibold text-gray-800 mb-1">Tujuan Kami</h3>
                     <p className="text-sm text-gray-600">
-                      Membantu remaja memahami pentingnya kesehatan dan pola hidup sehat sejak dini.
+                      Memberikan pengetahuan yang tepat agar remaja dapat membuat keputusan yang bijak.
                     </p>
                   </div>
                 </div>
 
                 <div className="flex items-start space-x-3">
                   <div className="flex-shrink-0 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mt-1">
-                    <span className="text-green-600 text-lg">✨</span>
+                    <span className="text-green-600 text-lg">🔒</span>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-800 mb-1">Fitur Unggulan</h3>
+                    <h3 className="font-semibold text-gray-800 mb-1">Aman & Terpercaya</h3>
                     <p className="text-sm text-gray-600">
-                      Progress tracking, badges achievement, dan komunitas belajar yang supportif.
+                      Konten berbasis sains, dikurasi oleh ahli, dan disampaikan dengan pendekatan yang ramah remaja.
                     </p>
                   </div>
                 </div>
@@ -278,9 +278,9 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 <div className={`absolute inset-0 transition-all duration-1000 ease-in-out ${
                   showAbout ? 'opacity-0 pointer-events-none transform -translate-x-8' : 'opacity-100 pointer-events-auto transform translate-x-0'
                 }`}>
-                  <h2 className="text-3xl font-bold mb-4">Tentang Kami</h2>
+                  <h2 className="text-3xl font-bold mb-4">Tentang Sexophone</h2>
                   <p className="text-green-100 text-base mb-8 leading-relaxed">
-                    Kenali lebih dekat platform pembelajaran kesehatan untuk remaja
+                    Platform pendidikan seksualitas yang aman dan terpercaya untuk remaja Indonesia
                   </p>
                   <button
                     onClick={switchToAbout}
@@ -449,24 +449,24 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 <div className="space-y-3">
                   <div className="flex items-start space-x-3 p-3 bg-green-50 rounded-xl">
                     <div className="flex-shrink-0 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                      <span className="text-green-600">🌱</span>
+                      <span className="text-green-600">📱</span>
                     </div>
                     <div>
-                      <h3 className="font-semibold text-gray-800 text-sm mb-1">Platform Edukasi</h3>
+                      <h3 className="font-semibold text-gray-800 text-sm mb-1">Sex Education On Phone</h3>
                       <p className="text-xs text-gray-600">
-                        Platform pembelajaran kesehatan dirancang khusus untuk remaja.
+                        Pendidikan kesehatan reproduksi yang aman dan mudah diakses di ponselmu.
                       </p>
                     </div>
                   </div>
 
                   <div className="flex items-start space-x-3 p-3 bg-green-50 rounded-xl">
                     <div className="flex-shrink-0 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                      <span className="text-green-600">📚</span>
+                      <span className="text-green-600">🎓</span>
                     </div>
                     <div>
-                      <h3 className="font-semibold text-gray-800 text-sm mb-1">Konten Interaktif</h3>
+                      <h3 className="font-semibold text-gray-800 text-sm mb-1">Materi Edukatif</h3>
                       <p className="text-xs text-gray-600">
-                        Materi kesehatan, quiz interaktif, dan video edukatif yang mudah dipahami.
+                        Informasi akurat tentang pubertas, kesehatan reproduksi, dan hubungan sehat.
                       </p>
                     </div>
                   </div>
@@ -478,19 +478,19 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                     <div>
                       <h3 className="font-semibold text-gray-800 text-sm mb-1">Tujuan Kami</h3>
                       <p className="text-xs text-gray-600">
-                        Membantu remaja memahami pentingnya kesehatan dan pola hidup sehat.
+                        Memberikan pengetahuan yang tepat agar remaja dapat membuat keputusan bijak.
                       </p>
                     </div>
                   </div>
 
                   <div className="flex items-start space-x-3 p-3 bg-green-50 rounded-xl">
                     <div className="flex-shrink-0 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                      <span className="text-green-600">✨</span>
+                      <span className="text-green-600">🔒</span>
                     </div>
                     <div>
-                      <h3 className="font-semibold text-gray-800 text-sm mb-1">Fitur Unggulan</h3>
+                      <h3 className="font-semibold text-gray-800 text-sm mb-1">Aman & Terpercaya</h3>
                       <p className="text-xs text-gray-600">
-                        Progress tracking, badges achievement, dan komunitas belajar.
+                        Konten berbasis sains, dikurasi ahli, dan ramah remaja.
                       </p>
                     </div>
                   </div>
@@ -501,7 +501,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             {/* Mobile Footer */}
             <div className="mt-8 text-center">
               <p className="text-xs text-gray-500">
-                © 2024 HealthyKids. Platform pembelajaran kesehatan untuk remaja.
+                © 2024 Sexophone. Platform pendidikan seksualitas untuk remaja Indonesia.
               </p>
             </div>
           </div>
