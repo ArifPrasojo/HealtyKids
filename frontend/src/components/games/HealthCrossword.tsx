@@ -564,6 +564,13 @@ const HealthCrossword: React.FC = () => {
                   >
                     🗑️ Clear
                   </Button>
+                  <Button 
+                    onClick={backToDashboard}
+                    variant="secondary"
+                    className="w-full md:w-auto px-6 py-3 text-sm md:text-base"
+                  >
+                    ← Back to Dashboard
+                  </Button>
                 </div>
               </div>
 

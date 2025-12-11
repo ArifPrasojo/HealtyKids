@@ -77,13 +77,13 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
                     <span className="bg-gradient-to-t from-green-500 via-teal-400 to-slate-100 bg-clip-text text-transparent">
                       Sex
                     </span>
-                    <span className="bg-gradient-to-t from-green-500 via-teal-400 to-slate-100 bg-clip-text text-transparent">
+                    <span className="bg-gradient-to-t from-green-500 via-teal-400 to-slate-100 bg-clip-text text-transparent relative font-extrabold text-1xl">
                       ♂
                     </span>
                     <span className="bg-gradient-to-t from-green-500 via-teal-400 to-slate-100 bg-clip-text text-transparent">
                       ph
                     </span>
-                    <span className="bg-gradient-to-t from-green-500 via-teal-400 to-slate-100 bg-clip-text text-transparent">
+                    <span className="bg-gradient-to-t from-green-500 via-teal-400 to-slate-100 bg-clip-text text-transparent relative font-extrabold text-1xl">
                       ♀
                     </span>
                     <span className="bg-gradient-to-t from-green-500 via-teal-400 to-slate-100 bg-clip-text text-transparent">
@@ -111,16 +111,15 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
             </div>
 
             {/* Description */}
-            <div className="max-w-8xl mx-auto space-y-4 md:space-y-20">
-              <p className="text-gray-600 text-base md:text-xl lg:text-2xl leading-relaxed font-light px-4">
-                Sex{' '} 
+            <div className="max-w-4xl mx-auto space-y-4 md:space-y-20">
+              <p className="text-gray-600 text-lg md:text-3xl lg:text-4xl leading-relaxed font-light px-4">
                 <span className="relative inline-block">
-                  <span className="relative z-10 font-bold text-indigo-600">Education</span>
+                  <span className="relative z-10 font-bold text-indigo-600"> Sex Education </span>
                   <span className="absolute bottom-1 left-0 w-full h-2 md:h-3 bg-indigo-200/50 -rotate-1"></span>
                 </span>
-                {' '}On{' '}
+                {' '}
                 <span className="relative inline-block">
-                  <span className="relative z-10 font-bold text-purple-600">Phone</span>
+                  <span className="relative z-10 font-bold text-purple-600"> On Phone</span>
                   <span className="absolute bottom-1 left-0 w-full h-2 md:h-3 bg-purple-200/50 rotate-1"></span>
                 </span>
               </p>
