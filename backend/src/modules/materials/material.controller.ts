@@ -6,8 +6,9 @@ export const getAllMaterial = async (c: Context) => {
     try {
         const result = await service.getAllMaterial()
         return c.json(response.successResponse(result))
-    } catch (err) {
-        return c.json(response.errorResponse(err))
+    } catch (err: any) {
+        const status = err.status ?? 500
+        return c.json(response.errorResponse(err), status)
     }
 }
 
@@ -16,7 +17,8 @@ export const getMaterialById = async (c: Context) => {
         const materialId = Number(c.req.param('id'))
         const result = await service.getMaterialById(materialId)
         return c.json(response.successResponse(result))
-    } catch (err) {
-        return c.json(response.errorResponse(err))
+    } catch (err: any) {
+        const status = err.status ?? 500
+        return c.json(response.errorResponse(err), status)
     }
 }

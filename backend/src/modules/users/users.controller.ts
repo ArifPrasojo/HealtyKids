@@ -7,8 +7,9 @@ export const getAll = async (c: Context) => {
     try {
         const result = await service.getAllUser()
         return c.json(response.successResponse(result))
-    } catch (err) {
-        return c.json(response.errorResponse(err), 400)
+    } catch (err: any) {
+        const status = err.status ?? 500
+        return c.json(response.errorResponse(err), status)
     }
 }
 
@@ -17,8 +18,9 @@ export const getById = async (c: Context) => {
         const userId = Number(c.req.param('id'))
         const result = await service.getUserById(userId)
         return c.json(response.successResponse(result))
-    } catch (err) {
-        return c.json(response.errorResponse(err), 400)
+    } catch (err: any) {
+        const status = err.status ?? 500
+        return c.json(response.errorResponse(err), status)
     }
 }
 
@@ -28,8 +30,9 @@ export const create = async (c: Context) => {
         const data = createUserSchema.parse(body)
         const result = await service.createUser(data)
         return c.json(response.successResponse(result))
-    } catch (err) {
-        return c.json(response.errorResponse(err), 400)
+    } catch (err: any) {
+        const status = err.status ?? 500
+        return c.json(response.errorResponse(err), status)
     }
 }
 
@@ -40,8 +43,9 @@ export const update = async (c: Context) => {
         const userId = Number(c.req.param('id'))
         const result = await service.updateUser(userId, data)
         return c.json(response.successResponse(result))
-    } catch (err) {
-        return c.json(response.errorResponse(err), 400)
+    } catch (err: any) {
+        const status = err.status ?? 500
+        return c.json(response.errorResponse(err), status)
     }
 }
 
@@ -50,7 +54,8 @@ export const deleteUser = async (c: Context) => {
         const userId = Number(c.req.param('id'))
         const result = await service.deleteUser(userId)
         return c.json(response.successResponse("Berhasil menghapus data siswa"))
-    } catch (err) {
-        return c.json(response.errorResponse(err), 400)
+    } catch (err: any) {
+        const status = err.status ?? 500
+        return c.json(response.errorResponse(err), status)
     }
 }
