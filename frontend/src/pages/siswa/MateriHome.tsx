@@ -27,9 +27,9 @@ const MateriHome: React.FC<MateriHomeProps> = ({ onLogout }) => {
   const materiData: MateriCard[] = [
     {
       id: 1,
-      title: 'Memahami Pacaran',
-      description: 'Belajar berhitung dengan cara yang menyenangkan',
-      icon: '📊',
+      title: 'Masa Remaja dan Pubertas',
+      description: 'Materi ini membahas definisi masa remaja sebagai masa transisi penting dalam kehidupan seseorang, serta menjelaskan tahap pubertas yang menyertainya.',
+      icon: '🧑‍🤝‍🧑',
       color: 'from-pink-400 to-pink-600',
       bgColor: 'bg-pink-500',
       textColor: 'text-pink-500',
@@ -39,8 +39,8 @@ const MateriHome: React.FC<MateriHomeProps> = ({ onLogout }) => {
     },
     {
       id: 2,
-      title: 'LGBT & Orientasi Seksual',
-      description: 'Membaca dan menulis dengan cerita seru',
+      title: 'Pengertian dan Bentuk Perilaku Seksual Berisiko',
+      description: 'Mencakup semua tindakan yang dipengaruhi oleh dorongan keinginan seksual',
       icon: '🔤',
       color: 'from-blue-400 to-blue-600',
       bgColor: 'bg-blue-500',
@@ -51,8 +51,8 @@ const MateriHome: React.FC<MateriHomeProps> = ({ onLogout }) => {
     },
     {
       id: 3,
-      title: 'Sains',
-      description: 'Jelajahi dunia sains dan alam sekitar',
+      title: 'Akibat Perilaku Seksual Berisiko',
+      description: 'Jenis infeksi yang menyebar melalui hubungan seksual',
       icon: '🔬',
       color: 'from-green-400 to-green-600',
       bgColor: 'bg-green-500',
@@ -63,8 +63,8 @@ const MateriHome: React.FC<MateriHomeProps> = ({ onLogout }) => {
     },
     {
       id: 4,
-      title: 'Seni & Kreativitas',
-      description: 'Berkreasi dengan warna dan bentuk',
+      title: 'Cara Mencegah Perilaku Seksual Berisiko',
+      description: 'Manfaatkan waktu luang untuk olahraga, hobi, belajar, atau aktivitas positif di luar rumah',
       icon: '🎨',
       color: 'from-yellow-400 to-yellow-600',
       bgColor: 'bg-yellow-500',
@@ -75,8 +75,8 @@ const MateriHome: React.FC<MateriHomeProps> = ({ onLogout }) => {
     },
     {
       id: 5,
-      title: 'Geografi',
-      description: 'Kenali negara dan budaya di dunia',
+      title: 'Faktor Pendorong Perilaku Seksual',
+      description: 'Tekanan dari lingkungan pergaulan lebih besar dibandingkan dari pasangan',
       icon: '🌍',
       color: 'from-purple-400 to-purple-600',
       bgColor: 'bg-purple-500',
@@ -87,8 +87,8 @@ const MateriHome: React.FC<MateriHomeProps> = ({ onLogout }) => {
     },
     {
       id: 6,
-      title: 'Musik',
-      description: 'Belajar nada dan irama dengan ceria',
+      title: 'Cara Mencegah Perilaku Seksual Berisiko',
+      description: 'Manfaatkan waktu luang untuk olahraga, hobi, belajar, atau aktivitas positif di luar rumah.',
       icon: '🎵',
       color: 'from-orange-400 to-orange-600',
       bgColor: 'bg-orange-500',
