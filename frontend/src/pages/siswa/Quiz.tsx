@@ -268,22 +268,24 @@ const Quiz: React.FC = () => {
             {/* Question Navigation */}
             <div className="md:ml-8">
               <h3 className="text-xs md:text-sm font-bold text-gray-700 mb-2 text-center">Question Navigation</h3>
-              <div className="grid grid-cols-5 md:flex md:space-x-2 gap-2 md:gap-0">
-                {questions.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setCurrentQuestion(index)}
-                    className={`w-8 h-8 md:w-9 md:h-9 rounded-lg text-xs md:text-sm font-bold transition-all duration-200 ${
-                      currentQuestion === index
-                        ? 'bg-gradient-to-r from-green-400 to-emerald-500 text-white shadow-lg transform scale-110'
-                        : selectedAnswers[index] !== -1
-                        ? 'bg-blue-400 text-white'
-                        : 'bg-gray-100 text-gray-400'
-                    }`}
-                  >
-                    {index + 1}
-                  </button>
-                ))}
+              <div className="overflow-x-auto max-w-full">
+                <div className="grid grid-cols-5 md:flex md:flex-wrap md:justify-center gap-2 md:gap-2 min-w-max md:min-w-0">
+                  {questions.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setCurrentQuestion(index)}
+                      className={`w-8 h-8 md:w-9 md:h-9 rounded-lg text-xs md:text-sm font-bold transition-all duration-200 flex-shrink-0 ${
+                        currentQuestion === index
+                          ? 'bg-gradient-to-r from-green-400 to-emerald-500 text-white shadow-lg transform scale-110'
+                          : selectedAnswers[index] !== -1
+                          ? 'bg-blue-400 text-white'
+                          : 'bg-gray-100 text-gray-400'
+                      }`}
+                    >
+                      {index + 1}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           </div>

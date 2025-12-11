@@ -41,15 +41,33 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ onLoadingComplete }) => {
   return (
     <div className="fixed inset-0 bg-white flex flex-col items-center justify-center z-50">
       {/* Logo */}
-      <div className="mb-12">
-        <img 
-          src="/src/assets/images/logo.png" 
-          alt="HealthyKids Logo" 
-          className="w-50 h-50 rounded-2xl object-cover shadow-lg"
-        />
-      </div>
+              <div className="relative inline-block">
+                <h2 className="text-5xl md:text-4xl lg:text-6xl font-black text-gray-800 tracking-tight">
+                  <span className="relative">
+                    <span className="bg-gradient-to-t from-green-500 via-teal-400 to-slate-100 bg-clip-text text-transparent">
+                      SEXOPHONE
+                    </span>
+                    <svg className="absolute -bottom-1 md:-bottom-2 left-0 w-full h-2 md:h-3" viewBox="0 0 200 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path 
+                        d="M2 10C40 3 80 1 120 5C160 9 180 10 198 10" 
+                        stroke="url(#gradient)" 
+                        strokeWidth="3" 
+                        strokeLinecap="round"
+                        className="animate-draw-line"
+                      />
+                      <defs>
+                        <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                          <stop offset="0%" stopColor="#10B981" />
+                          <stop offset="50%" stopColor="#2DD4BF" />
+                          <stop offset="100%" stopColor="#F1F5F9" />
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                  </span>
+                </h2>
+              </div>
 
-      {/* Progress Bar */}
+      {/* Progress Bar
       <div className="w-72">
         <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
           <div 
@@ -57,7 +75,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ onLoadingComplete }) => {
             style={{ width: `${progress}%` }}
           />
         </div>
-      </div>
+      </div> */}
     </div>
   );
 };
