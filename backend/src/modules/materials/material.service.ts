@@ -36,3 +36,16 @@ export const getMaterialById = async (materialId: number) => {
 
     return result
 }
+
+export const createMaterial = async (data: createMaterialInput) => {
+    const { title, description } = data
+    const [result] = await db
+        .insert(materials)
+        .values({
+            title: title,
+            description: description
+        })
+        .returning()
+
+    return result
+}
