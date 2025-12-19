@@ -12,4 +12,5 @@ materialAdminRoute.get('/:id{[0-9]+}/sub-material', controller.getAllSubMaterial
 materialAdminRoute.get('/:id{[0-9]+}/sub-material/:id-sub{[0-9]+}', controller.getSubMaterialById)
 materialAdminRoute.post('/:id{[0-9]+}/sub-material', controller.createSubMaterial)
 materialAdminRoute.put('/:id{[0-9]+}/sub-material/:id-sub{[0-9]+}', controller.updateSubMaterial)
+materialAdminRoute.delete('/:id{[0-9]+}/sub-material/:id-sub{[0-9]+}', controller.deleteSubMaterial)
 export { materialAdminRoute }

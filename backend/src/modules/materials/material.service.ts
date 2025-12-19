@@ -161,7 +161,7 @@ export const getSubMaterialById = async (materialId: number, subMaterialId: numb
             )
         )
 
-    if (existingMaterial == null) {
+    if (existingSubMaterial == null) {
         throw new HttpError(404, "Sub Materi tidak ditemukan")
     }
 
@@ -222,7 +222,7 @@ export const updateSubMaterial = async (materialId: number, subMaterialId: numbe
             )
         )
 
-    if (existingMaterial == null) {
+    if (existingSubMaterial == null) {
         throw new HttpError(404, "Sub Materi tidak ditemukan")
     }
 
@@ -240,4 +240,31 @@ export const updateSubMaterial = async (materialId: number, subMaterialId: numbe
         .returning()
 
     return result
+}
+
+export const deleteSubMaterial = async (subMaterialId: number) => {
+    const [existingSubMaterial] = await db
+        .select()
+        .from(subMaterial)
+        .where(
+            and(
+                eq(subMaterial.id, subMaterialId),
+                eq(subMaterial.isDelete, false)
+            )
+        )
+
+    if (existingSubMaterial == null) {
+        throw new HttpError(404, "Sub Materi tidak ditemukan")
+    }
+
+    const [result] = await db
+        .update(subMaterial)
+        .set({
+            isDelete: true,
+            updatedAt: new Date(Date.now())
+        })
+        .where(eq(subMaterial.id, existingSubMaterial.id))
+        .returning()
+
+    return
 }
