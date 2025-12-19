@@ -133,3 +133,35 @@ export const getAllSubMateri = async (materialId: number) => {
 
     return result
 }
+
+export const getSubMaterialById = async (materialId: number, subMaterialId: number) => {
+    const [existingMaterial] = await db
+        .select()
+        .from(materials)
+        .where(
+            and(
+                eq(materials.id, materialId),
+                eq(materials.isDelete, false)
+            )
+        )
+
+    if (existingMaterial == null) {
+        throw new HttpError(404, "Materi tidak ditemukan")
+    }
+
+    const [existingSubMaterial] = await db
+        .select()
+        .from(subMaterial)
+        .where(
+            and(
+                eq(subMaterial.id, subMaterialId),
+                eq(subMaterial.isDelete, false)
+            )
+        )
+
+    if (existingMaterial == null) {
+        throw new HttpError(404, "Sub Materi tidak ditemukan")
+    }
+
+    return existingSubMaterial
+}
