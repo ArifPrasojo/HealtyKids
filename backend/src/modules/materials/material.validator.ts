@@ -16,7 +16,7 @@ export const createSubMaterialSchema = z.object({
     content: z.string().nonempty("Konten Harus Diisi")
 })
 
-export const updateSubMateriSchema = z.object({
+export const updateSubMaterialSchema = z.object({
     title: z.string().nonempty("Title Harus Diisi").max(255, "Maksimal 255 karakter"),
     videoUrl: z.string().optional(),
     content: z.string().nonempty("Konten Harus Diisi")

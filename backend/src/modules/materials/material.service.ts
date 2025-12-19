@@ -3,10 +3,12 @@ import { db } from "@/db"
 import { materials, subMaterial } from "@/db/schema"
 import { eq, and, ne, sql } from 'drizzle-orm'
 import { HttpError } from "@/utils/httpError";
-import { createMaterialSchema, updateMaterialSchema } from '@/modules/materials/material.validator'
+import { createMaterialSchema, updateMaterialSchema, createSubMaterialSchema, updateSubMaterialSchema } from '@/modules/materials/material.validator'
 
 type createMaterialInput = z.infer<typeof createMaterialSchema>
 type updateMaterialInput = z.infer<typeof updateMaterialSchema>
+type createSubMaterialInput = z.infer<typeof createSubMaterialSchema>
+type updateSubMaterialInput = z.infer<typeof updateSubMaterialSchema>
 
 export const getAllMaterial = async () => {
     const result = await db
@@ -164,4 +166,33 @@ export const getSubMaterialById = async (materialId: number, subMaterialId: numb
     }
 
     return existingSubMaterial
+}
+
+export const createSubMaterial = async (materialId: number, data: createSubMaterialInput) => {
+    const [existingMaterial] = await db
+        .select()
+        .from(materials)
+        .where(
+            and(
+                eq(materials.id, materialId),
+                eq(materials.isDelete, false)
+            )
+        )
+
+    if (existingMaterial == null) {
+        throw new HttpError(404, "Materi tidak ditemukan")
+    }
+
+    const { title, videoUrl, content } = data
+    const [result] = await db
+        .insert(subMaterial)
+        .values({
+            materialId: existingMaterial.id,
+            title: title,
+            videoUrl: videoUrl,
+            content: content
+        })
+        .returning()
+
+    return result
 }
