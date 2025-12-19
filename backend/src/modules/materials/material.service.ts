@@ -105,3 +105,31 @@ export const deleteMaterial = async (materialId: number) => {
 
     return
 }
+
+export const getAllSubMateri = async (materialId: number) => {
+    const [existingMaterial] = await db
+        .select()
+        .from(materials)
+        .where(
+            and(
+                eq(materials.id, materialId),
+                eq(materials.isDelete, false)
+            )
+        )
+
+    if (existingMaterial == null) {
+        throw new HttpError(404, "Materi tidak ditemukan")
+    }
+
+    const result = await db
+        .select()
+        .from(subMaterial)
+        .where(
+            and(
+                eq(subMaterial.materialId, existingMaterial.id),
+                eq(subMaterial.isDelete, false)
+            )
+        )
+
+    return result
+}
