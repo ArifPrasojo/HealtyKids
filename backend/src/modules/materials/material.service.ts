@@ -70,10 +70,38 @@ export const updateMaterial = async (materialId: number, data: updateMaterialInp
         .update(materials)
         .set({
             title: title,
-            description: description
+            description: description,
+            updatedAt: new Date(Date.now())
         })
         .where(eq(materials.id, existingMaterial.id))
         .returning()
 
     return result
+}
+
+export const deleteMaterial = async (materialId: number) => {
+    const [existingMaterial] = await db
+        .select()
+        .from(materials)
+        .where(
+            and(
+                eq(materials.id, materialId),
+                eq(materials.isDelete, false)
+            )
+        )
+
+    if (existingMaterial == null) {
+        throw new HttpError(404, "Materi tidak ditemukan")
+    }
+
+    const [result] = await db
+        .update(materials)
+        .set({
+            isDelete: true,
+            updatedAt: new Date(Date.now())
+        })
+        .where(eq(materials.id, existingMaterial.id))
+        .returning()
+
+    return
 }
