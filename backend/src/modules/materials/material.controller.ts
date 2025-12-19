@@ -138,3 +138,24 @@ export const createSubMaterial = async (c: Context) => {
         return c.json(response.errorResponse(err), status)
     }
 }
+
+export const updateSubMaterial = async (c: Context) => {
+    try {
+        const materialId = Number(c.req.param('id'))
+        const subMaterialId = Number(c.req.param('id-sub'))
+        const body = await c.req.json()
+        const data = updateSubMaterialSchema.parse(body)
+        const result = await service.updateSubMaterial(materialId, subMaterialId, data)
+        return c.json(response.successResponse(result))
+    } catch (err: any) {
+        if (err instanceof ZodError) {
+            return c.json({
+                success: false,
+                message: "Validasi gagal",
+                errors: err.flatten().fieldErrors
+            }, 400)
+        }
+        const status = err.status ?? 500
+        return c.json(response.errorResponse(err), status)
+    }
+}

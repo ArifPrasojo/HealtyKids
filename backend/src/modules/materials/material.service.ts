@@ -196,3 +196,48 @@ export const createSubMaterial = async (materialId: number, data: createSubMater
 
     return result
 }
+
+export const updateSubMaterial = async (materialId: number, subMaterialId: number, data: updateSubMaterialInput) => {
+    const [existingMaterial] = await db
+        .select()
+        .from(materials)
+        .where(
+            and(
+                eq(materials.id, materialId),
+                eq(materials.isDelete, false)
+            )
+        )
+
+    if (existingMaterial == null) {
+        throw new HttpError(404, "Materi tidak ditemukan")
+    }
+
+    const [existingSubMaterial] = await db
+        .select()
+        .from(subMaterial)
+        .where(
+            and(
+                eq(subMaterial.id, subMaterialId),
+                eq(subMaterial.isDelete, false)
+            )
+        )
+
+    if (existingMaterial == null) {
+        throw new HttpError(404, "Sub Materi tidak ditemukan")
+    }
+
+    const { title, videoUrl, content } = data
+    const [result] = await db
+        .update(subMaterial)
+        .set({
+            materialId: existingMaterial.id,
+            title: title,
+            videoUrl: videoUrl,
+            content: content,
+            updatedAt: new Date(Date.now())
+        })
+        .where(eq(subMaterial.id, existingSubMaterial.id))
+        .returning()
+
+    return result
+}
