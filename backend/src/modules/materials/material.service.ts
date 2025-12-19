@@ -49,3 +49,31 @@ export const createMaterial = async (data: createMaterialInput) => {
 
     return result
 }
+
+export const updateMaterial = async (materialId: number, data: updateMaterialInput) => {
+    const [existingMaterial] = await db
+        .select()
+        .from(materials)
+        .where(
+            and(
+                eq(materials.id, materialId),
+                eq(materials.isDelete, false)
+            )
+        )
+
+    if (existingMaterial == null) {
+        throw new HttpError(404, "Materi tidak ditemukan")
+    }
+
+    const { title, description } = data
+    const [result] = await db
+        .update(materials)
+        .set({
+            title: title,
+            description: description
+        })
+        .where(eq(materials.id, existingMaterial.id))
+        .returning()
+
+    return result
+}
