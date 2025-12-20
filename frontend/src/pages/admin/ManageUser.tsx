@@ -549,20 +549,6 @@ const ManageUsers = () => {
                 />
               </div>
 
-              <div>
-                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">Role</label>
-                <select
-                  value={formData.role}
-                  onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                  className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                  disabled={isSubmitting}
-                >
-                  <option value="Admin">Admin</option>
-                  <option value="Teacher">Teacher</option>
-                  <option value="Student">Student</option>
-                </select>
-              </div>
-
               <div className="flex gap-3 pt-4">
                 <button
                   onClick={() => setIsEditModalOpen(false)}
