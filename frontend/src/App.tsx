@@ -14,6 +14,7 @@ import GameHome from './pages/siswa/GameHome'
 import ProtectedRoute from './routes/ProtectedRoute'
 import ManageMateri from './pages/admin/ManageMateri'
 import SubMateri from './pages/admin/SubMateri'
+import ManageUsers from './pages/admin/ManageUser'    
 import './App.css'
 
 function App() {
@@ -93,6 +94,15 @@ function App() {
               }
             </ProtectedRoute>
           } 
+        />
+
+        <Route 
+        path="/admin/manangeuser"
+        element={
+          <ProtectedRoute isAuthenticated={isAuthenticated} userRole={userRole}>
+            {userRole === 'admin' ? <ManageUsers /> : <Navigate to="/dashboard" replace />}
+          </ProtectedRoute>
+        }
         />
         
         <Route 
