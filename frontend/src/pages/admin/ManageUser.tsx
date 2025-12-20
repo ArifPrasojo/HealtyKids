@@ -1,14 +1,12 @@
 import React, { useState, useMemo } from 'react';
-import { Plus, Edit, Trash2, X, Search, Menu, ChevronDown } from 'lucide-react';
+import { Plus, Edit, Trash2, X, Search, Eye, EyeOff } from 'lucide-react';
 
 interface UserItem {
   id: number;
   name: string;
   username: string;
-  phone: string;
+  password: string;
   role: string;
-  status: string;
-  joinedAt: string;
 }
 
 const ManageUsers = () => {
@@ -16,66 +14,55 @@ const ManageUsers = () => {
     {
       id: 1,
       name: 'John Doe',
-      username: 'john.doe@example.com',
-      phone: '+62 812-3456-7890',
-      role: 'Admin',
-      status: 'Active',
-      joinedAt: '2024-01-15'
+      username: 'johndoe',
+      password: '••••••••',
+      role: 'Admin'
     },
     {
       id: 2,
       name: 'Jane Smith',
-      username: 'jane.smith@example.com',
-      phone: '+62 812-9876-5432',
-      role: 'Teacher',
-      status: 'Active',
-      joinedAt: '2024-01-20'
+      username: 'janesmith',
+      password: '••••••••',
+      role: 'Teacher'
     },
     {
       id: 3,
       name: 'Ahmad Rahman',
-      username: 'ahmad.rahman@example.com',
-      phone: '+62 812-1111-2222',
-      role: 'Student',
-      status: 'Inactive',
-      joinedAt: '2024-01-25'
+      username: 'ahmadrahman',
+      password: '••••••••',
+      role: 'Student'
     },
     {
       id: 4,
       name: 'Siti Nurhaliza',
-      username: 'siti.nurhaliza@example.com',
-      phone: '+62 812-3333-4444',
-      role: 'Teacher',
-      status: 'Active',
-      joinedAt: '2024-02-01'
+      username: 'sitinur',
+      password: '••••••••',
+      role: 'Teacher'
     },
     {
       id: 5,
       name: 'Budi Santoso',
-      username: 'budi.santoso@example.com',
-      phone: '+62 812-5555-6666',
-      role: 'Student',
-      status: 'Active',
-      joinedAt: '2024-02-05'
+      username: 'budisantoso',
+      password: '••••••••',
+      role: 'Student'
     }
   ]);
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserItem | null>(null);
   const [userToDelete, setUserToDelete] = useState<UserItem | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRole, setSelectedRole] = useState<string>('All');
   const [expandedUser, setExpandedUser] = useState<number | null>(null);
+  const [showPassword, setShowPassword] = useState<{ [key: number]: boolean }>({});
 
   const [formData, setFormData] = useState({
     name: '',
     username: '',
-    phone: '',
-    role: 'Student',
-    status: 'Active'
+    password: '',
+    role: 'Student'
   });
 
   // Filter dan search
@@ -92,9 +79,8 @@ const ManageUsers = () => {
     setFormData({ 
       name: '', 
       username: '', 
-      phone: '', 
-      role: 'Student',
-      status: 'Active'
+      password: '',
+      role: 'Student'
     });
     setIsAddModalOpen(true);
   };
@@ -104,9 +90,8 @@ const ManageUsers = () => {
     setFormData({
       name: user.name,
       username: user.username,
-      phone: user.phone,
-      role: user.role,
-      status: user.status
+      password: user.password,
+      role: user.role
     });
     setIsEditModalOpen(true);
   };
@@ -125,30 +110,27 @@ const ManageUsers = () => {
   };
 
   const handleSubmitAdd = () => {
-    if (!formData.name || !formData.username || !formData.phone) return;
+    if (!formData.name || !formData.username || !formData.password) return;
     
     const newUser: UserItem = {
       id: Math.max(...userList.map(u => u.id), 0) + 1,
       name: formData.name,
       username: formData.username,
-      phone: formData.phone,
-      role: formData.role,
-      status: formData.status,
-      joinedAt: new Date().toISOString().split('T')[0]
+      password: formData.password,
+      role: formData.role
     };
     setUserList([...userList, newUser]);
     setIsAddModalOpen(false);
     setFormData({ 
       name: '', 
       username: '', 
-      phone: '', 
-      role: 'Student',
-      status: 'Active'
+      password: '',
+      role: 'Student'
     });
   };
 
   const handleSubmitEdit = () => {
-    if (!formData.name || !formData.username || !formData.phone) return;
+    if (!formData.name || !formData.username || !formData.password) return;
     
     if (editingUser) {
       setUserList(userList.map(u => 
@@ -156,10 +138,9 @@ const ManageUsers = () => {
           ? { 
               ...u, 
               name: formData.name, 
-              username: formData.username, 
-              phone: formData.phone,
-              role: formData.role,
-              status: formData.status
+              username: formData.username,
+              password: formData.password,
+              role: formData.role
             }
           : u
       ));
@@ -169,14 +150,9 @@ const ManageUsers = () => {
     setFormData({ 
       name: '', 
       username: '', 
-      phone: '', 
-      role: 'Student',
-      status: 'Active'
+      password: '',
+      role: 'Student'
     });
-  };
-
-  const getStatusColor = (status: string) => {
-    return status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
   };
 
   const getRoleColor = (role: string) => {
@@ -186,6 +162,13 @@ const ManageUsers = () => {
       case 'Student': return 'bg-green-100 text-green-800';
       default: return 'bg-gray-100 text-gray-800';
     }
+  };
+
+  const togglePasswordVisibility = (userId: number) => {
+    setShowPassword(prev => ({
+      ...prev,
+      [userId]: !prev[userId]
+    }));
   };
 
   return (
@@ -250,11 +233,9 @@ const ManageUsers = () => {
                   <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
                       <th className="px-4 md:px-6 py-3 md:py-4 text-left text-xs md:text-sm font-semibold text-gray-800">Nama</th>
-                      <th className="px-4 md:px-6 py-3 md:py-4 text-left text-xs md:text-sm font-semibold text-gray-800">username</th>
-                      <th className="px-4 md:px-6 py-3 md:py-4 text-left text-xs md:text-sm font-semibold text-gray-800">No. Telepon</th>
+                      <th className="px-4 md:px-6 py-3 md:py-4 text-left text-xs md:text-sm font-semibold text-gray-800">Username</th>
+                      <th className="px-4 md:px-6 py-3 md:py-4 text-left text-xs md:text-sm font-semibold text-gray-800">Password</th>
                       <th className="px-4 md:px-6 py-3 md:py-4 text-left text-xs md:text-sm font-semibold text-gray-800">Role</th>
-                      <th className="px-4 md:px-6 py-3 md:py-4 text-left text-xs md:text-sm font-semibold text-gray-800">Status</th>
-                      <th className="px-4 md:px-6 py-3 md:py-4 text-left text-xs md:text-sm font-semibold text-gray-800">Bergabung</th>
                       <th className="px-4 md:px-6 py-3 md:py-4 text-left text-xs md:text-sm font-semibold text-gray-800">Aksi</th>
                     </tr>
                   </thead>
@@ -262,19 +243,30 @@ const ManageUsers = () => {
                     {filteredUsers.map((user) => (
                       <tr key={user.id} className="hover:bg-gray-50 transition-colors">
                         <td className="px-4 md:px-6 py-3 md:py-4 text-xs md:text-sm font-medium text-gray-800">{user.name}</td>
-                        <td className="px-4 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-600 break-all">{user.username}</td>
-                        <td className="px-4 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-600">{user.phone}</td>
+                        <td className="px-4 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-600">{user.username}</td>
+                        <td className="px-4 md:px-6 py-3 md:py-4">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs md:text-sm text-gray-600">
+                              {showPassword[user.id] ? user.password : '••••••••'}
+                            </span>
+                            <button
+                              onClick={() => togglePasswordVisibility(user.id)}
+                              className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                              title={showPassword[user.id] ? 'Sembunyikan' : 'Tampilkan'}
+                            >
+                              {showPassword[user.id] ? (
+                                <EyeOff size={16} />
+                              ) : (
+                                <Eye size={16} />
+                              )}
+                            </button>
+                          </div>
+                        </td>
                         <td className="px-4 md:px-6 py-3 md:py-4">
                           <span className={`inline-block px-2 md:px-3 py-1 rounded-full text-xs font-semibold ${getRoleColor(user.role)}`}>
                             {user.role}
                           </span>
                         </td>
-                        <td className="px-4 md:px-6 py-3 md:py-4">
-                          <span className={`inline-block px-2 md:px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(user.status)}`}>
-                            {user.status}
-                          </span>
-                        </td>
-                        <td className="px-4 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-600">{user.joinedAt}</td>
                         <td className="px-4 md:px-6 py-3 md:py-4">
                           <div className="flex gap-2">
                             <button
@@ -311,36 +303,51 @@ const ManageUsers = () => {
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-gray-800 text-sm md:text-base truncate">{user.name}</h3>
-                        <p className="text-xs md:text-sm text-gray-600 truncate">{user.username}</p>
+                        <p className="text-xs md:text-sm text-gray-600 truncate">@{user.username}</p>
                         <div className="flex gap-2 mt-2 flex-wrap">
                           <span className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${getRoleColor(user.role)}`}>
                             {user.role}
                           </span>
-                          <span className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(user.status)}`}>
-                            {user.status}
-                          </span>
                         </div>
                       </div>
-                      <ChevronDown 
-                        size={20} 
-                        className={`text-gray-400 flex-shrink-0 transition-transform ${expandedUser === user.id ? 'rotate-180' : ''}`}
-                      />
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setExpandedUser(expandedUser === user.id ? null : user.id);
+                        }}
+                        className="flex-shrink-0"
+                      >
+                        <ChevronDown 
+                          size={20} 
+                          className={`text-gray-400 transition-transform ${expandedUser === user.id ? 'rotate-180' : ''}`}
+                        />
+                      </button>
                     </div>
                   </div>
 
                   {expandedUser === user.id && (
                     <div className="border-t border-gray-200 px-4 py-4 bg-gray-50 space-y-3">
                       <div>
-                        <p className="text-xs text-gray-500 font-medium">username</p>
-                        <p className="text-sm text-gray-800 break-all">{user.username}</p>
+                        <p className="text-xs text-gray-500 font-medium">Username</p>
+                        <p className="text-sm text-gray-800">{user.username}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-gray-500 font-medium">No. Telepon</p>
-                        <p className="text-sm text-gray-800">{user.phone}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-500 font-medium">Bergabung</p>
-                        <p className="text-sm text-gray-800">{user.joinedAt}</p>
+                        <p className="text-xs text-gray-500 font-medium">Password</p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm text-gray-800">
+                            {showPassword[user.id] ? user.password : '••••••••'}
+                          </p>
+                          <button
+                            onClick={() => togglePasswordVisibility(user.id)}
+                            className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                          >
+                            {showPassword[user.id] ? (
+                              <EyeOff size={16} />
+                            ) : (
+                              <Eye size={16} />
+                            )}
+                          </button>
+                        </div>
                       </div>
                       <div className="flex gap-2 pt-3">
                         <button
@@ -405,9 +412,9 @@ const ManageUsers = () => {
               </div>
 
               <div>
-                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">username</label>
+                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">Username</label>
                 <input
-                  type="username"
+                  type="text"
                   value={formData.username}
                   onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                   className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
@@ -416,13 +423,13 @@ const ManageUsers = () => {
               </div>
 
               <div>
-                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">Nomor Telepon</label>
+                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">Password</label>
                 <input
-                  type="tel"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                  placeholder="Masukkan nomor telepon"
+                  placeholder="Masukkan password"
                 />
               </div>
 
@@ -436,18 +443,6 @@ const ManageUsers = () => {
                   <option value="Admin">Admin</option>
                   <option value="Teacher">Teacher</option>
                   <option value="Student">Student</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">Status</label>
-                <select
-                  value={formData.status}
-                  onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                  className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                >
-                  <option value="Active">Active</option>
-                  <option value="Inactive">Inactive</option>
                 </select>
               </div>
 
@@ -498,7 +493,7 @@ const ManageUsers = () => {
               <div>
                 <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">Username</label>
                 <input
-                  type="username"
+                  type="text"
                   value={formData.username}
                   onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                   className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
@@ -506,11 +501,11 @@ const ManageUsers = () => {
               </div>
 
               <div>
-                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">Nomor Telepon</label>
+                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">Password</label>
                 <input
-                  type="tel"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                 />
               </div>
@@ -525,18 +520,6 @@ const ManageUsers = () => {
                   <option value="Admin">Admin</option>
                   <option value="Teacher">Teacher</option>
                   <option value="Student">Student</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">Status</label>
-                <select
-                  value={formData.status}
-                  onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                  className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                >
-                  <option value="Active">Active</option>
-                  <option value="Inactive">Inactive</option>
                 </select>
               </div>
 
@@ -603,5 +586,12 @@ const ManageUsers = () => {
     </div>
   );
 };
+
+// Add ChevronDown import that was missing
+const ChevronDown = ({ size, className }: { size: number; className: string }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
+    <polyline points="6 9 12 15 18 9"></polyline>
+  </svg>
+);
 
 export default ManageUsers;
