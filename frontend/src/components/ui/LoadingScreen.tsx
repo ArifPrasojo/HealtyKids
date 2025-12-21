@@ -42,10 +42,22 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ onLoadingComplete }) => {
     <div className="fixed inset-0 bg-white flex flex-col items-center justify-center z-50">
       {/* Logo */}
               <div className="relative inline-block">
-                <h2 className="text-5xl md:text-4xl lg:text-6xl font-black text-gray-800 tracking-tight">
+                <h2 className="text-2xl md:text-4xl lg:text-6xl font-black text-gray-800 tracking-tight">
                   <span className="relative">
                     <span className="bg-gradient-to-t from-green-500 via-teal-400 to-slate-100 bg-clip-text text-transparent">
-                      SEXOPHONE
+                      Sex
+                    </span>
+                    <span className="bg-gradient-to-t from-green-500 via-teal-400 to-slate-100 bg-clip-text text-transparent relative font-bold text-6xl">
+                      ♂
+                    </span>
+                    <span className="bg-gradient-to-t from-green-500 via-teal-400 to-slate-100 bg-clip-text text-transparent">
+                      ph
+                    </span>
+                    <span className="bg-gradient-to-t from-green-500 via-teal-400 to-slate-100 bg-clip-text text-transparent relative font-bold text-6xl">
+                      ♀
+                    </span>
+                    <span className="bg-gradient-to-t from-green-500 via-teal-400 to-slate-100 bg-clip-text text-transparent">
+                      ne
                     </span>
                     <svg className="absolute -bottom-1 md:-bottom-2 left-0 w-full h-2 md:h-3" viewBox="0 0 200 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path 

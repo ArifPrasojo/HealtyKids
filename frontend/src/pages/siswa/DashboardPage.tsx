@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react'; // Pastikan useState diimpor
 import { useNavigate } from 'react-router-dom';
 import Layout from '../../components/layouts/Layout';
 import CloudBackground from '../../components/layouts/CloudBackground';
 import { BookOpen, Target, Gamepad } from 'lucide-react';
+
 
 interface DashboardPageProps {
   onLogout?: () => void;
@@ -10,6 +11,8 @@ interface DashboardPageProps {
 
 const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
   const navigate = useNavigate();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [pendingRoute, setPendingRoute] = useState<string | null>(null);
 
   const menuItems = [
     {
@@ -48,7 +51,25 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
   ];
 
   const handleMenuClick = (route: string) => {
-    navigate(route);
+    if (route === '/Quiz') {
+      setPendingRoute(route);
+      setIsModalOpen(true);
+    } else {
+      navigate(route);
+    }
+  };
+
+  const handleConfirm = () => {
+    if (pendingRoute) {
+      navigate(pendingRoute);
+    }
+    setIsModalOpen(false);
+    setPendingRoute(null);
+  };
+
+  const handleCancel = () => {
+    setIsModalOpen(false);
+    setPendingRoute(null);
   };
 
   return (
@@ -77,13 +98,13 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
                     <span className="bg-gradient-to-t from-green-500 via-teal-400 to-slate-100 bg-clip-text text-transparent">
                       Sex
                     </span>
-                    <span className="bg-gradient-to-t from-green-500 via-teal-400 to-slate-100 bg-clip-text text-transparent">
+                    <span className="bg-gradient-to-t from-green-500 via-teal-400 to-slate-100 bg-clip-text text-transparent relative font-extrabold text-1xl">
                       ♂
                     </span>
                     <span className="bg-gradient-to-t from-green-500 via-teal-400 to-slate-100 bg-clip-text text-transparent">
                       ph
                     </span>
-                    <span className="bg-gradient-to-t from-green-500 via-teal-400 to-slate-100 bg-clip-text text-transparent">
+                    <span className="bg-gradient-to-t from-green-500 via-teal-400 to-slate-100 bg-clip-text text-transparent relative font-extrabold text-1xl">
                       ♀
                     </span>
                     <span className="bg-gradient-to-t from-green-500 via-teal-400 to-slate-100 bg-clip-text text-transparent">
@@ -111,16 +132,15 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
             </div>
 
             {/* Description */}
-            <div className="max-w-8xl mx-auto space-y-4 md:space-y-20">
-              <p className="text-gray-600 text-base md:text-xl lg:text-2xl leading-relaxed font-light px-4">
-                Sex{' '} 
+            <div className="max-w-4xl mx-auto space-y-4 md:space-y-20">
+              <p className="text-gray-600 text-lg md:text-3xl lg:text-4xl leading-relaxed font-light px-4">
                 <span className="relative inline-block">
-                  <span className="relative z-10 font-bold text-indigo-600">Education</span>
+                  <span className="relative z-10 font-bold text-indigo-600"> Sex Education </span>
                   <span className="absolute bottom-1 left-0 w-full h-2 md:h-3 bg-indigo-200/50 -rotate-1"></span>
                 </span>
-                {' '}On{' '}
+                {' '}
                 <span className="relative inline-block">
-                  <span className="relative z-10 font-bold text-purple-600">Phone</span>
+                  <span className="relative z-10 font-bold text-purple-600"> On Phone</span>
                   <span className="absolute bottom-1 left-0 w-full h-2 md:h-3 bg-purple-200/50 rotate-1"></span>
                 </span>
               </p>
@@ -171,6 +191,35 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
         {/* Bottom decoration */}
         <div className="h-12 md:h-16 bg-gradient-to-t from-green-100 to-transparent"></div>
       </div>
+
+      {/* Custom Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-white/50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-3xl shadow-2xl p-6 md:p-8 max-w-md w-full mx-4 animate__animated animate__zoomIn">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-3xl">❓</span>
+              </div>
+              <h2 className="text-2xl font-bold text-gray-800 mb-2">Konfirmasi</h2>
+              <p className="text-gray-600 mb-6">Apakah Anda yakin ingin mengerjakan quiz ini dengan baik dan jujur?</p>
+              <div className="flex gap-4">
+                <button
+                  onClick={handleCancel}
+                  className="flex-1 bg-red-500 text-white py-3 px-6 rounded-2xl font-semibold hover:bg-red-600 transition-colors"
+                >
+                  Tidak, Kembali
+                </button>
+                <button
+                  onClick={handleConfirm}
+                  className="flex-1 bg-green-500 text-white py-3 px-6 rounded-2xl font-semibold hover:bg-green-600 transition-colors"
+                >
+                  Ya, Mulai Quiz
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 };

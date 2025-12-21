@@ -8,8 +8,6 @@ interface QuizQuestion {
   question: string;
   options: string[];
   correctAnswer: number;
-  tip: string;
-  xpReward: number;
 }
 
 const Quiz: React.FC = () => {
@@ -41,135 +39,115 @@ const Quiz: React.FC = () => {
   };
 
   const questions: QuizQuestion[] = [
-    {
+{
       id: 1,
-      question: "Apa yang dimaksud dengan pubertas?",
+      question: "Masa remaja dikenal sebagai masa transisi. Transisi apakah yang sedang dialami remaja?",
       options: [
-        "Masa pertumbuhan tinggi badan",
-        "Masa perubahan dari anak-anak menjadi dewasa",
-        "Masa belajar di sekolah",
-        "Masa bermain dengan teman"
+        "Dari suka main game ke suka belajar",
+        "Dari masa anak-anak menuju masa dewasa",
+        "Dari sekolah dasar ke sekolah menengah",
+        "Dari bergantung orang tua menjadi serba mandiri"
       ],
-      correctAnswer: 1,
-      tip: "Pubertas adalah masa transisi dari anak-anak menuju dewasa dengan perubahan fisik dan emosional",
-      xpReward: 10
+      correctAnswer: 2
     },
     {
       id: 2,
-      question: "Pada usia berapa biasanya anak perempuan mengalami menstruasi pertama?",
+      question: "Apa yang terjadi pada masa pubertas?",
       options: [
-        "8-10 tahun",
-        "10-15 tahun",
-        "16-18 tahun",
-        "18-20 tahun"
+        "Remaja mulai suka berpacaran",
+        "Terjadi proses kematangan seksual secara pesat",
+        "Remaja lebih suka menyendiri",
+        "Emosi menjadi sangat stabil"
       ],
-      correctAnswer: 1,
-      tip: "Menstruasi pertama (menarche) biasanya terjadi antara usia 10-15 tahun",
-      xpReward: 10
+      correctAnswer: 2,
     },
     {
       id: 3,
-      question: "Apa yang harus dilakukan untuk menjaga kebersihan organ reproduksi?",
+      question: "Apa yang dimaksud dengan perilaku seksual?",
       options: [
-        "Mandi 1 kali seminggu",
-        "Menggunakan celana ketat terus menerus",
-        "Membersihkan dengan air bersih setiap hari",
-        "Tidak perlu dibersihkan"
+        "Segala tindakan yang dilakukan karena dorongan keinginan seksual",
+        "Hanya hubungan intim antara suami istri",
+        "Kegiatan pacaran biasa seperti jalan bersama",
+        "Perasaan suka terhadap lawan jenis"
       ],
-      correctAnswer: 2,
-      tip: "Kebersihan organ reproduksi sangat penting dengan membersihkan menggunakan air bersih setiap hari",
-      xpReward: 10
+      correctAnswer: 2
     },
     {
       id: 4,
-      question: "Mengapa penting untuk mengganti pakaian dalam setiap hari?",
+      question: "Dalam pacaran, sentuhan seperti pegangan tangan bisa menjadi berisiko karena…",
       options: [
-        "Agar terlihat rapi",
-        "Mencegah infeksi dan menjaga kebersihan",
-        "Supaya tidak berbau",
-        "Karena disuruh orang tua"
+        "Melanggar aturan agama",
+        "Dapat memicu keinginan untuk sentuhan yang lebih intim",
+        "Bisa membuat pasangan jadi malu",
+        " Dapat menimbulkan cemburu dari teman"
       ],
-      correctAnswer: 1,
-      tip: "Mengganti pakaian dalam setiap hari mencegah pertumbuhan bakteri dan infeksi",
-      xpReward: 10
+      correctAnswer: 2
     },
     {
       id: 5,
-      question: "Apa yang sebaiknya dilakukan jika mengalami perubahan tubuh yang membingungkan?",
+      question: "Apa itu necking?",
       options: [
-        "Menyimpannya sendiri",
-        "Bertanya pada teman saja",
-        "Berbicara dengan orang tua atau guru yang dipercaya",
-        "Mencari informasi di internet tanpa bimbingan"
+        "Berciuman di pipi sebagai salam",
+        "Ciuman dan sentuhan intens di area leher",
+        "Berpelukan erat di tempat umum",
+        "Berbisik-bisik dengan pasangan"
       ],
-      correctAnswer: 2,
-      tip: "Selalu bertanya pada orang tua, guru, atau orang dewasa yang dipercaya tentang perubahan tubuh",
-      xpReward: 10
+      correctAnswer: 2
     },
     {
       id: 6,
-      question: "Bagaimana cara yang benar membersihkan organ intim untuk anak perempuan?",
+      question: "Apa yang dilakukan dalam petting?",
       options: [
-        "Dari belakang ke depan",
-        "Dari depan ke belakang",
-        "Tidak ada aturan khusus",
-        "Menggunakan sabun wangi"
+        "Hanya berpegangan tangan dan berpelukan",
+        "Mengobrol tentang masa depan",
+        "Sentuhan yang sudah melibatkan area sensitif tubuh",
+        "Memberi hadiah kejutan untuk pasangan"
       ],
-      correctAnswer: 1,
-      tip: "Membersihkan dari depan ke belakang mencegah bakteri dari anus masuk ke organ intim",
-      xpReward: 10
+      correctAnswer: 3
     },
     {
       id: 7,
-      question: "Apa yang dimaksud dengan sentuhan yang tidak baik (bad touch)?",
+      question: "Apa kepanjangan dari LGBT?",
       options: [
-        "Sentuhan saat bermain dengan teman",
-        "Pelukan dari orang tua",
-        "Sentuhan pada area pribadi yang membuatmu tidak nyaman",
-        "Berjabat tangan dengan guru"
+        "Liga, Grup, Bakat, Tim",
+        "Lesbian, Gay, Biseksual, Transgender",
+        " Lingkungan, Gabungan, Bersama, Teman",
+        "Lawan, Gender, Bebas, Terbuka"
       ],
-      correctAnswer: 2,
-      tip: "Sentuhan yang tidak baik adalah sentuhan yang membuatmu tidak nyaman, terutama di area pribadi",
-      xpReward: 10
+      correctAnswer: 2
     },
     {
       id: 8,
-      question: "Apa yang harus dilakukan jika ada orang yang menyentuh area pribadimu dengan tidak pantas?",
+      question: "Mengapa perilaku seksual dalam konteks LGBT dianggap berisiko?",
       options: [
-        "Diam saja",
-        "Segera pergi dan beritahu orang tua atau guru",
-        "Tertawa saja",
-        "Menyimpannya sendiri"
+        "Karena sering dianggap aneh oleh masyarakat",
+        "Karena dapat melibatkan aktivitas seksual tidak aman dan berisiko IMS",
+        "Karena tidak akan pernah diterima keluarga",
+        "Karena hanya dilakukan oleh orang dewasa"
       ],
-      correctAnswer: 1,
-      tip: "Segera lapor ke orang tua, guru, atau orang dewasa yang dipercaya jika ada sentuhan tidak pantas",
-      xpReward: 10
+      correctAnswer: 2
     },
     {
       id: 9,
-      question: "Bagian tubuh mana yang termasuk area pribadi yang harus dijaga?",
+      question: "Salah satu contoh cyber sex adalah…",
       options: [
-        "Hanya wajah",
-        "Dada, organ intim, dan pantat",
-        "Hanya tangan dan kaki",
-        "Semua bagian tubuh boleh disentuh siapa saja"
+        "Mengirim pesan 'Good Morning' setiap hari",
+        "Video Call Sex (VCS) dengan konten eksplisit",
+        "Mengirim foto selfie ke pacar",
+        "Update status romantis di media sosial"
       ],
-      correctAnswer: 1,
-      tip: "Area pribadi adalah bagian yang tertutup pakaian dalam dan harus dijaga dengan baik",
-      xpReward: 10
+      correctAnswer: 2
     },
     {
       id: 10,
-      question: "Mengapa penting untuk mengetahui tentang kesehatan reproduksi sejak dini?",
+      question: "Hubungan seksual yang melibatkan mulut dan alat kelamin disebut…",
       options: [
-        "Untuk pamer kepada teman",
-        "Agar bisa menjaga diri dan tumbuh sehat",
-        "Tidak penting",
-        "Hanya untuk orang dewasa"
+        "Intercourse sex",
+        "Anal sex",
+        "Oral sex",
+        "Petting"
       ],
-      correctAnswer: 1,
-      tip: "Pengetahuan kesehatan reproduksi membantu menjaga diri dan tumbuh dengan sehat",
-      xpReward: 10
+      correctAnswer: 3
     }
   ];
 
@@ -202,7 +180,6 @@ const Quiz: React.FC = () => {
     selectedAnswers.forEach((answer, index) => {
       if (answer === questions[index].correctAnswer) {
         correctCount++;
-        xpEarned += questions[index].xpReward;
       }
     });
     
@@ -316,17 +293,6 @@ const Quiz: React.FC = () => {
               {currentQuiz.question}
             </h2>
             
-            {/* Tip Box */}
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-400 p-3 md:p-4 rounded-lg">
-              <div className="flex items-start space-x-2">
-                <span className="text-lg md:text-xl">💡</span>
-                <div>
-                  <p className="text-xs md:text-sm font-medium text-gray-700">
-                    {currentQuiz.tip}
-                  </p>
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* Answer Options */}
