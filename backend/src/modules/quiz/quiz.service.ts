@@ -3,9 +3,12 @@ import { db } from "@/db"
 import { quiz, quizQuestion, questionAnswer } from "@/db/schema"
 import { eq, and, ne, sql } from 'drizzle-orm'
 import { HttpError } from "@/utils/httpError";
-import { updateQuizSchema } from "@/modules/quiz/quiz.validator";
+import { updateQuizSchema, createQuestionSchema } from "@/modules/quiz/quiz.validator";
+import { saveFileBase64 } from "@/utils/fileUpload";
 
 type updateQuizInput = z.infer<typeof updateQuizSchema>
+type createQuestionInput = z.infer<typeof createQuestionSchema>
+type updateQuestionInput = z.infer<typeof createQuestionSchema>
 
 export const getQuiz = async () => {
     const [result] = await db
@@ -68,3 +71,24 @@ export const getQuestionById = async (questionId: number) => {
 
     return existingQuestion
 }
+
+export const createQuestion = async (data: createQuestionInput) => {
+    const existingQuiz = await getQuiz()
+    const { photo, question, explanation } = data
+    let photoUrl: string | null = null
+    if (typeof photo === "string") {
+        photoUrl = await saveFileBase64(photo, "question-photos")
+    }
+
+    const [result] = await db
+        .insert(quizQuestion)
+        .values({
+            quizId: existingQuiz.id,
+            photo: photoUrl,
+            question: question,
+            explanation: explanation
+        })
+        .returning()
+
+    return result
+} 
