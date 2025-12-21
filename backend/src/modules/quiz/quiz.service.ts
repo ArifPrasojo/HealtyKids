@@ -19,11 +19,7 @@ export const getQuiz = async () => {
 
 export const updateQuiz = async (data: updateQuizInput) => {
     const { duration, title, description, isActive } = data
-    const [existingQuiz] = await db
-        .select()
-        .from(quiz)
-        .where(eq(quiz.isDelete, false))
-        .orderBy(quiz.createdAt)
+    const existingQuiz = await getQuiz()
 
     const [result] = await db
         .update(quiz)
@@ -36,6 +32,21 @@ export const updateQuiz = async (data: updateQuizInput) => {
         })
         .where(eq(quiz.id, existingQuiz.id))
         .returning()
+
+    return result
+}
+
+export const getAllQuestion = async () => {
+    const existingQuiz = await getQuiz()
+    const result = await db
+        .select()
+        .from(quizQuestion)
+        .where(
+            and(
+                eq(quizQuestion.quizId, existingQuiz.id),
+                eq(quizQuestion.isDelete, false)
+            )
+        )
 
     return result
 }
