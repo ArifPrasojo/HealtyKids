@@ -12,3 +12,9 @@ export const createQuestionSchema = z.object({
     question: z.string().nonempty("Pertanyaan Harus Diisi").max(255, "Maksimal 255 karakter"),
     explanation: z.string().nonempty("Penjelasan Harus Diisi").max(255, "Maksimal 255 karakter"),
 })
+
+export const updateQuestionSchema = z.object({
+    photo: z.string().regex(/^data:(image\/(png|jpeg|jpg));base64,/).optional(),
+    question: z.string().nonempty("Pertanyaan Harus Diisi").max(255, "Maksimal 255 karakter"),
+    explanation: z.string().nonempty("Penjelasan Harus Diisi").max(255, "Maksimal 255 karakter"),
+})

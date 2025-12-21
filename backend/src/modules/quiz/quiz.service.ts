@@ -3,12 +3,12 @@ import { db } from "@/db"
 import { quiz, quizQuestion, questionAnswer } from "@/db/schema"
 import { eq, and, ne, sql } from 'drizzle-orm'
 import { HttpError } from "@/utils/httpError";
-import { updateQuizSchema, createQuestionSchema } from "@/modules/quiz/quiz.validator";
+import { updateQuizSchema, createQuestionSchema, updateQuestionSchema } from "@/modules/quiz/quiz.validator";
 import { saveFileBase64 } from "@/utils/fileUpload";
 
 type updateQuizInput = z.infer<typeof updateQuizSchema>
 type createQuestionInput = z.infer<typeof createQuestionSchema>
-type updateQuestionInput = z.infer<typeof createQuestionSchema>
+type updateQuestionInput = z.infer<typeof updateQuestionSchema>
 
 export const getQuiz = async () => {
     const [result] = await db
@@ -91,4 +91,41 @@ export const createQuestion = async (data: createQuestionInput) => {
         .returning()
 
     return result
-} 
+}
+
+export const updateQuestion = async (questionId: number, data: updateQuestionInput) => {
+    const [existingQuestion] = await db
+        .select()
+        .from(quizQuestion)
+        .where(
+            and(
+                eq(quizQuestion.id, questionId),
+                eq(quizQuestion.isDelete, false)
+            )
+        )
+
+    if (existingQuestion == null) {
+        throw new HttpError(404, "Pertanyaan tidak ditemukan")
+    }
+
+    const existingQuiz = await getQuiz()
+    const { photo, question, explanation } = data
+    let photoUrl: string | null = null
+    if (typeof photo === "string") {
+        photoUrl = await saveFileBase64(photo, "question-photos")
+    }
+
+    const [result] = await db
+        .update(quizQuestion)
+        .set({
+            photo: photoUrl,
+            question: question,
+            explanation: explanation,
+            updatedAt: new Date(Date.now())
+
+        })
+        .where(eq(quizQuestion.id, existingQuestion.id))
+        .returning()
+
+    return result
+}

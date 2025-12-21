@@ -7,4 +7,5 @@ quizAdminRoute.put('/', controller.updateQuiz)
 quizAdminRoute.get('/questions', controller.getAllQuestion)
 quizAdminRoute.get('/questions/:id{[0-9]+}', controller.getQuestionById)
 quizAdminRoute.post('/questions', controller.createQuestion)
+quizAdminRoute.put('/questions/:id{[0-9]+}', controller.updateQuestion)
 export { quizAdminRoute }
