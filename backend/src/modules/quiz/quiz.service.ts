@@ -50,3 +50,21 @@ export const getAllQuestion = async () => {
 
     return result
 }
+
+export const getQuestionById = async (questionId: number) => {
+    const [existingQuestion] = await db
+        .select()
+        .from(quizQuestion)
+        .where(
+            and(
+                eq(quizQuestion.id, questionId),
+                eq(quizQuestion.isDelete, false)
+            )
+        )
+
+    if (existingQuestion == null) {
+        throw new HttpError(404, "Pertanyaan tidak ditemukan")
+    }
+
+    return existingQuestion
+}

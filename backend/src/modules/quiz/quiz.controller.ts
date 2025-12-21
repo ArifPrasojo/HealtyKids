@@ -56,3 +56,21 @@ export const getAllQuestion = async (c: Context) => {
         return c.json(response.errorResponse(err), status)
     }
 }
+
+export const getQuestionById = async (c: Context) => {
+    try {
+        const questionId = Number(c.req.param('id'))
+        const result = await service.getQuestionById(questionId)
+        return c.json(response.successResponse(result))
+    } catch (err: any) {
+        if (err instanceof ZodError) {
+            return c.json({
+                success: false,
+                message: "Validasi gagal",
+                errors: err.flatten().fieldErrors
+            }, 400)
+        }
+        const status = err.status ?? 500
+        return c.json(response.errorResponse(err), status)
+    }
+}
