@@ -1,11 +1,11 @@
 import { db } from "@/db/connection";
-import { users } from "@/db/schema";
+import { quiz, users } from "@/db/schema";
 import { hash } from 'bcryptjs'
 
 export async function runSeed() {
     console.log("🌱 Seeding database...");
 
-    const insertedStudent = await db
+    await db
         .insert(users)
         .values([
             {
@@ -35,6 +35,16 @@ export async function runSeed() {
 
         ])
         .returning();
+
+    await db
+        .insert(quiz)
+        .values({
+            duration: 30,
+            title: "Quiz",
+            description: "Deskripsi quiz",
+            isActive: true
+        })
+        .returning()
 
     console.log("✅ Seeding selesai!");
 }

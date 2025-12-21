@@ -1,35 +1,31 @@
 import type { Context } from 'hono'
-import * as service from '@/modules/materials/material.service'
+import * as service from '@/modules/quiz/quiz.service'
 import * as response from '@/utils/response'
-import { createMaterialSchema, updateMaterialSchema, createSubMaterialSchema, updateSubMaterialSchema } from '@/modules/materials/material.validator'
 import { ZodError } from "zod"
+import { updateQuizSchema, createQuestionSchema, updateQuestionSchema } from "@/modules/quiz/quiz.validator";
 
-export const getAllMaterial = async (c: Context) => {
+export const getQuiz = async (c: Context) => {
     try {
-        const result = await service.getAllMaterial()
+        const result = await service.getQuiz()
         return c.json(response.successResponse(result))
     } catch (err: any) {
+        if (err instanceof ZodError) {
+            return c.json({
+                success: false,
+                message: "Validasi gagal",
+                errors: err.flatten().fieldErrors
+            }, 400)
+        }
         const status = err.status ?? 500
         return c.json(response.errorResponse(err), status)
     }
 }
 
-export const getMaterialById = async (c: Context) => {
-    try {
-        const materialId = Number(c.req.param('id'))
-        const result = await service.getMaterialById(materialId)
-        return c.json(response.successResponse(result))
-    } catch (err: any) {
-        const status = err.status ?? 500
-        return c.json(response.errorResponse(err), status)
-    }
-}
-
-export const createMaterial = async (c: Context) => {
+export const updateQuiz = async (c: Context) => {
     try {
         const body = await c.req.json()
-        const data = createMaterialSchema.parse(body)
-        const result = await service.createMaterial(data)
+        const data = updateQuizSchema.parse(body)
+        const result = await service.updateQuiz(data)
         return c.json(response.successResponse(result))
     } catch (err: any) {
         if (err instanceof ZodError) {
@@ -44,12 +40,46 @@ export const createMaterial = async (c: Context) => {
     }
 }
 
-export const updateMaterial = async (c: Context) => {
+export const getAllQuestion = async (c: Context) => {
     try {
-        const materialId = Number(c.req.param('id'))
+        const result = await service.getAllQuestion()
+        return c.json(response.successResponse(result))
+    } catch (err: any) {
+        if (err instanceof ZodError) {
+            return c.json({
+                success: false,
+                message: "Validasi gagal",
+                errors: err.flatten().fieldErrors
+            }, 400)
+        }
+        const status = err.status ?? 500
+        return c.json(response.errorResponse(err), status)
+    }
+}
+
+export const getQuestionById = async (c: Context) => {
+    try {
+        const questionId = Number(c.req.param('id'))
+        const result = await service.getQuestionById(questionId)
+        return c.json(response.successResponse(result))
+    } catch (err: any) {
+        if (err instanceof ZodError) {
+            return c.json({
+                success: false,
+                message: "Validasi gagal",
+                errors: err.flatten().fieldErrors
+            }, 400)
+        }
+        const status = err.status ?? 500
+        return c.json(response.errorResponse(err), status)
+    }
+}
+
+export const createQuestion = async (c: Context) => {
+    try {
         const body = await c.req.json()
-        const data = updateMaterialSchema.parse(body)
-        const result = await service.updateMaterial(materialId, data)
+        const data = createQuestionSchema.parse(body)
+        const result = await service.createQuestion(data)
         return c.json(response.successResponse(result))
     } catch (err: any) {
         if (err instanceof ZodError) {
@@ -64,67 +94,12 @@ export const updateMaterial = async (c: Context) => {
     }
 }
 
-export const deleteMaterial = async (c: Context) => {
+export const updateQuestion = async (c: Context) => {
     try {
-        const materialId = Number(c.req.param('id'))
-        const result = await service.deleteMaterial(materialId)
-        return c.json(response.successResponse(result))
-    } catch (err: any) {
-        if (err instanceof ZodError) {
-            return c.json({
-                success: false,
-                message: "Validasi gagal",
-                errors: err.flatten().fieldErrors
-            }, 400)
-        }
-        const status = err.status ?? 500
-        return c.json(response.errorResponse(err), status)
-    }
-}
-
-export const getAllSubMaterial = async (c: Context) => {
-    try {
-        const materialId = Number(c.req.param('id'))
-        const result = await service.getAllSubMateri(materialId)
-        return c.json(response.successResponse(result))
-    } catch (err: any) {
-        if (err instanceof ZodError) {
-            return c.json({
-                success: false,
-                message: "Validasi gagal",
-                errors: err.flatten().fieldErrors
-            }, 400)
-        }
-        const status = err.status ?? 500
-        return c.json(response.errorResponse(err), status)
-    }
-}
-
-export const getSubMaterialById = async (c: Context) => {
-    try {
-        const materialId = Number(c.req.param('id'))
-        const subMaterialId = Number(c.req.param('id-sub'))
-        const result = await service.getSubMaterialById(materialId, subMaterialId)
-        return c.json(response.successResponse(result))
-    } catch (err: any) {
-        if (err instanceof ZodError) {
-            return c.json({
-                success: false,
-                message: "Validasi gagal",
-                errors: err.flatten().fieldErrors
-            }, 400)
-        }
-        const status = err.status ?? 500
-        return c.json(response.errorResponse(err), status)
-    }
-}
-
-export const createSubMaterial = async (c: Context) => {
-    try {
-        const materialId = Number(c.req.param('id'))
         const body = await c.req.json()
-        const data = createSubMaterialSchema.parse(body)
-        const result = await service.createSubMaterial(materialId, data)
+        const data = updateQuestionSchema.parse(body)
+        const questionId = Number(c.req.param('id'))
+        const result = await service.updateQuestion(questionId, data)
         return c.json(response.successResponse(result))
     } catch (err: any) {
         if (err instanceof ZodError) {
@@ -139,31 +114,10 @@ export const createSubMaterial = async (c: Context) => {
     }
 }
 
-export const updateSubMaterial = async (c: Context) => {
+export const deleteQuestion = async (c: Context) => {
     try {
-        const materialId = Number(c.req.param('id'))
-        const subMaterialId = Number(c.req.param('id-sub'))
-        const body = await c.req.json()
-        const data = updateSubMaterialSchema.parse(body)
-        const result = await service.updateSubMaterial(materialId, subMaterialId, data)
-        return c.json(response.successResponse(result))
-    } catch (err: any) {
-        if (err instanceof ZodError) {
-            return c.json({
-                success: false,
-                message: "Validasi gagal",
-                errors: err.flatten().fieldErrors
-            }, 400)
-        }
-        const status = err.status ?? 500
-        return c.json(response.errorResponse(err), status)
-    }
-}
-
-export const deleteSubMaterial = async (c: Context) => {
-    try {
-        const subMaterialId = Number(c.req.param('id-sub'))
-        const result = await service.deleteSubMaterial(subMaterialId)
+        const questionId = Number(c.req.param('id'))
+        const result = await service.deleteQuestion(questionId)
         return c.json(response.successResponse(result))
     } catch (err: any) {
         if (err instanceof ZodError) {
