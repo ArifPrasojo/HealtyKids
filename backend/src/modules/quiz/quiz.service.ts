@@ -80,15 +80,50 @@ export const createQuestion = async (data: createQuestionInput) => {
         photoUrl = await saveFileBase64(photo, "question-photos")
     }
 
-    const [result] = await db
-        .insert(quizQuestion)
-        .values({
-            quizId: existingQuiz.id,
-            photo: photoUrl,
-            question: question,
-            explanation: explanation
-        })
-        .returning()
+    const result = await db.transaction(async (tx) => {
+        const [createQuestion] = await tx
+            .insert(quizQuestion)
+            .values({
+                quizId: existingQuiz.id,
+                photo: photoUrl,
+                question: question,
+                explanation: explanation
+            })
+            .returning()
+
+        const createAnswer = await tx
+            .insert(questionAnswer)
+            .values([
+                {
+                    questionId: createQuestion.id,
+                    answer: "Ini Jawaban 1",
+                    isCorrect: true
+                },
+                {
+                    questionId: createQuestion.id,
+                    answer: "Ini Jawaban 2",
+                    isCorrect: false
+                },
+                {
+                    questionId: createQuestion.id,
+                    answer: "Ini Jawaban 3",
+                    isCorrect: false
+                },
+                {
+                    questionId: createQuestion.id,
+                    answer: "Ini Jawaban 4",
+                    isCorrect: false
+                },
+                {
+                    questionId: createQuestion.id,
+                    answer: "Ini Jawaban 5",
+                    isCorrect: false
+                }
+            ])
+            .returning()
+
+        return createQuestion
+    })
 
     return result
 }
