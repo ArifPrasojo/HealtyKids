@@ -75,7 +75,19 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                   <span className="relative">
                     di{' '}
                     <span className="bg-gradient-to-t from-green-500 via-teal-400 to-slate-100 bg-clip-text text-transparent">
-                      HealthyKids
+                      Sex
+                    </span>
+                    <span className="bg-gradient-to-t from-green-500 via-teal-400 to-slate-100 bg-clip-text text-transparent relative font-extrabold text-1xl">
+                      ♂
+                    </span>
+                    <span className="bg-gradient-to-t from-green-500 via-teal-400 to-slate-100 bg-clip-text text-transparent">
+                      ph
+                    </span>
+                    <span className="bg-gradient-to-t from-green-500 via-teal-400 to-slate-100 bg-clip-text text-transparent relative font-extrabold text-1xl">
+                      ♀
+                    </span>
+                    <span className="bg-gradient-to-t from-green-500 via-teal-400 to-slate-100 bg-clip-text text-transparent">
+                      ne
                     </span>
                     <svg className="absolute -bottom-1 md:-bottom-2 left-0 w-full h-2 md:h-3" viewBox="0 0 200 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path 
@@ -99,19 +111,17 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
             </div>
 
             {/* Description */}
-            <div className="max-w-3xl mx-auto space-y-4 md:space-y-20">
-              <p className="text-gray-600 text-base md:text-xl lg:text-2xl leading-relaxed font-light px-4">
-                Panel Admin untuk{' '}
+            <div className="max-w-4xl mx-auto space-y-4 md:space-y-20">
+              <p className="text-gray-600 text-lg md:text-3xl lg:text-4xl leading-relaxed font-light px-4">
                 <span className="relative inline-block">
-                  <span className="relative z-10 font-bold text-indigo-600">mengelola</span>
+                  <span className="relative z-10 font-bold text-indigo-600"> Sex Education </span>
                   <span className="absolute bottom-1 left-0 w-full h-2 md:h-3 bg-indigo-200/50 -rotate-1"></span>
                 </span>
-                {' '}dan{' '}
+                {' '}
                 <span className="relative inline-block">
-                  <span className="relative z-10 font-bold text-purple-600">memantau</span>
+                  <span className="relative z-10 font-bold text-purple-600"> On Phone</span>
                   <span className="absolute bottom-1 left-0 w-full h-2 md:h-3 bg-purple-200/50 rotate-1"></span>
                 </span>
-                {' '}sistem pembelajaran
               </p>
             </div>
           </div>
