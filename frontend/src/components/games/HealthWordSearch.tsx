@@ -45,8 +45,8 @@ const HealthWordSearch: React.FC = () => {
 
   const [selectedCells, setSelectedCells] = useState<{ row: number; col: number }[]>([]);
   const [isSelecting, setIsSelecting] = useState(false);
-  const [hintedCells, setHintedCells] = useState<Set<string>>(new Set());
   const [placements, setPlacements] = useState<Placement[]>([]);
+  const [touchStart, setTouchStart] = useState<{ row: number; col: number } | null>(null);
 
   // Health-related words to find
   const words: WordData[] = [
@@ -287,6 +287,40 @@ const HealthWordSearch: React.FC = () => {
     setSelectedCells([]);
   };
 
+  const handleCellTouchStart = (row: number, col: number, e: React.TouchEvent) => {
+    e.preventDefault();
+    setIsSelecting(true);
+    setSelectedCells([{ row, col }]);
+    highlightCell(row, col, true);
+    setTouchStart({ row, col });
+  };
+
+  const handleCellTouchMove = (e: React.TouchEvent) => {
+    e.preventDefault();
+    if (!isSelecting || !touchStart) return;
+
+    const touch = e.touches[0];
+    const element = document.elementFromPoint(touch.clientX, touch.clientY);
+    if (element) {
+      const cellKey = element.getAttribute('data-cell');
+      if (cellKey) {
+        const [rowStr, colStr] = cellKey.split('-');
+        const row = parseInt(rowStr);
+        const col = parseInt(colStr);
+        handleCellMouseEnter(row, col);
+      }
+    }
+  };
+
+  const handleCellTouchEnd = (e: React.TouchEvent) => {
+    e.preventDefault();
+    setIsSelecting(false);
+    checkSelectedWord();
+    clearHighlights();
+    setSelectedCells([]);
+    setTouchStart(null);
+  };
+
   const highlightCell = (row: number, col: number, highlight: boolean) => {
     setGrid(prev => {
       const newGrid = [...prev];
@@ -397,55 +431,10 @@ const HealthWordSearch: React.FC = () => {
     });
     setGrid(generateGrid());
     setWordList(words.map(w => ({ ...w, found: false })));
-    setHintedCells(new Set());
   };
 
   const backToDashboard = () => {
     navigate('/gamehome');
-  };
-
-  const useHint = () => {
-    if (gameState.hintsUsed >= 5) return; // Max 5 hints
-
-    // Find first word that's not found yet
-    const unFoundWord = wordList.find(w => !w.found);
-    if (!unFoundWord) return;
-
-    const placement = placements.find(p => p.word === unFoundWord.word);
-    if (!placement) return;
-
-    // Highlight first 2 letters of the word
-    const cellsToHint: string[] = [];
-    for (let i = 0; i < Math.min(2, unFoundWord.word.length); i++) {
-      let row = placement.row;
-      let col = placement.col;
-
-      if (placement.direction === 'horizontal') {
-        col = placement.col + i;
-      } else if (placement.direction === 'vertical') {
-        row = placement.row + i;
-      } else if (placement.direction === 'diagonal') {
-        row = placement.row + i;
-        col = placement.col + i;
-      }
-
-      cellsToHint.push(`${row}-${col}`);
-    }
-
-    setHintedCells(prev => new Set([...prev, ...cellsToHint]));
-    setGameState(prev => ({
-      ...prev,
-      hintsUsed: prev.hintsUsed + 1
-    }));
-
-    // Remove hint highlighting after 3 seconds
-    setTimeout(() => {
-      setHintedCells(prev => {
-        const newSet = new Set(prev);
-        cellsToHint.forEach(cell => newSet.delete(cell));
-        return newSet;
-      });
-    }, 3000);
   };
 
   const formatTime = (seconds: number) => {
@@ -456,7 +445,7 @@ const HealthWordSearch: React.FC = () => {
 
   const renderGrid = () => (
     <div 
-      className="inline-grid gap-0.5 bg-gray-300 p-2 md:p-3 rounded-xl"
+      className="inline-grid gap-0.5 bg-gray-300 p-2 md:p-3 rounded-xl overflow-auto"
       style={{ gridTemplateColumns: `repeat(${GRID_SIZE}, minmax(0, 1fr))` }}
       onMouseLeave={() => {
         if (isSelecting) {
@@ -466,27 +455,28 @@ const HealthWordSearch: React.FC = () => {
           setSelectedCells([]);
         }
       }}
+      onTouchMove={handleCellTouchMove}
+      onTouchEnd={handleCellTouchEnd}
     >
       {grid.map((row, rowIndex) =>
         row.map((cell, colIndex) => {
           const cellKey = `${rowIndex}-${colIndex}`;
-          const isHinted = hintedCells.has(cellKey);
           
           return (
             <div
               key={cellKey}
-              className={`w-6 h-6 md:w-8 md:h-8 flex items-center justify-center text-xs md:text-sm font-bold cursor-pointer transition-all select-none border-2 ${
+              data-cell={cellKey}
+              className={`w-8 h-8 md:w-10 md:h-10 flex items-center justify-center text-sm md:text-base font-bold cursor-pointer transition-all select-none border-2 ${
                 cell.isFound
                   ? 'bg-green-400 text-white border-green-600'
-                  : isHinted
-                  ? 'bg-yellow-300 border-yellow-500 animate-pulse'
                   : cell.isHighlighted
                   ? 'bg-blue-300 border-blue-500'
-                  : 'bg-white border-gray-400 hover:bg-gray-100'
+                  : 'bg-white border-gray-400 hover:bg-gray-100 active:bg-gray-200'
               }`}
               onMouseDown={() => handleCellMouseDown(rowIndex, colIndex)}
               onMouseEnter={() => handleCellMouseEnter(rowIndex, colIndex)}
               onMouseUp={handleCellMouseUp}
+              onTouchStart={(e) => handleCellTouchStart(rowIndex, colIndex, e)}
             >
               {cell.letter}
             </div>
@@ -594,10 +584,6 @@ const HealthWordSearch: React.FC = () => {
                   <div className="text-lg md:text-xl font-bold text-purple-600">{gameState.score}</div>
                 </div>
                 <div className="bg-white/90 backdrop-blur-sm rounded-xl px-3 md:px-4 py-2 shadow-md flex-1 md:flex-none">
-                  <div className="text-xs text-gray-600">Hint</div>
-                  <div className="text-lg md:text-xl font-bold text-orange-600">{gameState.hintsUsed}/5</div>
-                </div>
-                <div className="bg-white/90 backdrop-blur-sm rounded-xl px-3 md:px-4 py-2 shadow-md flex-1 md:flex-none">
                   <div className="text-xs text-gray-600">Kata</div>
                   <div className="text-lg md:text-xl font-bold text-pink-600">
                     {gameState.wordsFound}/{gameState.totalWords}
@@ -630,15 +616,6 @@ const HealthWordSearch: React.FC = () => {
 
                 {/* Action Buttons */}
                 <div className="flex flex-col md:flex-row gap-2 md:gap-3 mt-4">
-                  <Button 
-                    onClick={useHint} 
-                    variant="secondary" 
-                    size="sm"
-                    disabled={gameState.hintsUsed >= 5}
-                    className="w-full md:w-auto text-xs md:text-sm"
-                  >
-                    💡 Bantuan ({Math.max(0, 5 - gameState.hintsUsed)} tersisa)
-                  </Button>
                   <Button 
                     onClick={startGame} 
                     variant="secondary" 
