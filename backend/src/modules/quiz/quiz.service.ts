@@ -108,7 +108,6 @@ export const updateQuestion = async (questionId: number, data: updateQuestionInp
         throw new HttpError(404, "Pertanyaan tidak ditemukan")
     }
 
-    const existingQuiz = await getQuiz()
     const { photo, question, explanation } = data
     let photoUrl: string | null = null
     if (typeof photo === "string") {
