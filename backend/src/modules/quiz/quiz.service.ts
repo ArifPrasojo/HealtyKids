@@ -192,6 +192,29 @@ export const deleteQuestion = async (questionId: number) => {
     return
 }
 
+export const getAllAnswer = async (questionId: number) => {
+    const [existingQuestion] = await db
+        .select()
+        .from(quizQuestion)
+        .where(
+            and(
+                eq(quizQuestion.id, questionId),
+                eq(quizQuestion.isDelete, false)
+            )
+        )
+
+    if (existingQuestion == null) {
+        throw new HttpError(404, "Pertanyaan tidak ditemukan")
+    }
+
+    const result = await db
+        .select()
+        .from(questionAnswer)
+        .where(eq(questionAnswer.questionId, existingQuestion.id))
+
+    return result
+}
+
 export const updateQuestionAnswer = async (questionId: number, data: updateQuestionAnswerInput) => {
     const [existingQuestion] = await db
         .select()
