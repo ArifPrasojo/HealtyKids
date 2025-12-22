@@ -12,7 +12,6 @@ export const questionAnswer = pgTable("question_answer", {
         }),
     answer: text("answer").notNull(),
     isCorrect: boolean("is_correct").default(false),
-
     isDelete: boolean("is_delete").notNull().default(false),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at")

@@ -3,12 +3,13 @@ import { db } from "@/db"
 import { quiz, quizQuestion, questionAnswer } from "@/db/schema"
 import { eq, and, ne, sql } from 'drizzle-orm'
 import { HttpError } from "@/utils/httpError";
-import { updateQuizSchema, createQuestionSchema, updateQuestionSchema } from "@/modules/quiz/quiz.validator";
+import { updateQuizSchema, createQuestionSchema, updateQuestionSchema, updateAnswerQuestionSchema } from "@/modules/quiz/quiz.validator";
 import { saveFileBase64 } from "@/utils/fileUpload";
 
 type updateQuizInput = z.infer<typeof updateQuizSchema>
 type createQuestionInput = z.infer<typeof createQuestionSchema>
 type updateQuestionInput = z.infer<typeof updateQuestionSchema>
+type updateQuestionAnswerInput = z.infer<typeof updateAnswerQuestionSchema>
 
 export const getQuiz = async () => {
     const [result] = await db
@@ -80,15 +81,50 @@ export const createQuestion = async (data: createQuestionInput) => {
         photoUrl = await saveFileBase64(photo, "question-photos")
     }
 
-    const [result] = await db
-        .insert(quizQuestion)
-        .values({
-            quizId: existingQuiz.id,
-            photo: photoUrl,
-            question: question,
-            explanation: explanation
-        })
-        .returning()
+    const result = await db.transaction(async (tx) => {
+        const [createQuestion] = await tx
+            .insert(quizQuestion)
+            .values({
+                quizId: existingQuiz.id,
+                photo: photoUrl,
+                question: question,
+                explanation: explanation
+            })
+            .returning()
+
+        const createAnswer = await tx
+            .insert(questionAnswer)
+            .values([
+                {
+                    questionId: createQuestion.id,
+                    answer: "Ini Jawaban 1",
+                    isCorrect: true
+                },
+                {
+                    questionId: createQuestion.id,
+                    answer: "Ini Jawaban 2",
+                    isCorrect: false
+                },
+                {
+                    questionId: createQuestion.id,
+                    answer: "Ini Jawaban 3",
+                    isCorrect: false
+                },
+                {
+                    questionId: createQuestion.id,
+                    answer: "Ini Jawaban 4",
+                    isCorrect: false
+                },
+                {
+                    questionId: createQuestion.id,
+                    answer: "Ini Jawaban 5",
+                    isCorrect: false
+                }
+            ])
+            .returning()
+
+        return createQuestion
+    })
 
     return result
 }
@@ -108,7 +144,6 @@ export const updateQuestion = async (questionId: number, data: updateQuestionInp
         throw new HttpError(404, "Pertanyaan tidak ditemukan")
     }
 
-    const existingQuiz = await getQuiz()
     const { photo, question, explanation } = data
     let photoUrl: string | null = null
     if (typeof photo === "string") {
@@ -155,4 +190,63 @@ export const deleteQuestion = async (questionId: number) => {
         .returning()
 
     return
+}
+
+export const getAllAnswer = async (questionId: number) => {
+    const [existingQuestion] = await db
+        .select()
+        .from(quizQuestion)
+        .where(
+            and(
+                eq(quizQuestion.id, questionId),
+                eq(quizQuestion.isDelete, false)
+            )
+        )
+
+    if (existingQuestion == null) {
+        throw new HttpError(404, "Pertanyaan tidak ditemukan")
+    }
+
+    const result = await db
+        .select()
+        .from(questionAnswer)
+        .where(eq(questionAnswer.questionId, existingQuestion.id))
+
+    return result
+}
+
+export const updateQuestionAnswer = async (questionId: number, data: updateQuestionAnswerInput) => {
+    const [existingQuestion] = await db
+        .select()
+        .from(quizQuestion)
+        .where(
+            and(
+                eq(quizQuestion.id, questionId),
+                eq(quizQuestion.isDelete, false)
+            )
+        )
+
+    if (existingQuestion == null) {
+        throw new HttpError(404, "Pertanyaan tidak ditemukan")
+    }
+
+    const result = await db.transaction(async (tx) => {
+        const resultUpdate = []
+        for (const item of data.answer) {
+            const updateAnswer = await tx
+                .update(questionAnswer)
+                .set({
+                    answer: item.answer,
+                    isCorrect: item.isCorrect,
+                    updatedAt: new Date(Date.now())
+                })
+                .where(eq(questionAnswer.id, item.answerId))
+                .returning()
+
+            resultUpdate.push(...updateAnswer)
+        }
+        return resultUpdate
+    })
+
+    return result
 }
