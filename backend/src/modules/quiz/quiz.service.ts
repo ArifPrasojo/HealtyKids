@@ -3,12 +3,13 @@ import { db } from "@/db"
 import { quiz, quizQuestion, questionAnswer } from "@/db/schema"
 import { eq, and, ne, sql } from 'drizzle-orm'
 import { HttpError } from "@/utils/httpError";
-import { updateQuizSchema, createQuestionSchema, updateQuestionSchema } from "@/modules/quiz/quiz.validator";
+import { updateQuizSchema, createQuestionSchema, updateQuestionSchema, updateAnswerQuestionSchema } from "@/modules/quiz/quiz.validator";
 import { saveFileBase64 } from "@/utils/fileUpload";
 
 type updateQuizInput = z.infer<typeof updateQuizSchema>
 type createQuestionInput = z.infer<typeof createQuestionSchema>
 type updateQuestionInput = z.infer<typeof updateQuestionSchema>
+type updateQuestionAnswerInput = z.infer<typeof updateAnswerQuestionSchema>
 
 export const getQuiz = async () => {
     const [result] = await db
@@ -189,4 +190,40 @@ export const deleteQuestion = async (questionId: number) => {
         .returning()
 
     return
+}
+
+export const updateQuestionAnswer = async (questionId: number, data: updateQuestionAnswerInput) => {
+    const [existingQuestion] = await db
+        .select()
+        .from(quizQuestion)
+        .where(
+            and(
+                eq(quizQuestion.id, questionId),
+                eq(quizQuestion.isDelete, false)
+            )
+        )
+
+    if (existingQuestion == null) {
+        throw new HttpError(404, "Pertanyaan tidak ditemukan")
+    }
+
+    const result = await db.transaction(async (tx) => {
+        const resultUpdate = []
+        for (const item of data.answer) {
+            const updateAnswer = await tx
+                .update(questionAnswer)
+                .set({
+                    answer: item.answer,
+                    isCorrect: item.isCorrect,
+                    updatedAt: new Date(Date.now())
+                })
+                .where(eq(questionAnswer.id, item.answerId))
+                .returning()
+
+            resultUpdate.push(...updateAnswer)
+        }
+        return resultUpdate
+    })
+
+    return result
 }

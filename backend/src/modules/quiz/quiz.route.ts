@@ -9,4 +9,5 @@ quizAdminRoute.get('/questions/:id{[0-9]+}', controller.getQuestionById)
 quizAdminRoute.post('/questions', controller.createQuestion)
 quizAdminRoute.put('/questions/:id{[0-9]+}', controller.updateQuestion)
 quizAdminRoute.delete('/questions/:id{[0-9]+}', controller.deleteQuestion)
+quizAdminRoute.put('/questions/:id{[0-9]+}/answer', controller.updateQuestionAnswer)
 export { quizAdminRoute }

@@ -18,3 +18,13 @@ export const updateQuestionSchema = z.object({
     question: z.string().nonempty("Pertanyaan Harus Diisi").max(255, "Maksimal 255 karakter"),
     explanation: z.string().nonempty("Penjelasan Harus Diisi").max(255, "Maksimal 255 karakter"),
 })
+
+const answerQuestionItem = z.object({
+    answerId: z.number().int().positive(),
+    answer: z.string().nonempty("Jawaban Harus Diisi"),
+    isCorrect: z.boolean()
+})
+
+export const updateAnswerQuestionSchema = z.object({
+    answer: z.array(answerQuestionItem).min(5, "Jawaban harus ada 5").max(5, "Jawaban harus ada 5")
+})
