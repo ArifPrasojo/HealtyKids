@@ -13,10 +13,12 @@ import HealthWordSearchPage from './pages/siswa/HealthWordSearchPage'
 import MateriHome from './pages/siswa/MateriHome'
 import GameHome from './pages/siswa/GameHome'
 import ProtectedRoute from './routes/ProtectedRoute'
-import ManageMateri from './pages/admin/ManageMateri'
-import SubMateri from './pages/admin/SubMateri'
+import ManageMateri from './pages/admin/ManageMaterial'
+import SubMateri from './pages/admin/ManageSubMaterial'
 import ManageUsers from './pages/admin/ManageUser'    
 import './App.css'
+import ManageSubMaterials from './pages/admin/ManageSubMaterial'
+import ManageMaterials from './pages/admin/ManageMaterial'
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -107,10 +109,10 @@ function App() {
         />
         
         <Route 
-        path="/admin/submateri"
+        path="/admin/materials/:materialId/sub-materials"
         element={
           <ProtectedRoute isAuthenticated={isAuthenticated} userRole={userRole}>
-            {userRole === 'admin' ? <SubMateri /> : <Navigate to="/dashboard" replace />}
+            {userRole === 'admin' ? <ManageSubMaterials /> : <Navigate to="/dashboard" replace />}
           </ProtectedRoute>
         }
         />
@@ -119,7 +121,7 @@ function App() {
           path="/admin/managemateri" 
           element={
             <ProtectedRoute isAuthenticated={isAuthenticated} userRole={userRole}>
-              {userRole === 'admin' ? <ManageMateri /> : <Navigate to="/dashboard" replace />}
+              {userRole === 'admin' ? <ManageMaterials/> : <Navigate to="/dashboard" replace />}
             </ProtectedRoute>
           } 
         />
