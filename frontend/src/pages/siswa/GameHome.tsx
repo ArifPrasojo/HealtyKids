@@ -36,6 +36,14 @@ const GameHome: React.FC<GameHomeProps> = ({ onLogout }) => {
       icon: '📝',
       route: '/game/crossword',
       difficulty: 'Sedang'
+    },
+    {
+      id: 3,
+      title: 'Health Word Search',
+      description: 'Temukan kata-kata kesehatan tersembunyi dalam kotak huruf',
+      icon: '🔍',
+      route: '/game/wordsearch',
+      difficulty: 'Mudah'
     }
   ];
 
@@ -78,8 +86,8 @@ const GameHome: React.FC<GameHomeProps> = ({ onLogout }) => {
             </p>
           </div>
 
-          {/* Game Cards Grid - 2 kolom, card ukuran seperti grid 3 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-6xl mx-auto">
+          {/* Game Cards Grid - 3 kolom */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-7xl mx-auto">
             {gameData.map((game) => (
               <div
                 key={game.id}

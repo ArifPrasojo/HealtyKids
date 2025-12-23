@@ -9,6 +9,7 @@ import Login from './pages/Login'
 import LoadingScreen from './components/ui/LoadingScreen'
 import HealthMatchingGamePage from './pages/siswa/HealthMatchingGamePage'
 import GameCrossword from './pages/siswa/GameCrossword'
+import HealthWordSearchPage from './pages/siswa/HealthWordSearchPage'
 import MateriHome from './pages/siswa/MateriHome'
 import GameHome from './pages/siswa/GameHome'
 import ProtectedRoute from './routes/ProtectedRoute'
@@ -164,6 +165,15 @@ function App() {
           element={
             <ProtectedRoute isAuthenticated={isAuthenticated}>
               <GameCrossword />
+            </ProtectedRoute>
+          } 
+        />
+        
+        <Route 
+          path="/game/wordsearch" 
+          element={
+            <ProtectedRoute isAuthenticated={isAuthenticated}>
+              <HealthWordSearchPage />
             </ProtectedRoute>
           } 
         />
