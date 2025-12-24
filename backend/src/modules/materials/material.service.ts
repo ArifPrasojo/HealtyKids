@@ -9,14 +9,16 @@ import {
     updateMaterialSchema,
     createSubMaterialVideoSchema,
     createSubMaterialPhotoSchema,
-    updateSubMaterialSchema
+    updateSubMaterialVideoSchema,
+    updateSubMaterialPhotoSchema
 } from '@/modules/materials/material.validator'
 
 type createMaterialInput = z.infer<typeof createMaterialSchema>
 type updateMaterialInput = z.infer<typeof updateMaterialSchema>
 type createSubMaterialVideoInput = z.infer<typeof createSubMaterialVideoSchema>
 type createSubMaterialPhotoInput = z.infer<typeof createSubMaterialPhotoSchema>
-type updateSubMaterialInput = z.infer<typeof updateSubMaterialSchema>
+type updateSubMaterialVideoInput = z.infer<typeof updateSubMaterialVideoSchema>
+type updateSubMaterialPhotoInput = z.infer<typeof updateSubMaterialPhotoSchema>
 
 export const getAllMaterial = async () => {
     const result = await db
@@ -236,10 +238,9 @@ export const createSubMaterialPhoto = async (materialId: number, data: createSub
         .returning()
 
     return result
-
 }
 
-export const updateSubMaterialVideo = async (materialId: number, subMaterialId: number, data: updateSubMaterialInput) => {
+export const updateSubMaterialVideo = async (materialId: number, subMaterialId: number, data: updateSubMaterialVideoInput) => {
     const [existingMaterial] = await db
         .select()
         .from(materials)
@@ -276,6 +277,53 @@ export const updateSubMaterialVideo = async (materialId: number, subMaterialId: 
             title: title,
             contentCategory: contentCategory,
             contentUrl: contentUrl,
+            content: content,
+            updatedAt: new Date(Date.now())
+        })
+        .where(eq(subMaterial.id, existingSubMaterial.id))
+        .returning()
+
+    return result
+}
+
+export const updateSubMaterialPhoto = async (materialId: number, subMaterialId: number, data: updateSubMaterialPhotoInput) => {
+    const [existingMaterial] = await db
+        .select()
+        .from(materials)
+        .where(
+            and(
+                eq(materials.id, materialId),
+                eq(materials.isDelete, false)
+            )
+        )
+
+    if (existingMaterial == null) {
+        throw new HttpError(404, "Materi tidak ditemukan")
+    }
+
+    const [existingSubMaterial] = await db
+        .select()
+        .from(subMaterial)
+        .where(
+            and(
+                eq(subMaterial.id, subMaterialId),
+                eq(subMaterial.isDelete, false)
+            )
+        )
+
+    if (existingSubMaterial == null) {
+        throw new HttpError(404, "Sub Materi tidak ditemukan")
+    }
+
+    const { title, contentCategory, contentUrl, content } = data
+    const urlContent = await saveFileBase64(contentUrl, "material-photos")
+
+    const [result] = await db
+        .update(subMaterial)
+        .set({
+            title: title,
+            contentCategory: contentCategory,
+            contentUrl: urlContent,
             content: content,
             updatedAt: new Date(Date.now())
         })

@@ -6,7 +6,8 @@ import {
     updateMaterialSchema,
     createSubMaterialVideoSchema,
     createSubMaterialPhotoSchema,
-    updateSubMaterialSchema
+    updateSubMaterialVideoSchema,
+    updateSubMaterialPhotoSchema
 } from '@/modules/materials/material.validator'
 import { ZodError } from "zod"
 
@@ -139,7 +140,7 @@ export const createSubMaterial = async (c: Context) => {
             return c.json(response.successResponse(result))
         }
 
-        return c.json({ message: "Kategori Konten Harus Ada" }, 415)
+        return c.json({ message: "Unsupported Category Content" }, 415)
     } catch (err: any) {
         if (err instanceof ZodError) {
             return c.json({
@@ -158,9 +159,17 @@ export const updateSubMaterial = async (c: Context) => {
         const materialId = Number(c.req.param('id'))
         const subMaterialId = Number(c.req.param('id-sub'))
         const body = await c.req.json()
-        const data = updateSubMaterialSchema.parse(body)
-        const result = await service.updateSubMaterialVideo(materialId, subMaterialId, data)
-        return c.json(response.successResponse(result))
+        if (body.contentCategory == 'video') {
+            const data = updateSubMaterialVideoSchema.parse(body)
+            const result = await service.updateSubMaterialVideo(materialId, subMaterialId, data)
+            return c.json(response.successResponse(result))
+        } else if (body.contentCategory == 'photo') {
+            const data = updateSubMaterialPhotoSchema.parse(body)
+            const result = await service.updateSubMaterialPhoto(materialId, subMaterialId, data)
+            return c.json(response.successResponse(result))
+        }
+
+        return c.json({ message: "Unsupported Category Content" }, 415)
     } catch (err: any) {
         if (err instanceof ZodError) {
             return c.json({

@@ -12,21 +12,28 @@ export const updateMaterialSchema = z.object({
 
 export const createSubMaterialVideoSchema = z.object({
     title: z.string().nonempty("Title Harus Diisi").max(255, "Maksimal 255 karakter"),
-    contentCategory: z.enum(["video", "photo"]),
+    contentCategory: z.literal('video'),
     contentUrl: z.string(),
     content: z.string().nonempty("Konten Harus Diisi")
 })
 
 export const createSubMaterialPhotoSchema = z.object({
     title: z.string().nonempty("Title Harus Diisi").max(255, "Maksimal 255 karakter"),
-    contentCategory: z.enum(["video", "photo"]),
+    contentCategory: z.literal('photo'),
     contentUrl: z.string().regex(/^data:(image\/(png|jpeg|jpg));base64,/),
     content: z.string().nonempty("Konten Harus Diisi")
 })
 
-export const updateSubMaterialSchema = z.object({
+export const updateSubMaterialVideoSchema = z.object({
     title: z.string().nonempty("Title Harus Diisi").max(255, "Maksimal 255 karakter"),
     contentCategory: z.enum(["video", "photo"]),
     contentUrl: z.string(),
+    content: z.string().nonempty("Konten Harus Diisi")
+})
+
+export const updateSubMaterialPhotoSchema = z.object({
+    title: z.string().nonempty("Title Harus Diisi").max(255, "Maksimal 255 karakter"),
+    contentCategory: z.literal('photo'),
+    contentUrl: z.string().regex(/^data:(image\/(png|jpeg|jpg));base64,/),
     content: z.string().nonempty("Konten Harus Diisi")
 })
