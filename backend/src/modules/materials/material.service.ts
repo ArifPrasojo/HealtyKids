@@ -222,7 +222,7 @@ export const createSubMaterialPhoto = async (materialId: number, data: createSub
     }
 
     const { title, contentCategory, contentUrl, content } = data
-    const urlContent = await saveFileBase64(contentUrl, "question-photos")
+    const urlContent = await saveFileBase64(contentUrl, "material-photos")
 
     const [result] = await db
         .insert(subMaterial)

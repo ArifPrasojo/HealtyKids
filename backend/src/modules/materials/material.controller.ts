@@ -129,17 +129,17 @@ export const createSubMaterial = async (c: Context) => {
     try {
         const materialId = Number(c.req.param('id'))
         const body = await c.req.json()
-        if (body.contentCategory = 'video') {
+        if (body.contentCategory == 'video') {
             const data = createSubMaterialVideoSchema.parse(body)
             const result = await service.createSubMaterialVideo(materialId, data)
             return c.json(response.successResponse(result))
-        } else if (body.contentCategory = 'photo') {
+        } else if (body.contentCategory == 'photo') {
             const data = createSubMaterialPhotoSchema.parse(body)
             const result = await service.createSubMaterialPhoto(materialId, data)
             return c.json(response.successResponse(result))
         }
 
-        return c.json({ message: "Unsupported Content Category" }, 415)
+        return c.json({ message: "Kategori Konten Harus Ada" }, 415)
     } catch (err: any) {
         if (err instanceof ZodError) {
             return c.json({
