@@ -1,7 +1,13 @@
 import type { Context } from 'hono'
 import * as service from '@/modules/materials/material.service'
 import * as response from '@/utils/response'
-import { createMaterialSchema, updateMaterialSchema, createSubMaterialSchema, updateSubMaterialSchema } from '@/modules/materials/material.validator'
+import {
+    createMaterialSchema,
+    updateMaterialSchema,
+    createSubMaterialVideoSchema,
+    createSubMaterialPhotoSchema,
+    updateSubMaterialSchema
+} from '@/modules/materials/material.validator'
 import { ZodError } from "zod"
 
 export const getAllMaterial = async (c: Context) => {
@@ -123,9 +129,17 @@ export const createSubMaterial = async (c: Context) => {
     try {
         const materialId = Number(c.req.param('id'))
         const body = await c.req.json()
-        const data = createSubMaterialSchema.parse(body)
-        const result = await service.createSubMaterial(materialId, data)
-        return c.json(response.successResponse(result))
+        if (body.contentCategory = 'video') {
+            const data = createSubMaterialVideoSchema.parse(body)
+            const result = await service.createSubMaterialVideo(materialId, data)
+            return c.json(response.successResponse(result))
+        } else if (body.contentCategory = 'photo') {
+            const data = createSubMaterialPhotoSchema.parse(body)
+            const result = await service.createSubMaterialPhoto(materialId, data)
+            return c.json(response.successResponse(result))
+        }
+
+        return c.json({ message: "Unsupported Content Category" }, 415)
     } catch (err: any) {
         if (err instanceof ZodError) {
             return c.json({
@@ -145,7 +159,7 @@ export const updateSubMaterial = async (c: Context) => {
         const subMaterialId = Number(c.req.param('id-sub'))
         const body = await c.req.json()
         const data = updateSubMaterialSchema.parse(body)
-        const result = await service.updateSubMaterial(materialId, subMaterialId, data)
+        const result = await service.updateSubMaterialVideo(materialId, subMaterialId, data)
         return c.json(response.successResponse(result))
     } catch (err: any) {
         if (err instanceof ZodError) {

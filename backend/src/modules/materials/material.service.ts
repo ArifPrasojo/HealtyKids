@@ -1,13 +1,21 @@
 import z from "zod";
-import { db } from "@/db"
-import { materials, subMaterial } from "@/db/schema"
-import { eq, and, ne, sql } from 'drizzle-orm'
+import { db } from "@/db";
+import { materials, subMaterial } from "@/db/schema";
+import { eq, and, ne, sql } from 'drizzle-orm';
 import { HttpError } from "@/utils/httpError";
-import { createMaterialSchema, updateMaterialSchema, createSubMaterialSchema, updateSubMaterialSchema } from '@/modules/materials/material.validator'
+import { saveFileBase64 } from "@/utils/fileUpload";
+import {
+    createMaterialSchema,
+    updateMaterialSchema,
+    createSubMaterialVideoSchema,
+    createSubMaterialPhotoSchema,
+    updateSubMaterialSchema
+} from '@/modules/materials/material.validator'
 
 type createMaterialInput = z.infer<typeof createMaterialSchema>
 type updateMaterialInput = z.infer<typeof updateMaterialSchema>
-type createSubMaterialInput = z.infer<typeof createSubMaterialSchema>
+type createSubMaterialVideoInput = z.infer<typeof createSubMaterialVideoSchema>
+type createSubMaterialPhotoInput = z.infer<typeof createSubMaterialPhotoSchema>
 type updateSubMaterialInput = z.infer<typeof updateSubMaterialSchema>
 
 export const getAllMaterial = async () => {
@@ -168,7 +176,7 @@ export const getSubMaterialById = async (materialId: number, subMaterialId: numb
     return existingSubMaterial
 }
 
-export const createSubMaterial = async (materialId: number, data: createSubMaterialInput) => {
+export const createSubMaterialVideo = async (materialId: number, data: createSubMaterialVideoInput) => {
     const [existingMaterial] = await db
         .select()
         .from(materials)
@@ -183,13 +191,14 @@ export const createSubMaterial = async (materialId: number, data: createSubMater
         throw new HttpError(404, "Materi tidak ditemukan")
     }
 
-    const { title, videoUrl, content } = data
+    const { title, contentCategory, contentUrl, content } = data
     const [result] = await db
         .insert(subMaterial)
         .values({
             materialId: existingMaterial.id,
             title: title,
-            videoUrl: videoUrl,
+            contentCategory: contentCategory,
+            contentUrl: contentUrl,
             content: content
         })
         .returning()
@@ -197,7 +206,40 @@ export const createSubMaterial = async (materialId: number, data: createSubMater
     return result
 }
 
-export const updateSubMaterial = async (materialId: number, subMaterialId: number, data: updateSubMaterialInput) => {
+export const createSubMaterialPhoto = async (materialId: number, data: createSubMaterialPhotoInput) => {
+    const [existingMaterial] = await db
+        .select()
+        .from(materials)
+        .where(
+            and(
+                eq(materials.id, materialId),
+                eq(materials.isDelete, false)
+            )
+        )
+
+    if (existingMaterial == null) {
+        throw new HttpError(404, "Materi tidak ditemukan")
+    }
+
+    const { title, contentCategory, contentUrl, content } = data
+    const urlContent = await saveFileBase64(contentUrl, "question-photos")
+
+    const [result] = await db
+        .insert(subMaterial)
+        .values({
+            materialId: existingMaterial.id,
+            title: title,
+            contentCategory: contentCategory,
+            contentUrl: urlContent,
+            content: content
+        })
+        .returning()
+
+    return result
+
+}
+
+export const updateSubMaterialVideo = async (materialId: number, subMaterialId: number, data: updateSubMaterialInput) => {
     const [existingMaterial] = await db
         .select()
         .from(materials)
@@ -226,13 +268,14 @@ export const updateSubMaterial = async (materialId: number, subMaterialId: numbe
         throw new HttpError(404, "Sub Materi tidak ditemukan")
     }
 
-    const { title, videoUrl, content } = data
+    const { title, contentCategory, contentUrl, content } = data
     const [result] = await db
         .update(subMaterial)
         .set({
             materialId: existingMaterial.id,
             title: title,
-            videoUrl: videoUrl,
+            contentCategory: contentCategory,
+            contentUrl: contentUrl,
             content: content,
             updatedAt: new Date(Date.now())
         })

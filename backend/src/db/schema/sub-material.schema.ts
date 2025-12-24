@@ -1,7 +1,9 @@
-import { pgTable, serial, text, varchar, boolean, integer, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, varchar, boolean, integer, timestamp, pgEnum } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { materials } from "./material.schema";
 import { progresses } from "./progresses.schema";
+
+export const categoryContentEnum = pgEnum("category_content", ["video", "photo"])
 
 export const subMaterial = pgTable("sub_material", {
     id: serial("id").primaryKey(),
@@ -12,7 +14,8 @@ export const subMaterial = pgTable("sub_material", {
             onUpdate: "cascade"
         }),
     title: varchar("title", { length: 100 }).notNull(),
-    videoUrl: text("video_url"),
+    contentCategory: categoryContentEnum("content_category").notNull(),
+    contentUrl: text("content_url").notNull(),
     content: text("content").notNull(),
     isDelete: boolean("is_delete").notNull().default(false),
     createdAt: timestamp("created_at").notNull().defaultNow(),
