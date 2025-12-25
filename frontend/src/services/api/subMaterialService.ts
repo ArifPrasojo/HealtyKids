@@ -1,12 +1,14 @@
 // src/services/api/subMaterialService.ts
 
-const API_BASE_URL = import.meta.env?.VITE_API_URL || 'http://localhost:3000';
+// Ganti http://localhost:3000 dengan URL backend Anda yang sebenarnya jika berbeda
+export const API_BASE_URL = import.meta.env?.VITE_API_URL || 'http://localhost:3000';
 
 export interface SubMaterialItem {
   id: number;
   materialId: number;
   title: string;
-  videoUrl: string;
+  contentCategory: 'video' | 'photo';
+  contentUrl: string; // Bisa berupa URL Youtube atau Path gambar (/uploads/...)
   content: string;
   isDelete?: boolean;
   createdAt?: string;
@@ -15,7 +17,8 @@ export interface SubMaterialItem {
 
 export interface SubMaterialFormData {
   title: string;
-  videoUrl: string;
+  contentCategory: 'video' | 'photo';
+  contentUrl: string; // Kirim string Base64 di sini saat upload foto
   content: string;
 }
 
@@ -23,12 +26,8 @@ export interface ApiResponse<T = any> {
   success: boolean;
   message?: string;
   data?: T;
-  error?: string;
 }
 
-/**
- * Service untuk mengelola API calls terkait sub material management
- */
 class SubMaterialService {
   private baseUrl: string;
 
@@ -36,114 +35,54 @@ class SubMaterialService {
     this.baseUrl = `${API_BASE_URL}/admin`;
   }
 
-  /**
-   * Mengambil semua data sub materials berdasarkan material ID
-   */
+  // Helper untuk Header (tambahkan token jika perlu)
+  private getHeaders() {
+    const token = localStorage.getItem('token'); 
+    return {
+      'Content-Type': 'application/json',
+      // 'Authorization': `Bearer ${token}` 
+    };
+  }
+
   async getAllSubMaterials(materialId: number): Promise<ApiResponse<SubMaterialItem[]>> {
-    try {
-      const response = await fetch(`${this.baseUrl}/materials/${materialId}/sub-material`);
-      
-      if (!response.ok) {
-        throw new Error('Gagal mengambil data sub materi');
-      }
-      
-      return await response.json();
-    } catch (error) {
-      throw error;
-    }
+    const response = await fetch(`${this.baseUrl}/materials/${materialId}/sub-material`, {
+      headers: this.getHeaders()
+    });
+    if (!response.ok) throw new Error('Gagal mengambil data');
+    return await response.json();
   }
 
-  /**
-   * Mengambil data sub material berdasarkan ID
-   */
-  async getSubMaterialById(materialId: number, subMaterialId: number): Promise<ApiResponse<SubMaterialItem>> {
-    try {
-      const response = await fetch(`${this.baseUrl}/materials/${materialId}/sub-material/${subMaterialId}`);
-      
-      if (!response.ok) {
-        throw new Error('Gagal mengambil data sub materi');
-      }
-      
-      return await response.json();
-    } catch (error) {
-      throw error;
-    }
+  async createSubMaterial(materialId: number, data: SubMaterialFormData): Promise<ApiResponse> {
+    const response = await fetch(`${this.baseUrl}/materials/${materialId}/sub-material`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify(data)
+    });
+    const resJson = await response.json();
+    if (!response.ok) throw new Error(resJson.message || 'Gagal menyimpan');
+    return resJson;
   }
 
-  /**
-   * Menambah sub material baru
-   */
-  async createSubMaterial(materialId: number, subMaterialData: SubMaterialFormData): Promise<ApiResponse> {
-    try {
-      const response = await fetch(`${this.baseUrl}/materials/${materialId}/sub-material`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(subMaterialData)
-      });
-
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.message || `HTTP Error: ${response.status}`);
-      }
-
-      return data;
-    } catch (error) {
-      throw error;
-    }
+  async updateSubMaterial(materialId: number, subId: number, data: SubMaterialFormData): Promise<ApiResponse> {
+    const response = await fetch(`${this.baseUrl}/materials/${materialId}/sub-material/${subId}`, {
+      method: 'PUT',
+      headers: this.getHeaders(),
+      body: JSON.stringify(data)
+    });
+    const resJson = await response.json();
+    if (!response.ok) throw new Error(resJson.message || 'Gagal update');
+    return resJson;
   }
 
-  /**
-   * Mengupdate data sub material
-   */
-  async updateSubMaterial(materialId: number, subMaterialId: number, subMaterialData: SubMaterialFormData): Promise<ApiResponse> {
-    try {
-      const response = await fetch(`${this.baseUrl}/materials/${materialId}/sub-material/${subMaterialId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(subMaterialData)
-      });
-
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.message || `HTTP Error: ${response.status}`);
-      }
-
-      return data;
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  /**
-   * Menghapus sub material
-   */
-  async deleteSubMaterial(materialId: number, subMaterialId: number): Promise<ApiResponse> {
-    try {
-      const response = await fetch(`${this.baseUrl}/materials/${materialId}/sub-material/${subMaterialId}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      });
-
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.message || `HTTP Error: ${response.status}`);
-      }
-      
-      return data;
-    } catch (error) {
-      throw error;
-    }
+  async deleteSubMaterial(materialId: number, subId: number): Promise<ApiResponse> {
+    const response = await fetch(`${this.baseUrl}/materials/${materialId}/sub-material/${subId}`, {
+      method: 'DELETE',
+      headers: this.getHeaders()
+    });
+    const resJson = await response.json();
+    if (!response.ok) throw new Error(resJson.message || 'Gagal hapus');
+    return resJson;
   }
 }
 
-// Export singleton instance
 export const subMaterialService = new SubMaterialService();

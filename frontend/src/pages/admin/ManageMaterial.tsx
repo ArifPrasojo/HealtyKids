@@ -1,13 +1,18 @@
 // src/pages/admin/ManageMaterial.tsx
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { Plus, Edit, Trash2, X, Search, Loader, AlertCircle, FileText, FolderOpen } from 'lucide-react';
+import { 
+  Plus, Edit, Trash2, X, Search, Loader, AlertCircle, 
+  FileText, FolderOpen, ChevronDown, ChevronUp, ArrowLeft 
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { materialService } from '../../services/api/materialService';
 import type { MaterialItem, MaterialFormData } from '../../services/api/materialService';
 
 const ManageMaterials = () => {
   const navigate = useNavigate();
+  
+  // --- STATE ---
   const [materialList, setMaterialList] = useState<MaterialItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -26,6 +31,7 @@ const ManageMaterials = () => {
     description: ''
   });
 
+  // --- LOGIC ---
   useEffect(() => {
     fetchMaterials();
   }, []);
@@ -34,9 +40,7 @@ const ManageMaterials = () => {
     try {
       setLoading(true);
       setError(null);
-      
       const response = await materialService.getAllMaterials();
-      
       if (response.success && Array.isArray(response.data)) {
         setMaterialList(response.data);
       } else {
@@ -44,7 +48,6 @@ const ManageMaterials = () => {
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Terjadi kesalahan');
-      console.error('Fetch error:', err);
     } finally {
       setLoading(false);
     }
@@ -53,16 +56,13 @@ const ManageMaterials = () => {
   const filteredMaterials = useMemo(() => {
     return materialList.filter(material => {
       const matchesSearch = material.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           material.description.toLowerCase().includes(searchQuery.toLowerCase());
+                            material.description.toLowerCase().includes(searchQuery.toLowerCase());
       return matchesSearch;
     });
   }, [materialList, searchQuery]);
 
   const resetForm = () => {
-    setFormData({ 
-      title: '', 
-      description: ''
-    });
+    setFormData({ title: '', description: '' });
   };
 
   const handleAddMaterial = () => {
@@ -94,24 +94,19 @@ const ManageMaterials = () => {
 
   const handleSubmitAdd = async () => {
     if (!validateForm()) return;
-    
     try {
       setIsSubmitting(true);
       setError(null);
-      
       const response = await materialService.createMaterial(formData);
-
       if (response.success) {
         setIsAddModalOpen(false);
         resetForm();
-        await new Promise(resolve => setTimeout(resolve, 500));
-        await fetchMaterials();
+        fetchMaterials();
       } else {
         setError(response.message || 'Gagal menambah materi');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Terjadi kesalahan');
-      console.error('Add error:', err);
     } finally {
       setIsSubmitting(false);
     }
@@ -119,25 +114,20 @@ const ManageMaterials = () => {
 
   const handleSubmitEdit = async () => {
     if (!validateForm() || !editingMaterial) return;
-
     try {
       setIsSubmitting(true);
       setError(null);
-
       const response = await materialService.updateMaterial(editingMaterial.id, formData);
-
       if (response.success) {
         setIsEditModalOpen(false);
         setEditingMaterial(null);
         resetForm();
-        await new Promise(resolve => setTimeout(resolve, 500));
-        await fetchMaterials();
+        fetchMaterials();
       } else {
         setError(response.message || 'Gagal mengubah materi');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Terjadi kesalahan');
-      console.error('Edit error:', err);
     } finally {
       setIsSubmitting(false);
     }
@@ -145,24 +135,19 @@ const ManageMaterials = () => {
 
   const confirmDelete = async () => {
     if (!materialToDelete) return;
-
     try {
       setIsSubmitting(true);
       setError(null);
-
       const response = await materialService.deleteMaterial(materialToDelete.id);
-      
       if (response.success) {
         setIsDeleteModalOpen(false);
         setMaterialToDelete(null);
-        await new Promise(resolve => setTimeout(resolve, 500));
-        await fetchMaterials();
+        fetchMaterials();
       } else {
         setError(response.message || 'Gagal menghapus materi');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Terjadi kesalahan saat menghapus');
-      console.error('Delete error:', err);
     } finally {
       setIsSubmitting(false);
     }
@@ -170,123 +155,147 @@ const ManageMaterials = () => {
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return '-';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('id-ID', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
+    return new Date(dateString).toLocaleDateString('id-ID', { 
+      year: 'numeric', month: 'long', day: 'numeric' 
     });
   };
 
+  // --- RENDER ---
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-4 md:px-6 py-4 md:py-6 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between mb-4 md:mb-6">
+    <div className="min-h-screen bg-gray-50 p-6">
+      
+      {/* Header Container */}
+      <div className="max-w-6xl mx-auto mb-6">
+        
+        {/* --- TOMBOL KEMBALI (BARU) --- */}
+        <button 
+          onClick={() => navigate('/admin/dashboard')} 
+          className="group flex items-center gap-2 text-gray-500 hover:text-blue-600 transition-colors mb-4 text-sm font-medium w-fit"
+        >
+          <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
+          Kembali
+        </button>
+        {/* ----------------------------- */}
+
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-800">Manajemen Materi</h1>
+            <p className="text-gray-500 text-sm mt-1">Kelola data materi utama pembelajaran</p>
+          </div>
+          <button
+            onClick={handleAddMaterial}
+            disabled={loading}
+            className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-5 py-2.5 rounded-lg font-medium flex items-center gap-2 transition-all shadow-sm"
+          >
+            <Plus size={20} />
+            <span>Tambah Materi</span>
+          </button>
+        </div>
+
+        {/* Error Alert */}
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3 animate-fade-in">
+            <AlertCircle size={20} className="text-red-600 flex-shrink-0 mt-0.5" />
             <div className="flex-1">
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Manajemen Materi</h1>
-              <p className="text-gray-600 text-xs md:text-sm mt-1">Kelola data materi pembelajaran</p>
+              <h3 className="text-red-800 text-sm font-semibold">Terjadi Kesalahan</h3>
+              <p className="text-red-700 text-sm mt-0.5">{error}</p>
             </div>
-            <button
-              onClick={handleAddMaterial}
-              disabled={loading}
-              className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-3 md:px-6 py-2 md:py-3 rounded-lg font-semibold flex items-center gap-2 transition-colors text-sm md:text-base whitespace-nowrap"
-            >
-              <Plus size={18} />
-              <span className="hidden sm:inline">Tambah Materi</span>
-              <span className="sm:hidden">Tambah</span>
+            <button onClick={() => setError(null)} className="text-red-500 hover:text-red-700">
+              <X size={18} />
             </button>
           </div>
+        )}
 
-          {/* Error Alert */}
-          {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
-              <AlertCircle size={18} className="text-red-600 mt-0.5 flex-shrink-0" />
-              <div className="flex-1">
-                <p className="text-red-800 text-sm font-medium">Error</p>
-                <p className="text-red-700 text-xs md:text-sm">{error}</p>
-              </div>
-              <button onClick={() => setError(null)} className="text-red-600 hover:text-red-800">
-                <X size={16} />
-              </button>
-            </div>
-          )}
-
-          {/* Search */}
-          <div className="flex flex-col gap-3 md:gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-3 text-gray-400" size={18} />
+        {/* Search & Content Container */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          
+          {/* Search Bar */}
+          <div className="p-4 border-b border-gray-100 bg-white">
+            <div className="relative max-w-md">
+              <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
               <input
                 type="text"
-                placeholder="Cari judul atau deskripsi materi..."
+                placeholder="Cari judul atau deskripsi..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 md:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all"
+                className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:bg-white focus:border-transparent outline-none transition-all text-sm"
               />
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-8">
-        {loading ? (
-          <div className="bg-white rounded-lg border border-gray-200 py-8 md:py-12 text-center">
-            <Loader size={32} className="mx-auto mb-3 text-blue-600 animate-spin" />
-            <p className="text-gray-600 text-base md:text-lg">Memuat data materi...</p>
-          </div>
-        ) : filteredMaterials.length === 0 ? (
-          <div className="bg-white rounded-lg border border-gray-200 py-8 md:py-12 text-center">
-            <FileText size={48} className="mx-auto mb-3 text-gray-400" />
-            <p className="text-gray-500 text-base md:text-lg">Tidak ada materi yang ditemukan</p>
-          </div>
-        ) : (
-          <>
-            {/* Desktop View - Table */}
-            <div className="hidden lg:block bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50 border-b border-gray-200">
-                    <tr>
-                      <th className="px-4 md:px-6 py-3 md:py-4 text-left text-xs md:text-sm font-semibold text-gray-800">Judul</th>
-                      <th className="px-4 md:px-6 py-3 md:py-4 text-left text-xs md:text-sm font-semibold text-gray-800">Deskripsi</th>
-                      <th className="px-4 md:px-6 py-3 md:py-4 text-left text-xs md:text-sm font-semibold text-gray-800">Tanggal Dibuat</th>
-                      <th className="px-4 md:px-6 py-3 md:py-4 text-left text-xs md:text-sm font-semibold text-gray-800">Aksi</th>
+          {/* Loading State */}
+          {loading ? (
+            <div className="py-20 text-center">
+              <Loader size={40} className="mx-auto text-blue-600 animate-spin mb-4" />
+              <p className="text-gray-500 font-medium">Memuat data materi...</p>
+            </div>
+          ) : filteredMaterials.length === 0 ? (
+            // Empty State
+            <div className="py-20 text-center bg-gray-50/50">
+              <div className="bg-gray-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <FileText size={32} className="text-gray-400" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-900">Data Tidak Ditemukan</h3>
+              <p className="text-gray-500 text-sm mt-1 max-w-xs mx-auto">
+                {searchQuery ? `Tidak ada hasil untuk "${searchQuery}"` : "Belum ada materi yang ditambahkan."}
+              </p>
+            </div>
+          ) : (
+            <>
+              {/* Desktop Table View */}
+              <div className="hidden lg:block overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-gray-50/80 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-4 w-1/4">Judul</th>
+                      <th className="px-6 py-4 w-1/3">Deskripsi</th>
+                      <th className="px-6 py-4">Tanggal Dibuat</th>
+                      <th className="px-6 py-4 text-right">Aksi</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-200">
+                  <tbody className="divide-y divide-gray-100">
                     {filteredMaterials.map((material) => (
-                      <tr key={material.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-4 md:px-6 py-3 md:py-4 text-xs md:text-sm font-medium text-gray-800">{material.title}</td>
-                        <td className="px-4 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-600">
-                          <div className="max-w-xs truncate">{material.description}</div>
+                      <tr key={material.id} className="hover:bg-blue-50/30 transition-colors group">
+                        <td className="px-6 py-4">
+                           <div className="font-medium text-gray-900">{material.title}</div>
                         </td>
-                        <td className="px-4 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-600">{formatDate(material.createdAt)}</td>
-                        <td className="px-4 md:px-6 py-3 md:py-4">
-                          <div className="flex gap-2">
+                        <td className="px-6 py-4">
+                          <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">
+                            {material.description}
+                          </p>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="text-sm text-gray-500 whitespace-nowrap bg-gray-100 px-2 py-1 rounded text-xs">
+                             {formatDate(material.createdAt)}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <div className="flex items-center justify-end gap-2 opacity-100">
+                            {/* Tombol Sub Materi (Distinct) */}
                             <button
                               onClick={() => navigate(`/admin/materials/${material.id}/sub-materials`)}
-                              className="p-2 text-green-600 hover:bg-green-50 disabled:text-gray-400 rounded-lg transition-colors"
-                              title="Sub Materi"
+                              className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-md text-xs font-medium transition-colors border border-indigo-100"
+                              title="Kelola Sub Materi"
                             >
-                              <FolderOpen size={18} />
+                              <FolderOpen size={14} />
+                              Sub Materi
                             </button>
+                            
+                            <div className="w-px h-4 bg-gray-300 mx-1"></div>
+
                             <button
                               onClick={() => handleEditMaterial(material)}
-                              disabled={isSubmitting}
-                              className="p-2 text-blue-600 hover:bg-blue-50 disabled:text-gray-400 rounded-lg transition-colors"
+                              className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
                               title="Edit"
                             >
-                              <Edit size={18} />
+                              <Edit size={16} />
                             </button>
                             <button
                               onClick={() => handleDeleteMaterial(material)}
-                              disabled={isSubmitting}
-                              className="p-2 text-red-600 hover:bg-red-50 disabled:text-gray-400 rounded-lg transition-colors"
+                              className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
                               title="Hapus"
                             >
-                              <Trash2 size={18} />
+                              <Trash2 size={16} />
                             </button>
                           </div>
                         </td>
@@ -295,112 +304,100 @@ const ManageMaterials = () => {
                   </tbody>
                 </table>
               </div>
-            </div>
 
-            {/* Mobile View - Cards */}
-            <div className="lg:hidden space-y-4">
-              {filteredMaterials.map((material) => (
-                <div key={material.id} className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-                  <div 
-                    onClick={() => setExpandedMaterial(expandedMaterial === material.id ? null : material.id)}
-                    className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-gray-800 text-sm md:text-base truncate">{material.title}</h3>
-                        <p className="text-xs md:text-sm text-gray-600 line-clamp-2 mt-1">{material.description}</p>
-                        <p className="text-xs text-gray-500 mt-2">Dibuat: {formatDate(material.createdAt)}</p>
+              {/* Mobile Card View */}
+              <div className="lg:hidden bg-gray-50 p-4 space-y-4">
+                {filteredMaterials.map((material) => (
+                  <div key={material.id} className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                    <div 
+                      onClick={() => setExpandedMaterial(expandedMaterial === material.id ? null : material.id)}
+                      className="p-4 cursor-pointer active:bg-gray-50 transition-colors"
+                    >
+                      <div className="flex justify-between items-start gap-3">
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-gray-800 text-base">{material.title}</h3>
+                          <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                            {formatDate(material.createdAt)}
+                          </p>
+                        </div>
+                        {expandedMaterial === material.id ? 
+                          <ChevronUp size={20} className="text-gray-400" /> : 
+                          <ChevronDown size={20} className="text-gray-400" />
+                        }
                       </div>
-                      <ChevronDown 
-                        size={20} 
-                        className={`text-gray-400 transition-transform ${expandedMaterial === material.id ? 'rotate-180' : ''}`}
-                      />
+                      {/* Preview Deskripsi Singkat jika collapsed */}
+                      {expandedMaterial !== material.id && (
+                        <p className="text-sm text-gray-600 mt-2 line-clamp-2">
+                            {material.description}
+                        </p>
+                      )}
                     </div>
+
+                    {/* Expanded Content */}
+                    {expandedMaterial === material.id && (
+                      <div className="px-4 pb-4 pt-0 animate-fade-in">
+                        <div className="pt-3 border-t border-gray-100">
+                           <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Deskripsi Lengkap</p>
+                           <p className="text-sm text-gray-700 leading-relaxed bg-gray-50 p-3 rounded-lg border border-gray-100">
+                             {material.description}
+                           </p>
+                        </div>
+                        
+                        <div className="flex flex-col gap-2 mt-4">
+                           <button
+                             onClick={(e) => {
+                               e.stopPropagation();
+                               navigate(`/admin/materials/${material.id}/sub-materials`);
+                             }}
+                             className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-lg text-sm font-medium transition-colors border border-indigo-100"
+                           >
+                             <FolderOpen size={16} /> Kelola Sub Materi
+                           </button>
+                           
+                           <div className="flex gap-2">
+                              <button
+                                onClick={(e) => { e.stopPropagation(); handleEditMaterial(material); }}
+                                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 rounded-lg text-sm font-medium"
+                              >
+                                <Edit size={16} /> Edit
+                              </button>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); handleDeleteMaterial(material); }}
+                                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-white border border-red-200 text-red-600 hover:bg-red-50 rounded-lg text-sm font-medium"
+                              >
+                                <Trash2 size={16} /> Hapus
+                              </button>
+                           </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
-
-                  {expandedMaterial === material.id && (
-                    <div className="border-t border-gray-200 px-4 py-4 bg-gray-50 space-y-3">
-                      <div>
-                        <p className="text-xs text-gray-500 font-medium">Deskripsi Lengkap</p>
-                        <p className="text-sm text-gray-800 mt-1">{material.description}</p>
-                      </div>
-                      <div className="flex gap-2 pt-3">
-                        <button
-                          onClick={() => {
-                            navigate(`/admin/materials/${material.id}/sub-materials`);
-                            setExpandedMaterial(null);
-                          }}
-                          className="flex-1 px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors font-medium text-sm flex items-center justify-center gap-2"
-                        >
-                          <FolderOpen size={16} />
-                          Sub Materi
-                        </button>
-                      </div>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => {
-                            handleEditMaterial(material);
-                            setExpandedMaterial(null);
-                          }}
-                          disabled={isSubmitting}
-                          className="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg transition-colors font-medium text-sm flex items-center justify-center gap-2"
-                        >
-                          <Edit size={16} />
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => {
-                            handleDeleteMaterial(material);
-                            setExpandedMaterial(null);
-                          }}
-                          disabled={isSubmitting}
-                          className="flex-1 px-3 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white rounded-lg transition-colors font-medium text-sm flex items-center justify-center gap-2"
-                        >
-                          <Trash2 size={16} />
-                          Hapus
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </>
-        )}
-
-        {/* Info */}
-        <div className="mt-4 text-xs md:text-sm text-gray-600">
-          Menampilkan {filteredMaterials.length} dari {materialList.length} materi
+                ))}
+              </div>
+            </>
+          )}
         </div>
       </div>
 
-      {/* Modal Tambah Materi */}
-      {isAddModalOpen && (
+      {/* --- MODALS --- */}
+      
+      {/* Modal Tambah/Edit */}
+      {(isAddModalOpen || isEditModalOpen) && (
         <ModalForm
-          title="Tambah Materi Baru"
+          title={isAddModalOpen ? "Tambah Materi Baru" : "Edit Materi"}
           formData={formData}
           setFormData={setFormData}
-          onSubmit={handleSubmitAdd}
-          onClose={() => setIsAddModalOpen(false)}
+          onSubmit={isAddModalOpen ? handleSubmitAdd : handleSubmitEdit}
+          onClose={() => {
+            setIsAddModalOpen(false);
+            setIsEditModalOpen(false);
+          }}
           isSubmitting={isSubmitting}
-          submitText="Tambah"
+          submitText={isAddModalOpen ? "Simpan Materi" : "Simpan Perubahan"}
         />
       )}
 
-      {/* Modal Edit Materi */}
-      {isEditModalOpen && editingMaterial && (
-        <ModalForm
-          title="Edit Materi"
-          formData={formData}
-          setFormData={setFormData}
-          onSubmit={handleSubmitEdit}
-          onClose={() => setIsEditModalOpen(false)}
-          isSubmitting={isSubmitting}
-          submitText="Simpan"
-        />
-      )}
-
-      {/* Modal Konfirmasi Hapus */}
+      {/* Modal Delete */}
       {isDeleteModalOpen && materialToDelete && (
         <ModalDelete
           materialTitle={materialToDelete.title}
@@ -413,135 +410,97 @@ const ManageMaterials = () => {
   );
 };
 
-// Component untuk Modal Form (Add/Edit)
-interface ModalFormProps {
-  title: string;
-  formData: MaterialFormData;
-  setFormData: React.Dispatch<React.SetStateAction<MaterialFormData>>;
-  onSubmit: () => void;
-  onClose: () => void;
-  isSubmitting: boolean;
-  submitText: string;
-}
+// --- COMPONENTS ---
 
-const ModalForm: React.FC<ModalFormProps> = ({ 
-  title, 
-  formData, 
-  setFormData, 
-  onSubmit, 
-  onClose, 
-  isSubmitting, 
-  submitText 
-}) => (
-  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-    <div className="bg-white rounded-lg shadow-lg w-full max-w-md border border-gray-200 max-h-[90vh] overflow-y-auto">
-      <div className="flex items-center justify-between p-4 md:p-6 border-b border-gray-200 sticky top-0 bg-white">
-        <h2 className="text-lg md:text-xl font-semibold text-gray-800">{title}</h2>
-        <button onClick={onClose} disabled={isSubmitting} className="text-gray-400 hover:text-gray-600 disabled:text-gray-300">
+const ModalForm: React.FC<any> = ({ title, formData, setFormData, onSubmit, onClose, isSubmitting, submitText }) => (
+  <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+    <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg border border-gray-200 overflow-hidden transform transition-all scale-100">
+      <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+        <h2 className="text-lg font-bold text-gray-800">{title}</h2>
+        <button onClick={onClose} disabled={isSubmitting} className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-200">
           <X size={20} />
         </button>
       </div>
 
-      <div className="p-4 md:p-6 space-y-4">
+      <div className="p-6 space-y-5">
         <div>
-          <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">Judul Materi</label>
+          <label className="block text-sm font-semibold text-gray-700 mb-1.5">Judul Materi</label>
           <input
             type="text"
             value={formData.title}
             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-            placeholder="Masukkan judul materi"
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-sm"
+            placeholder="Contoh: Matematika Dasar - Bab 1"
             disabled={isSubmitting}
+            autoFocus
           />
         </div>
 
         <div>
-          <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">Deskripsi</label>
+          <label className="block text-sm font-semibold text-gray-700 mb-1.5">Deskripsi</label>
           <textarea
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm resize-none"
-            placeholder="Masukkan deskripsi materi"
-            rows={4}
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-sm min-h-[120px] resize-y"
+            placeholder="Jelaskan secara singkat isi materi ini..."
             disabled={isSubmitting}
           />
         </div>
-
-        <div className="flex gap-3 pt-4">
-          <button
-            onClick={onClose}
-            disabled={isSubmitting}
-            className="flex-1 px-3 md:px-4 py-2 bg-gray-200 hover:bg-gray-300 disabled:bg-gray-100 text-gray-700 rounded-lg font-medium transition-colors text-sm"
-          >
-            Batal
-          </button>
-          <button
-            onClick={onSubmit}
-            disabled={isSubmitting}
-            className="flex-1 px-3 md:px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors text-sm flex items-center justify-center gap-2"
-          >
-            {isSubmitting ? <Loader size={16} className="animate-spin" /> : null}
-            {isSubmitting ? 'Menyimpan...' : submitText}
-          </button>
-        </div>
       </div>
-    </div>
-  </div>
-);
 
-// Component untuk Modal Delete
-interface ModalDeleteProps {
-  materialTitle: string;
-  onConfirm: () => void;
-  onClose: () => void;
-  isSubmitting: boolean;
-}
-
-const ModalDelete: React.FC<ModalDeleteProps> = ({ materialTitle, onConfirm, onClose, isSubmitting }) => (
-  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-    <div className="bg-white rounded-lg shadow-lg w-full max-w-sm border border-gray-200">
-      <div className="flex items-center justify-between p-4 md:p-6 border-b border-gray-200">
-        <h2 className="text-lg md:text-xl font-semibold text-gray-800">Konfirmasi Hapus</h2>
-        <button onClick={onClose} disabled={isSubmitting} className="text-gray-400 hover:text-gray-600 disabled:text-gray-300">
-          <X size={20} />
+      <div className="p-4 border-t border-gray-100 bg-gray-50 flex gap-3 justify-end">
+        <button
+          onClick={onClose}
+          disabled={isSubmitting}
+          className="px-5 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
+        >
+          Batal
+        </button>
+        <button
+          onClick={onSubmit}
+          disabled={isSubmitting}
+          className="px-5 py-2.5 text-sm font-medium bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg transition-all shadow-sm flex items-center gap-2"
+        >
+          {isSubmitting && <Loader size={16} className="animate-spin" />}
+          {submitText}
         </button>
       </div>
-
-      <div className="p-4 md:p-6 space-y-4">
-        <div className="text-center">
-          <Trash2 size={32} className="text-red-600 mx-auto mb-3" />
-          <h3 className="text-base md:text-lg font-medium text-gray-800 mb-2">Hapus Materi?</h3>
-          <p className="text-gray-600 text-xs md:text-sm">
-            Apakah Anda yakin ingin menghapus materi "<strong>{materialTitle}</strong>"? Tindakan ini tidak dapat dibatalkan.
-          </p>
-        </div>
-
-        <div className="flex gap-3 pt-4">
-          <button
-            onClick={onClose}
-            disabled={isSubmitting}
-            className="flex-1 px-3 md:px-4 py-2 bg-gray-200 hover:bg-gray-300 disabled:bg-gray-100 text-gray-700 rounded-lg font-medium transition-colors text-sm"
-          >
-            Batal
-          </button>
-          <button
-            onClick={onConfirm}
-            disabled={isSubmitting}
-            className="flex-1 px-3 md:px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors text-sm flex items-center justify-center gap-2"
-          >
-            {isSubmitting ? <Loader size={16} className="animate-spin" /> : null}
-            {isSubmitting ? 'Menghapus...' : 'Hapus'}
-          </button>
-        </div>
-      </div>
     </div>
   </div>
 );
 
-const ChevronDown = ({ size, className }: { size: number; className: string }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
-    <polyline points="6 9 12 15 18 9"></polyline>
-  </svg>
+const ModalDelete: React.FC<any> = ({ materialTitle, onConfirm, onClose, isSubmitting }) => (
+  <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm border border-gray-200 overflow-hidden text-center p-6">
+      <div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 text-red-600">
+        <Trash2 size={28} />
+      </div>
+      
+      <h3 className="text-xl font-bold text-gray-900 mb-2">Hapus Materi?</h3>
+      <p className="text-gray-500 text-sm mb-6 leading-relaxed">
+        Anda yakin ingin menghapus <strong>"{materialTitle}"</strong>? <br/>
+        Data yang dihapus beserta sub-materinya tidak dapat dikembalikan.
+      </p>
+
+      <div className="flex gap-3">
+        <button
+          onClick={onClose}
+          disabled={isSubmitting}
+          className="flex-1 py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium text-sm transition-colors"
+        >
+          Batal
+        </button>
+        <button
+          onClick={onConfirm}
+          disabled={isSubmitting}
+          className="flex-1 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium text-sm transition-colors flex items-center justify-center gap-2 shadow-sm"
+        >
+          {isSubmitting && <Loader size={16} className="animate-spin" />}
+          Hapus
+        </button>
+      </div>
+    </div>
+  </div>
 );
 
 export default ManageMaterials;
