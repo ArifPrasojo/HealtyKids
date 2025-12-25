@@ -267,14 +267,12 @@ export const getQuizStudent = async () => {
                     id: true,
                     photo: true,
                     question: true,
-                    explanation: true,
                 },
                 where: (qq, { eq }) => eq(qq.isDelete, false),
                 with: {
                     answers: {
                         columns: {
                             id: true,
-                            questionId: true,
                             answer: true,
                         },
                         where: (qa, { eq }) => eq(qa.isDelete, false)
