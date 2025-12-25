@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { logger } from 'hono/logger';
 import { cors } from 'hono/cors';
 import { serveStatic } from '@hono/node-server/serve-static'
-import { adminRoutes, authRoutes } from '@/routes'
+import { adminRoutes, authRoutes, studentRoutes } from '@/routes'
 
 const app = new Hono();
 
@@ -16,6 +16,7 @@ app.use('*', cors({
 
 app.get('/health', (c) => c.text('✅ Backend is running!'));
 app.route('/', authRoutes)
+app.route('/', studentRoutes)
 app.route('/admin', adminRoutes)
 
 export default app;
