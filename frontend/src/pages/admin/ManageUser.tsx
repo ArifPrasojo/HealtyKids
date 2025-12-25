@@ -1,31 +1,44 @@
-// src/pages/admin/ManageUser.tsx
+// src/pages/admin/ManageUsers.tsx
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { Plus, Edit, Trash2, X, Search, Loader, AlertCircle } from 'lucide-react';
+import { 
+  Plus, Edit, Trash2, X, Search, Loader, AlertCircle, 
+  ArrowLeft 
+} from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { userService } from '../../services/api/userService';
 import type { UserItem, UserFormData } from '../../services/api/userService';
 
 const ManageUsers = () => {
+  const navigate = useNavigate();
+
+  // --- STATE ---
   const [userList, setUserList] = useState<UserItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  // State Error & Form
+  const [globalError, setGlobalError] = useState<string | null>(null); 
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({}); 
+
+  // Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  
   const [editingUser, setEditingUser] = useState<UserItem | null>(null);
   const [userToDelete, setUserToDelete] = useState<UserItem | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [expandedUser, setExpandedUser] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [formData, setFormData] = useState<UserFormData>({
+  // Form Data Default (Role disembunyikan & default 'Student')
+  const initialFormState: UserFormData = {
     name: '',
     username: '',
     password: '',
-    role: 'Student'
-  });
+    role: 'Student' 
+  };
+  const [formData, setFormData] = useState<UserFormData>(initialFormState);
 
+  // --- FETCH DATA ---
   useEffect(() => {
     fetchUsers();
   }, []);
@@ -33,43 +46,34 @@ const ManageUsers = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      setError(null);
-      
       const response = await userService.getAllUsers();
-      
       if (response.success && Array.isArray(response.data)) {
         setUserList(response.data);
       } else {
         setUserList([]);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Terjadi kesalahan');
-      console.error('Fetch error:', err);
+      console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
   const filteredUsers = useMemo(() => {
-    return userList.filter(user => {
-      const matchesSearch = user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           user.username.toLowerCase().includes(searchQuery.toLowerCase());
-      return matchesSearch;
-    });
+    return userList.filter(user => 
+      user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.username.toLowerCase().includes(searchQuery.toLowerCase())
+    );
   }, [userList, searchQuery]);
 
-  const resetForm = () => {
-    setFormData({ 
-      name: '', 
-      username: '', 
-      password: '',
-      role: 'Student'
-    });
-  };
+  // --- HANDLERS ---
 
   const handleAddUser = () => {
-    resetForm();
-    setIsAddModalOpen(true);
+    setEditingUser(null);
+    setFormData(initialFormState);
+    setFormErrors({});
+    setGlobalError(null);
+    setIsModalOpen(true);
   };
 
   const handleEditUser = (user: UserItem) => {
@@ -77,10 +81,12 @@ const ManageUsers = () => {
     setFormData({
       name: user.name,
       username: user.username,
-      password: user.password,
-      role: user.role
+      password: '',
+      role: user.role // Tetap simpan role lama di state agar tidak hilang saat update
     });
-    setIsEditModalOpen(true);
+    setFormErrors({});
+    setGlobalError(null);
+    setIsModalOpen(true);
   };
 
   const handleDeleteUser = (user: UserItem) => {
@@ -88,60 +94,73 @@ const ManageUsers = () => {
     setIsDeleteModalOpen(true);
   };
 
+  // --- VALIDASI ---
   const validateForm = (): boolean => {
-    if (!formData.name || !formData.username || !formData.password) {
-      setError('Semua field harus diisi');
-      return false;
+    const newErrors: Record<string, string> = {};
+    let isValid = true;
+
+    // A. Validasi Nama
+    if (!formData.name || formData.name.trim() === '') {
+      newErrors.name = 'Nama lengkap wajib diisi';
+      isValid = false;
     }
-    return true;
+
+    // B. Validasi Username
+    if (!formData.username || formData.username.trim() === '') {
+      newErrors.username = 'Username wajib diisi';
+      isValid = false;
+    } else if (/\s/.test(formData.username)) {
+      newErrors.username = 'Username tidak boleh mengandung spasi';
+      isValid = false;
+    }
+
+    // C. Validasi Password
+    if (!editingUser) {
+        if (!formData.password) {
+            newErrors.password = 'Password wajib diisi untuk user baru';
+            isValid = false;
+        } else if (formData.password.length < 6) {
+            newErrors.password = 'Password minimal 6 karakter';
+            isValid = false;
+        }
+    } else {
+        if (formData.password && formData.password.length > 0) {
+            if (formData.password.length < 6) {
+                newErrors.password = 'Password baru minimal 6 karakter';
+                isValid = false;
+            }
+        }
+    }
+
+    setFormErrors(newErrors);
+    if (!isValid) setGlobalError(null); 
+    return isValid;
   };
 
-  const handleSubmitAdd = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!validateForm()) return;
-    
-    try {
-      setIsSubmitting(true);
-      setError(null);
-      
-      const response = await userService.createUser(formData);
 
-      if (response.success) {
-        setIsAddModalOpen(false);
-        resetForm();
-        await new Promise(resolve => setTimeout(resolve, 500));
-        await fetchUsers();
+    setIsSubmitting(true);
+    setGlobalError(null);
+
+    try {
+      let response;
+      if (editingUser) {
+        response = await userService.updateUser(editingUser.id, formData);
       } else {
-        setError(response.message || 'Gagal menambah pengguna');
+        response = await userService.createUser(formData);
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Terjadi kesalahan');
-      console.error('Add error:', err);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleSubmitEdit = async () => {
-    if (!validateForm() || !editingUser) return;
-
-    try {
-      setIsSubmitting(true);
-      setError(null);
-
-      const response = await userService.updateUser(editingUser.id, formData);
 
       if (response.success) {
-        setIsEditModalOpen(false);
+        setIsModalOpen(false);
         setEditingUser(null);
-        resetForm();
-        await new Promise(resolve => setTimeout(resolve, 500));
-        await fetchUsers();
+        fetchUsers();
       } else {
-        setError(response.message || 'Gagal mengubah pengguna');
+        setGlobalError(response.message || 'Gagal menyimpan data');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Terjadi kesalahan');
-      console.error('Edit error:', err);
+      setGlobalError(err instanceof Error ? err.message : 'Terjadi kesalahan sistem');
     } finally {
       setIsSubmitting(false);
     }
@@ -149,380 +168,250 @@ const ManageUsers = () => {
 
   const confirmDelete = async () => {
     if (!userToDelete) return;
-
+    setIsSubmitting(true);
     try {
-      setIsSubmitting(true);
-      setError(null);
-
       const response = await userService.deleteUser(userToDelete.id);
-      
       if (response.success) {
         setIsDeleteModalOpen(false);
         setUserToDelete(null);
-        await new Promise(resolve => setTimeout(resolve, 500));
-        await fetchUsers();
+        fetchUsers();
       } else {
-        setError(response.message || 'Gagal menghapus pengguna');
+        setGlobalError(response.message || 'Gagal menghapus');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Terjadi kesalahan saat menghapus');
-      console.error('Delete error:', err);
+      setGlobalError('Terjadi kesalahan saat menghapus');
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const getInputClass = (fieldName: string) => `
+    w-full px-4 py-2 border rounded-lg outline-none transition-all text-sm
+    ${formErrors[fieldName]
+      ? 'border-red-500 bg-red-50 focus:ring-red-200 placeholder-red-300' 
+      : 'border-gray-300 focus:ring-blue-100 focus:border-blue-500'
+    }
+  `;
+
+  // --- RENDER ---
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-4 md:px-6 py-4 md:py-6 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between mb-4 md:mb-6">
-            <div className="flex-1">
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Manajemen Pengguna</h1>
-              <p className="text-gray-600 text-xs md:text-sm mt-1">Kelola data dan hak akses pengguna sistem</p>
-            </div>
-            <button
-              onClick={handleAddUser}
-              disabled={loading}
-              className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-3 md:px-6 py-2 md:py-3 rounded-lg font-semibold flex items-center gap-2 transition-colors text-sm md:text-base whitespace-nowrap"
-            >
-              <Plus size={18} />
-              <span className="hidden sm:inline">Tambah Pengguna</span>
-              <span className="sm:hidden">Tambah</span>
-            </button>
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-6xl mx-auto mb-6">
+        <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-gray-500 hover:text-blue-600 mb-4 text-sm font-medium">
+          <ArrowLeft size={18} /> Kembali
+        </button>
+
+        <div className="flex justify-between items-end mb-6">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-800">Manajemen Pengguna</h1>
+            <p className="text-gray-500 text-sm mt-1">Kelola data siswa</p>
           </div>
+          <button onClick={handleAddUser} className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg flex items-center gap-2 font-medium transition-colors shadow-sm">
+            <Plus size={20} /> Tambah Pengguna
+          </button>
+        </div>
 
-          {/* Error Alert */}
-          {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
-              <AlertCircle size={18} className="text-red-600 mt-0.5 flex-shrink-0" />
-              <div className="flex-1">
-                <p className="text-red-800 text-sm font-medium">Error</p>
-                <p className="text-red-700 text-xs md:text-sm">{error}</p>
-              </div>
-              <button onClick={() => setError(null)} className="text-red-600 hover:text-red-800">
-                <X size={16} />
-              </button>
-            </div>
-          )}
+        {/* Global Error Fallback */}
+        {globalError && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3 text-red-700 animate-fade-in">
+            <AlertCircle size={20} />
+            <span className="text-sm font-medium">{globalError}</span>
+            <button onClick={() => setGlobalError(null)} className="ml-auto"><X size={18} /></button>
+          </div>
+        )}
 
-          {/* Search */}
-          <div className="flex flex-col gap-3 md:gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-3 text-gray-400" size={18} />
+        {/* TABLE DATA */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="p-4 border-b border-gray-100 bg-white">
+            <div className="relative max-w-md">
+              <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
               <input
                 type="text"
-                placeholder="Cari nama atau username..."
+                placeholder="Cari user..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 md:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all"
+                className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm transition-all"
               />
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-8">
-        {loading ? (
-          <div className="bg-white rounded-lg border border-gray-200 py-8 md:py-12 text-center">
-            <Loader size={32} className="mx-auto mb-3 text-blue-600 animate-spin" />
-            <p className="text-gray-600 text-base md:text-lg">Memuat data pengguna...</p>
-          </div>
-        ) : filteredUsers.length === 0 ? (
-          <div className="bg-white rounded-lg border border-gray-200 py-8 md:py-12 text-center">
-            <p className="text-gray-500 text-base md:text-lg">Tidak ada pengguna yang ditemukan</p>
-          </div>
-        ) : (
-          <>
-            {/* Desktop View - Table */}
-            <div className="hidden lg:block bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50 border-b border-gray-200">
-                    <tr>
-                      <th className="px-4 md:px-6 py-3 md:py-4 text-left text-xs md:text-sm font-semibold text-gray-800">Nama</th>
-                      <th className="px-4 md:px-6 py-3 md:py-4 text-left text-xs md:text-sm font-semibold text-gray-800">Username</th>
-                      <th className="px-4 md:px-6 py-3 md:py-4 text-left text-xs md:text-sm font-semibold text-gray-800">Aksi</th>
+          {loading ? (
+             <div className="py-20 flex flex-col items-center justify-center text-gray-500">
+                <Loader className="animate-spin mb-2 text-blue-600" size={30} />
+                <span className="text-sm">Memuat data...</span>
+             </div>
+          ) : (
+            <div className="overflow-x-auto">
+              {/* Desktop Table - KOLOM ROLE DIHAPUS */}
+              <table className="w-full text-left hidden md:table">
+                <thead className="bg-gray-50 text-gray-500 text-xs uppercase font-semibold">
+                  <tr>
+                    <th className="px-6 py-4">Nama</th>
+                    <th className="px-6 py-4">Username</th>
+                    {/* Role Header dihapus */}
+                    <th className="px-6 py-4 text-right">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {filteredUsers.map((user) => (
+                    <tr key={user.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 font-medium text-gray-900">{user.name}</td>
+                      <td className="px-6 py-4 text-gray-500">@{user.username}</td>
+                      {/* Role Cell dihapus */}
+                      <td className="px-6 py-4 text-right flex justify-end gap-2">
+                        <button onClick={() => handleEditUser(user)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded"><Edit size={16} /></button>
+                        <button onClick={() => handleDeleteUser(user)} className="p-1.5 text-red-600 hover:bg-red-50 rounded"><Trash2 size={16} /></button>
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {filteredUsers.map((user) => (
-                      <tr key={user.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-4 md:px-6 py-3 md:py-4 text-xs md:text-sm font-medium text-gray-800">{user.name}</td>
-                        <td className="px-4 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-600">{user.username}</td>
-                        <td className="px-4 md:px-6 py-3 md:py-4">
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => handleEditUser(user)}
-                              disabled={isSubmitting}
-                              className="p-2 text-blue-600 hover:bg-blue-50 disabled:text-gray-400 rounded-lg transition-colors"
-                              title="Edit"
-                            >
-                              <Edit size={18} />
-                            </button>
-                            <button
-                              onClick={() => handleDeleteUser(user)}
-                              disabled={isSubmitting}
-                              className="p-2 text-red-600 hover:bg-red-50 disabled:text-gray-400 rounded-lg transition-colors"
-                              title="Hapus"
-                            >
-                              <Trash2 size={18} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                  ))}
+                </tbody>
+              </table>
+
+              {/* Mobile View - BADGE ROLE DIHAPUS */}
+              <div className="md:hidden">
+                 {filteredUsers.map(user => (
+                    <div key={user.id} className="p-4 border-b border-gray-100">
+                        <div className="flex justify-between items-start mb-1">
+                            <span className="font-bold text-gray-800">{user.name}</span>
+                            {/* Role Badge dihapus */}
+                        </div>
+                        <div className="text-sm text-gray-500 mb-3">@{user.username}</div>
+                        <div className="flex gap-2">
+                            <button onClick={() => handleEditUser(user)} className="flex-1 py-2 border border-blue-200 text-blue-600 rounded text-sm hover:bg-blue-50">Edit</button>
+                            <button onClick={() => handleDeleteUser(user)} className="flex-1 py-2 border border-red-200 text-red-600 rounded text-sm hover:bg-red-50">Hapus</button>
+                        </div>
+                    </div>
+                 ))}
               </div>
             </div>
-
-            {/* Mobile View - Cards */}
-            <div className="lg:hidden space-y-4">
-              {filteredUsers.map((user) => (
-                <div key={user.id} className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-                  <div 
-                    onClick={() => setExpandedUser(expandedUser === user.id ? null : user.id)}
-                    className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-gray-800 text-sm md:text-base truncate">{user.name}</h3>
-                        <p className="text-xs md:text-sm text-gray-600 truncate">@{user.username}</p>
-                      </div>
-                      <ChevronDown 
-                        size={20} 
-                        className={`text-gray-400 transition-transform ${expandedUser === user.id ? 'rotate-180' : ''}`}
-                      />
-                    </div>
-                  </div>
-
-                  {expandedUser === user.id && (
-                    <div className="border-t border-gray-200 px-4 py-4 bg-gray-50 space-y-3">
-                      <div>
-                        <p className="text-xs text-gray-500 font-medium">Username</p>
-                        <p className="text-sm text-gray-800">{user.username}</p>
-                      </div>
-                      <div className="flex gap-2 pt-3">
-                        <button
-                          onClick={() => {
-                            handleEditUser(user);
-                            setExpandedUser(null);
-                          }}
-                          disabled={isSubmitting}
-                          className="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg transition-colors font-medium text-sm flex items-center justify-center gap-2"
-                        >
-                          <Edit size={16} />
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => {
-                            handleDeleteUser(user);
-                            setExpandedUser(null);
-                          }}
-                          disabled={isSubmitting}
-                          className="flex-1 px-3 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white rounded-lg transition-colors font-medium text-sm flex items-center justify-center gap-2"
-                        >
-                          <Trash2 size={16} />
-                          Hapus
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </>
-        )}
-
-        {/* Info */}
-        <div className="mt-4 text-xs md:text-sm text-gray-600">
-          Menampilkan {filteredUsers.length} dari {userList.length} pengguna
+          )}
         </div>
       </div>
 
-      {/* Modal Tambah Pengguna */}
-      {isAddModalOpen && (
-        <ModalForm
-          title="Tambah Pengguna Baru"
-          formData={formData}
-          setFormData={setFormData}
-          onSubmit={handleSubmitAdd}
-          onClose={() => setIsAddModalOpen(false)}
-          isSubmitting={isSubmitting}
-          submitText="Tambah"
-        />
+      {/* --- MODAL FORM --- */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col">
+            
+            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+              <h2 className="text-lg font-bold text-gray-800">
+                {editingUser ? "Edit Data Pengguna" : "Tambah Pengguna Baru"}
+              </h2>
+              <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600">
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="p-6">
+              <form id="userForm" onSubmit={handleSubmit} className="space-y-5">
+                
+                {/* FIELD: NAMA */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">
+                    Nama Lengkap <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className={getInputClass('name')}
+                    placeholder="Nama Siswa"
+                  />
+                  {formErrors.name && (
+                    <p className="text-red-600 text-xs mt-1 flex items-center gap-1">
+                      <AlertCircle size={12} /> {formErrors.name}
+                    </p>
+                  )}
+                </div>
+
+                {/* FIELD: USERNAME */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">
+                    Username <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.username}
+                    onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                    className={getInputClass('username')}
+                    placeholder="Username tanpa spasi"
+                  />
+                  {formErrors.username && (
+                    <p className="text-red-600 text-xs mt-1 flex items-center gap-1">
+                      <AlertCircle size={12} /> {formErrors.username}
+                    </p>
+                  )}
+                </div>
+
+                {/* FIELD: PASSWORD */}
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="block text-sm font-semibold text-gray-700">
+                      Password {editingUser && <span className="text-gray-400 font-normal text-xs ml-1">(Opsional)</span>}
+                    </label>
+                    {!editingUser && <span className="text-red-500 text-xs font-bold">* Wajib</span>}
+                  </div>
+                  
+                  <input
+                    type="password"
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    className={getInputClass('password')}
+                    placeholder={editingUser ? "Kosongkan jika tidak ingin mengubah" : "Minimal 6 karakter"}
+                  />
+                  
+                  {formErrors.password && (
+                    <p className="text-red-600 text-xs mt-1 flex items-center gap-1">
+                      <AlertCircle size={12} /> {formErrors.password}
+                    </p>
+                  )}
+                </div>
+
+              </form>
+            </div>
+
+            <div className="p-4 border-t border-gray-100 bg-gray-50 flex gap-3 justify-end">
+              <button 
+                onClick={() => setIsModalOpen(false)} 
+                type="button"
+                className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-200 rounded-lg"
+              >
+                Batal
+              </button>
+              <button 
+                type="submit" 
+                form="userForm"
+                disabled={isSubmitting}
+                className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-2 shadow-sm transition-colors"
+              >
+                {isSubmitting && <Loader size={14} className="animate-spin" />}
+                {editingUser ? "Simpan Perubahan" : "Simpan Data"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
-      {/* Modal Edit Pengguna */}
-      {isEditModalOpen && editingUser && (
-        <ModalForm
-          title="Edit Pengguna"
-          formData={formData}
-          setFormData={setFormData}
-          onSubmit={handleSubmitEdit}
-          onClose={() => setIsEditModalOpen(false)}
-          isSubmitting={isSubmitting}
-          submitText="Simpan"
-        />
-      )}
-
-      {/* Modal Konfirmasi Hapus */}
+      {/* MODAL DELETE */}
       {isDeleteModalOpen && userToDelete && (
-        <ModalDelete
-          userName={userToDelete.name}
-          onConfirm={confirmDelete}
-          onClose={() => setIsDeleteModalOpen(false)}
-          isSubmitting={isSubmitting}
-        />
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-lg p-6 max-w-sm w-full text-center">
+            <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 text-red-600">
+                <Trash2 size={24} />
+            </div>
+            <h3 className="text-lg font-bold text-gray-900">Hapus User?</h3>
+            <p className="text-gray-500 text-sm mb-6">User <strong>{userToDelete.name}</strong> akan dihapus permanen.</p>
+            <div className="flex gap-3">
+              <button onClick={() => setIsDeleteModalOpen(false)} disabled={isSubmitting} className="flex-1 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm">Batal</button>
+              <button onClick={confirmDelete} disabled={isSubmitting} className="flex-1 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm flex justify-center gap-2">
+                {isSubmitting && <Loader size={14} className="animate-spin" />} Hapus
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
 };
-
-// Component untuk Modal Form (Add/Edit)
-interface ModalFormProps {
-  title: string;
-  formData: UserFormData;
-  setFormData: React.Dispatch<React.SetStateAction<UserFormData>>;
-  onSubmit: () => void;
-  onClose: () => void;
-  isSubmitting: boolean;
-  submitText: string;
-}
-
-const ModalForm: React.FC<ModalFormProps> = ({ 
-  title, 
-  formData, 
-  setFormData, 
-  onSubmit, 
-  onClose, 
-  isSubmitting, 
-  submitText 
-}) => (
-  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-    <div className="bg-white rounded-lg shadow-lg w-full max-w-md border border-gray-200 max-h-[90vh] overflow-y-auto">
-      <div className="flex items-center justify-between p-4 md:p-6 border-b border-gray-200 sticky top-0 bg-white">
-        <h2 className="text-lg md:text-xl font-semibold text-gray-800">{title}</h2>
-        <button onClick={onClose} disabled={isSubmitting} className="text-gray-400 hover:text-gray-600 disabled:text-gray-300">
-          <X size={20} />
-        </button>
-      </div>
-
-      <div className="p-4 md:p-6 space-y-4">
-        <div>
-          <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">Nama Lengkap</label>
-          <input
-            type="text"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-            placeholder="Masukkan nama lengkap"
-            disabled={isSubmitting}
-          />
-        </div>
-
-        <div>
-          <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">Username</label>
-          <input
-            type="text"
-            value={formData.username}
-            onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-            className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-            placeholder="Masukkan username"
-            disabled={isSubmitting}
-          />
-        </div>
-
-        <div>
-          <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">Password</label>
-          <input
-            type="password"
-            value={formData.password}
-            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-            className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-            placeholder="Masukkan password"
-            disabled={isSubmitting}
-          />
-        </div>
-
-        <div className="flex gap-3 pt-4">
-          <button
-            onClick={onClose}
-            disabled={isSubmitting}
-            className="flex-1 px-3 md:px-4 py-2 bg-gray-200 hover:bg-gray-300 disabled:bg-gray-100 text-gray-700 rounded-lg font-medium transition-colors text-sm"
-          >
-            Batal
-          </button>
-          <button
-            onClick={onSubmit}
-            disabled={isSubmitting}
-            className="flex-1 px-3 md:px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors text-sm flex items-center justify-center gap-2"
-          >
-            {isSubmitting ? <Loader size={16} className="animate-spin" /> : null}
-            {isSubmitting ? 'Menyimpan...' : submitText}
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-);
-
-// Component untuk Modal Delete
-interface ModalDeleteProps {
-  userName: string;
-  onConfirm: () => void;
-  onClose: () => void;
-  isSubmitting: boolean;
-}
-
-const ModalDelete: React.FC<ModalDeleteProps> = ({ userName, onConfirm, onClose, isSubmitting }) => (
-  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-    <div className="bg-white rounded-lg shadow-lg w-full max-w-sm border border-gray-200">
-      <div className="flex items-center justify-between p-4 md:p-6 border-b border-gray-200">
-        <h2 className="text-lg md:text-xl font-semibold text-gray-800">Konfirmasi Hapus</h2>
-        <button onClick={onClose} disabled={isSubmitting} className="text-gray-400 hover:text-gray-600 disabled:text-gray-300">
-          <X size={20} />
-        </button>
-      </div>
-
-      <div className="p-4 md:p-6 space-y-4">
-        <div className="text-center">
-          <Trash2 size={32} className="text-red-600 mx-auto mb-3" />
-          <h3 className="text-base md:text-lg font-medium text-gray-800 mb-2">Hapus Pengguna?</h3>
-          <p className="text-gray-600 text-xs md:text-sm">
-            Apakah Anda yakin ingin menghapus pengguna "<strong>{userName}</strong>"? Tindakan ini tidak dapat dibatalkan.
-          </p>
-        </div>
-
-        <div className="flex gap-3 pt-4">
-          <button
-            onClick={onClose}
-            disabled={isSubmitting}
-            className="flex-1 px-3 md:px-4 py-2 bg-gray-200 hover:bg-gray-300 disabled:bg-gray-100 text-gray-700 rounded-lg font-medium transition-colors text-sm"
-          >
-            Batal
-          </button>
-          <button
-            onClick={onConfirm}
-            disabled={isSubmitting}
-            className="flex-1 px-3 md:px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors text-sm flex items-center justify-center gap-2"
-          >
-            {isSubmitting ? <Loader size={16} className="animate-spin" /> : null}
-            {isSubmitting ? 'Menghapus...' : 'Hapus'}
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-);
-
-const ChevronDown = ({ size, className }: { size: number; className: string }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
-    <polyline points="6 9 12 15 18 9"></polyline>
-  </svg>
-);
 
 export default ManageUsers;

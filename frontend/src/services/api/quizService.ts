@@ -8,6 +8,7 @@ export interface QuizItem {
   title: string;
   description: string;
   isActive: boolean;
+  isDelete?: boolean;
   createdAt?: string;
   updatedAt?: string | null;
 }
@@ -33,7 +34,7 @@ class QuizService {
   private baseUrl: string;
 
   constructor() {
-    this.baseUrl = `${API_BASE_URL}/admin`;
+    this.baseUrl = `${API_BASE_URL}`;
   }
 
   /**
@@ -44,7 +45,8 @@ class QuizService {
       const response = await fetch(`${this.baseUrl}/quiz`);
       
       if (!response.ok) {
-        throw new Error('Gagal mengambil data quiz');
+        console.error('HTTP Error:', response.status, response.statusText);
+        throw new Error(`Gagal mengambil data quiz: ${response.status}`);
       }
       
       const text = await response.text();
@@ -56,7 +58,12 @@ class QuizService {
       
       // Try to parse JSON
       try {
-        return JSON.parse(text);
+        const result = JSON.parse(text);
+        // Filter out deleted quizzes
+        if (result.success && Array.isArray(result.data)) {
+          result.data = result.data.filter((quiz: QuizItem) => !quiz.isDelete);
+        }
+        return result;
       } catch (parseError) {
         console.error('JSON Parse Error:', text);
         throw new Error('Response bukan format JSON yang valid');

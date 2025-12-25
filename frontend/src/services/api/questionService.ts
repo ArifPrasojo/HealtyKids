@@ -46,7 +46,7 @@ class QuestionService {
   private baseUrl: string;
 
   constructor() {
-    this.baseUrl = `${API_BASE_URL}/admin`;
+    this.baseUrl = `${API_BASE_URL}`;
   }
 
   /**
@@ -123,7 +123,19 @@ class QuestionService {
       }
       
       try {
-        return JSON.parse(text);
+        const result = JSON.parse(text);
+        
+        // Cek apakah data adalah array
+        if (result.success && result.data) {
+          // Jika data adalah array langsung, return as is
+          if (Array.isArray(result.data)) {
+            return result;
+          }
+          // Jika data bukan array, convert ke array
+          return { ...result, data: [result.data] };
+        }
+        
+        return result;
       } catch (parseError) {
         console.error('JSON Parse Error:', text);
         throw new Error('Response bukan format JSON yang valid');

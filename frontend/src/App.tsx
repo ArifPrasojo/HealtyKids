@@ -135,7 +135,14 @@ function App() {
             </ProtectedRoute>
           } 
         />
-        
+                {/* <Route 
+          path="/admin/quiz/:quizId/questions" 
+          element={
+            <ProtectedRoute isAuthenticated={isAuthenticated} userRole={userRole}>
+              {userRole === 'admin' ? <ManageQuestion /> : <Navigate to="/dashboard" replace />}
+            </ProtectedRoute>
+          } 
+        /> */}
         <Route 
           path="/materi" 
           element={
