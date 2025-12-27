@@ -1,33 +1,46 @@
 // src/pages/admin/ManageQuiz.tsx
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { Plus, Edit, Trash2, X, Search, Loader, AlertCircle, FileQuestion, Clock, List } from 'lucide-react';
+import { 
+  Plus, Edit, Trash2, X, Search, Loader, AlertCircle, 
+  FileQuestion, Clock, List, ArrowLeft 
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { quizService } from '../../services/api/quizService';
+
+// Pastikan path import ini benar sesuai struktur folder Anda
+import { quizService } from '../../services/api/quizService'; 
 import type { QuizItem, QuizFormData } from '../../services/api/quizService';
 
 const ManageQuiz = () => {
   const navigate = useNavigate();
+
+  // --- STATE ---
   const [quizList, setQuizList] = useState<QuizItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  // State Error & Validation
+  const [globalError, setGlobalError] = useState<string | null>(null);
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+
+  // Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  
   const [editingQuiz, setEditingQuiz] = useState<QuizItem | null>(null);
   const [quizToDelete, setQuizToDelete] = useState<QuizItem | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [expandedQuiz, setExpandedQuiz] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [formData, setFormData] = useState<QuizFormData>({
-    duration: 60,
+  // Form Data Default
+  const initialFormState: QuizFormData = {
     title: '',
     description: '',
+    duration: 60,
     isActive: true
-  });
+  };
+  const [formData, setFormData] = useState<QuizFormData>(initialFormState);
 
+  // --- FETCH DATA ---
   useEffect(() => {
     fetchQuizzes();
   }, []);
@@ -35,54 +48,53 @@ const ManageQuiz = () => {
   const fetchQuizzes = async () => {
     try {
       setLoading(true);
-      setError(null);
-      
+      setGlobalError(null);
+      // Ini akan memanggil service yang sudah diperbaiki URL-nya
       const response = await quizService.getAllQuizzes();
       
+      // Handle jika response.data berbentuk array
       if (response.success && Array.isArray(response.data)) {
         setQuizList(response.data);
       } else {
-        setQuizList([]);
+        // Fallback jika format data berbeda
+        setQuizList([]); 
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Terjadi kesalahan');
-      console.error('Fetch error:', err);
+      console.error(err);
+      setGlobalError('Gagal menghubungkan ke server. Pastikan backend menyala.');
     } finally {
       setLoading(false);
     }
   };
 
   const filteredQuizzes = useMemo(() => {
-    return quizList.filter(quiz => {
-      const matchesSearch = quiz.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           quiz.description.toLowerCase().includes(searchQuery.toLowerCase());
-      return matchesSearch;
-    });
+    return quizList.filter(quiz => 
+      quiz.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      quiz.description.toLowerCase().includes(searchQuery.toLowerCase())
+    );
   }, [quizList, searchQuery]);
 
-  const resetForm = () => {
-    setFormData({ 
-      duration: 60,
-      title: '', 
-      description: '',
-      isActive: true
-    });
-  };
+  // --- HANDLERS ---
 
   const handleAddQuiz = () => {
-    resetForm();
-    setIsAddModalOpen(true);
+    setEditingQuiz(null); 
+    setFormData(initialFormState);
+    setFormErrors({});
+    setGlobalError(null);
+    setIsModalOpen(true);
   };
 
   const handleEditQuiz = (quiz: QuizItem) => {
     setEditingQuiz(quiz);
     setFormData({
-      duration: quiz.duration,
       title: quiz.title,
       description: quiz.description,
+      duration: quiz.duration,
       isActive: quiz.isActive
     });
-    setIsEditModalOpen(true);
+    setFormErrors({});
+    setGlobalError(null);
+    setIsModalOpen(true);
   };
 
   const handleDeleteQuiz = (quiz: QuizItem) => {
@@ -90,64 +102,55 @@ const ManageQuiz = () => {
     setIsDeleteModalOpen(true);
   };
 
+  // --- VALIDASI ---
   const validateForm = (): boolean => {
-    if (!formData.title || !formData.description) {
-      setError('Judul dan deskripsi harus diisi');
-      return false;
+    const newErrors: Record<string, string> = {};
+    let isValid = true;
+
+    if (!formData.title || formData.title.trim() === '') {
+      newErrors.title = 'Judul quiz wajib diisi';
+      isValid = false;
     }
-    if (formData.duration <= 0) {
-      setError('Durasi harus lebih dari 0 menit');
-      return false;
+
+    if (!formData.description || formData.description.trim() === '') {
+      newErrors.description = 'Deskripsi wajib diisi';
+      isValid = false;
     }
-    return true;
+
+    if (!formData.duration || formData.duration <= 0) {
+      newErrors.duration = 'Durasi harus lebih dari 0 menit';
+      isValid = false;
+    }
+
+    setFormErrors(newErrors);
+    if (!isValid) setGlobalError(null);
+    return isValid;
   };
 
-  const handleSubmitAdd = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!validateForm()) return;
-    
-    try {
-      setIsSubmitting(true);
-      setError(null);
-      
-      const response = await quizService.createQuiz(formData);
 
-      if (response.success) {
-        setIsAddModalOpen(false);
-        resetForm();
-        await new Promise(resolve => setTimeout(resolve, 500));
-        await fetchQuizzes();
+    setIsSubmitting(true);
+    setGlobalError(null);
+
+    try {
+      let response;
+      if (editingQuiz) {
+        response = await quizService.updateQuiz(editingQuiz.id, formData);
       } else {
-        setError(response.message || 'Gagal menambah quiz');
+        response = await quizService.createQuiz(formData);
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Terjadi kesalahan');
-      console.error('Add error:', err);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleSubmitEdit = async () => {
-    if (!validateForm() || !editingQuiz) return;
-
-    try {
-      setIsSubmitting(true);
-      setError(null);
-
-      const response = await quizService.updateQuiz(editingQuiz.id, formData);
 
       if (response.success) {
-        setIsEditModalOpen(false);
+        setIsModalOpen(false);
         setEditingQuiz(null);
-        resetForm();
-        await new Promise(resolve => setTimeout(resolve, 500));
-        await fetchQuizzes();
+        fetchQuizzes(); // Refresh data setelah simpan
       } else {
-        setError(response.message || 'Gagal mengubah quiz');
+        setGlobalError(response.message || 'Gagal menyimpan data');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Terjadi kesalahan');
-      console.error('Edit error:', err);
+      setGlobalError(err instanceof Error ? err.message : 'Terjadi kesalahan sistem');
     } finally {
       setIsSubmitting(false);
     }
@@ -155,340 +158,223 @@ const ManageQuiz = () => {
 
   const confirmDelete = async () => {
     if (!quizToDelete) return;
-
+    setIsSubmitting(true);
     try {
-      setIsSubmitting(true);
-      setError(null);
-
       const response = await quizService.deleteQuiz(quizToDelete.id);
-      
       if (response.success) {
         setIsDeleteModalOpen(false);
         setQuizToDelete(null);
-        await new Promise(resolve => setTimeout(resolve, 500));
-        await fetchQuizzes();
+        fetchQuizzes(); // Refresh data setelah hapus
       } else {
-        setError(response.message || 'Gagal menghapus quiz');
+        setGlobalError(response.message || 'Gagal menghapus quiz');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Terjadi kesalahan saat menghapus');
-      console.error('Delete error:', err);
+      setGlobalError('Terjadi kesalahan saat menghapus');
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const getInputClass = (fieldName: string) => `
+    w-full px-4 py-2 border rounded-lg outline-none transition-all text-sm
+    ${formErrors[fieldName]
+      ? 'border-red-500 bg-red-50 focus:ring-red-200 placeholder-red-300' 
+      : 'border-gray-300 focus:ring-blue-100 focus:border-blue-500'
+    }
+  `;
+
+  // --- RENDER ---
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-4 md:px-6 py-4 md:py-6 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between mb-4 md:mb-6">
-            <div className="flex-1">
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Manajemen Quiz</h1>
-              <p className="text-gray-600 text-xs md:text-sm mt-1">Kelola data quiz dan pertanyaan</p>
-            </div>
-            <button
-              onClick={handleAddQuiz}
-              disabled={loading}
-              className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-3 md:px-6 py-2 md:py-3 rounded-lg font-semibold flex items-center gap-2 transition-colors text-sm md:text-base whitespace-nowrap"
-            >
-              <Plus size={18} />
-              <span className="hidden sm:inline">Tambah Quiz</span>
-              <span className="sm:hidden">Tambah</span>
-            </button>
-          </div>
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-7xl mx-auto mb-6">
+        <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-gray-500 hover:text-blue-600 mb-4 text-sm font-medium">
+            <ArrowLeft size={18} /> Kembali
+        </button>
 
-          {/* Error Alert */}
-          {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
-              <AlertCircle size={18} className="text-red-600 mt-0.5 flex-shrink-0" />
-              <div className="flex-1">
-                <p className="text-red-800 text-sm font-medium">Error</p>
-                <p className="text-red-700 text-xs md:text-sm">{error}</p>
-              </div>
-              <button onClick={() => setError(null)} className="text-red-600 hover:text-red-800">
-                <X size={16} />
-              </button>
-            </div>
-          )}
-
-          {/* Search */}
-          <div className="flex flex-col gap-3 md:gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-3 text-gray-400" size={18} />
-              <input
-                type="text"
-                placeholder="Cari judul atau deskripsi quiz..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 md:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all"
-              />
-            </div>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-6">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-800">Manajemen Quiz</h1>
+            <p className="text-gray-500 text-sm mt-1">Kelola data quiz dan ujian</p>
           </div>
+          <button onClick={handleAddQuiz} className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg flex items-center gap-2 font-medium transition-colors shadow-sm whitespace-nowrap">
+            <Plus size={20} /> Tambah Quiz
+          </button>
         </div>
-      </div>
 
-      {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-8">
-        {loading ? (
-          <div className="bg-white rounded-lg border border-gray-200 py-8 md:py-12 text-center">
-            <Loader size={32} className="mx-auto mb-3 text-blue-600 animate-spin" />
-            <p className="text-gray-600 text-base md:text-lg">Memuat data quiz...</p>
+        {globalError && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3 text-red-700 animate-fade-in">
+            <AlertCircle size={20} />
+            <span className="text-sm font-medium">{globalError}</span>
+            <button onClick={() => setGlobalError(null)} className="ml-auto"><X size={18} /></button>
           </div>
-        ) : filteredQuizzes.length === 0 ? (
-          <div className="bg-white rounded-lg border border-gray-200 py-8 md:py-12 text-center">
-            <FileQuestion size={48} className="mx-auto mb-3 text-gray-400" />
-            <p className="text-gray-500 text-base md:text-lg">Tidak ada quiz yang ditemukan</p>
-          </div>
-        ) : (
-          <>
-            {/* Desktop View - Cards Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-              {filteredQuizzes.map((quiz) => (
-                <div key={quiz.id} className="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="p-4 md:p-6">
-                    <div className="flex items-start justify-between mb-3">
-                      <h3 className="font-semibold text-gray-800 text-base md:text-lg">{quiz.title}</h3>
-                      <span className={`px-2 py-1 rounded text-xs font-medium ${quiz.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
-                        {quiz.isActive ? 'Aktif' : 'Tidak Aktif'}
-                      </span>
-                    </div>
-                    
-                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">{quiz.description}</p>
-                    
-                    <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
-                      <Clock size={16} />
-                      <span>{quiz.duration} menit</span>
-                    </div>
-
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => navigate(`/admin/quiz/${quiz.id}/questions`)}
-                        className="flex-1 px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors font-medium text-sm flex items-center justify-center gap-2"
-                      >
-                        <List size={16} />
-                        Soal
-                      </button>
-                      <button
-                        onClick={() => handleEditQuiz(quiz)}
-                        disabled={isSubmitting}
-                        className="p-2 text-blue-600 hover:bg-blue-50 disabled:text-gray-400 rounded-lg transition-colors"
-                        title="Edit"
-                      >
-                        <Edit size={18} />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteQuiz(quiz)}
-                        disabled={isSubmitting}
-                        className="p-2 text-red-600 hover:bg-red-50 disabled:text-gray-400 rounded-lg transition-colors"
-                        title="Hapus"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </>
         )}
 
-        {/* Info */}
-        <div className="mt-4 text-xs md:text-sm text-gray-600">
-          Menampilkan {filteredQuizzes.length} dari {quizList.length} quiz
+        {/* SEARCH */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
+            <div className="relative max-w-md">
+              <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
+              <input
+                type="text"
+                placeholder="Cari judul quiz..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm transition-all"
+              />
+            </div>
         </div>
+
+        {/* CONTENT */}
+        {loading ? (
+            <div className="py-20 flex flex-col items-center justify-center text-gray-500">
+                <Loader className="animate-spin mb-2 text-blue-600" size={30} />
+                <span className="text-sm">Memuat data quiz...</span>
+            </div>
+        ) : filteredQuizzes.length === 0 ? (
+            <div className="py-20 flex flex-col items-center justify-center text-gray-400 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50">
+                <FileQuestion size={48} className="mb-3 opacity-50" />
+                <p className="text-gray-500 font-medium">Belum ada data quiz</p>
+            </div>
+        ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredQuizzes.map((quiz) => (
+                    <div key={quiz.id} className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow flex flex-col">
+                        <div className="p-5 flex-1">
+                            <div className="flex justify-between items-start mb-3">
+                                <h3 className="font-bold text-gray-800 text-lg line-clamp-1">{quiz.title}</h3>
+                                <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                                    quiz.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
+                                }`}>
+                                    {quiz.isActive ? 'Aktif' : 'Draft'}
+                                </span>
+                            </div>
+                            <p className="text-gray-500 text-sm mb-4 line-clamp-2 h-10">{quiz.description}</p>
+                            <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
+                                <Clock size={16} className="text-blue-500" />
+                                <span className="font-medium">{quiz.duration} Menit</span>
+                            </div>
+                        </div>
+
+                        <div className="p-4 border-t border-gray-100 bg-gray-50/50 rounded-b-xl flex gap-2">
+                              {/* Pastikan route ini sesuai dengan route di App.tsx Anda */}
+                             <button
+                                onClick={() => navigate(`/admin/quiz/${quiz.id}/questions`)}
+                                className="flex-1 px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-colors"
+                              >
+                                <List size={16} /> Soal
+                              </button>
+                              <button onClick={() => handleEditQuiz(quiz)} className="p-2 text-blue-600 hover:bg-blue-100 border border-blue-200 rounded-lg" title="Edit">
+                                <Edit size={18} />
+                              </button>
+                              <button onClick={() => handleDeleteQuiz(quiz)} className="p-2 text-red-600 hover:bg-red-100 border border-red-200 rounded-lg" title="Hapus">
+                                <Trash2 size={18} />
+                              </button>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        )}
       </div>
 
-      {/* Modal Tambah Quiz */}
-      {isAddModalOpen && (
-        <ModalForm
-          title="Tambah Quiz Baru"
-          formData={formData}
-          setFormData={setFormData}
-          onSubmit={handleSubmitAdd}
-          onClose={() => setIsAddModalOpen(false)}
-          isSubmitting={isSubmitting}
-          submitText="Tambah"
-        />
+      {/* MODAL FORM */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg flex flex-col max-h-[90vh]">
+            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50 rounded-t-xl">
+              <h2 className="text-lg font-bold text-gray-800">
+                {editingQuiz ? "Edit Quiz" : "Tambah Quiz Baru"}
+              </h2>
+              <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto">
+              <form id="quizForm" onSubmit={handleSubmit} className="space-y-5">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Judul Quiz <span className="text-red-500">*</span></label>
+                  <input
+                    type="text"
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    className={getInputClass('title')}
+                    placeholder="Contoh: Ujian Matematika Dasar"
+                  />
+                  {formErrors.title && <p className="text-red-600 text-xs mt-1 flex items-center gap-1"><AlertCircle size={12} /> {formErrors.title}</p>}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Deskripsi <span className="text-red-500">*</span></label>
+                  <textarea
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    className={`${getInputClass('description')} resize-none`}
+                    rows={3}
+                    placeholder="Deskripsi singkat tentang quiz..."
+                  />
+                  {formErrors.description && <p className="text-red-600 text-xs mt-1 flex items-center gap-1"><AlertCircle size={12} /> {formErrors.description}</p>}
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-5">
+                    <div className="flex-1">
+                        <label className="block text-sm font-semibold text-gray-700 mb-1">Durasi (Menit) <span className="text-red-500">*</span></label>
+                        <div className="relative">
+                            <Clock className="absolute left-3 top-2.5 text-gray-400" size={16} />
+                            <input
+                                type="number"
+                                min="1"
+                                value={formData.duration}
+                                onChange={(e) => setFormData({ ...formData, duration: Number(e.target.value) })}
+                                className={`${getInputClass('duration')} pl-10`}
+                                placeholder="60"
+                            />
+                        </div>
+                        {formErrors.duration && <p className="text-red-600 text-xs mt-1 flex items-center gap-1"><AlertCircle size={12} /> {formErrors.duration}</p>}
+                    </div>
+                    <div className="flex-1 flex items-center h-full pt-6">
+                        <label className="flex items-center cursor-pointer gap-3 p-2 rounded-lg hover:bg-gray-50 w-full border border-transparent hover:border-gray-200 transition-all">
+                            <div className="relative inline-flex items-center">
+                                <input 
+                                    type="checkbox" 
+                                    className="sr-only peer"
+                                    checked={formData.isActive}
+                                    onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                                />
+                                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                            </div>
+                            <span className="text-sm font-medium text-gray-700 select-none">Quiz Aktif</span>
+                        </label>
+                    </div>
+                </div>
+              </form>
+            </div>
+            <div className="p-4 border-t border-gray-100 bg-gray-50 flex gap-3 justify-end rounded-b-xl">
+              <button onClick={() => setIsModalOpen(false)} type="button" className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-200 rounded-lg font-medium">Batal</button>
+              <button type="submit" form="quizForm" disabled={isSubmitting} className="px-6 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-2 shadow-sm transition-colors font-medium">
+                {isSubmitting && <Loader size={14} className="animate-spin" />}
+                {editingQuiz ? "Simpan Perubahan" : "Buat Quiz"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
-      {/* Modal Edit Quiz */}
-      {isEditModalOpen && editingQuiz && (
-        <ModalForm
-          title="Edit Quiz"
-          formData={formData}
-          setFormData={setFormData}
-          onSubmit={handleSubmitEdit}
-          onClose={() => setIsEditModalOpen(false)}
-          isSubmitting={isSubmitting}
-          submitText="Simpan"
-        />
-      )}
-
-      {/* Modal Konfirmasi Hapus */}
+      {/* MODAL DELETE */}
       {isDeleteModalOpen && quizToDelete && (
-        <ModalDelete
-          quizTitle={quizToDelete.title}
-          onConfirm={confirmDelete}
-          onClose={() => setIsDeleteModalOpen(false)}
-          isSubmitting={isSubmitting}
-        />
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-lg p-6 max-w-sm w-full text-center">
+            <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 text-red-600"><Trash2 size={24} /></div>
+            <h3 className="text-lg font-bold text-gray-900">Hapus Quiz?</h3>
+            <p className="text-gray-500 text-sm mb-6">Quiz <strong>{quizToDelete.title}</strong> akan dihapus permanen.</p>
+            <div className="flex gap-3">
+              <button onClick={() => setIsDeleteModalOpen(false)} disabled={isSubmitting} className="flex-1 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm font-medium">Batal</button>
+              <button onClick={confirmDelete} disabled={isSubmitting} className="flex-1 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm font-medium flex justify-center gap-2">
+                {isSubmitting && <Loader size={14} className="animate-spin" />} Hapus
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
 };
-
-// Component untuk Modal Form (Add/Edit)
-interface ModalFormProps {
-  title: string;
-  formData: QuizFormData;
-  setFormData: React.Dispatch<React.SetStateAction<QuizFormData>>;
-  onSubmit: () => void;
-  onClose: () => void;
-  isSubmitting: boolean;
-  submitText: string;
-}
-
-const ModalForm: React.FC<ModalFormProps> = ({ 
-  title, 
-  formData, 
-  setFormData, 
-  onSubmit, 
-  onClose, 
-  isSubmitting, 
-  submitText 
-}) => (
-  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-    <div className="bg-white rounded-lg shadow-lg w-full max-w-md border border-gray-200 max-h-[90vh] overflow-y-auto">
-      <div className="flex items-center justify-between p-4 md:p-6 border-b border-gray-200 sticky top-0 bg-white">
-        <h2 className="text-lg md:text-xl font-semibold text-gray-800">{title}</h2>
-        <button onClick={onClose} disabled={isSubmitting} className="text-gray-400 hover:text-gray-600 disabled:text-gray-300">
-          <X size={20} />
-        </button>
-      </div>
-
-      <div className="p-4 md:p-6 space-y-4">
-        <div>
-          <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">Judul Quiz</label>
-          <input
-            type="text"
-            value={formData.title}
-            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-            placeholder="Masukkan judul quiz"
-            disabled={isSubmitting}
-          />
-        </div>
-
-        <div>
-          <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">Deskripsi</label>
-          <textarea
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm resize-none"
-            placeholder="Masukkan deskripsi quiz"
-            rows={3}
-            disabled={isSubmitting}
-          />
-        </div>
-
-        <div>
-          <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">Durasi (menit)</label>
-          <input
-            type="number"
-            value={formData.duration}
-            onChange={(e) => setFormData({ ...formData, duration: Number(e.target.value) })}
-            className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-            placeholder="60"
-            min="1"
-            disabled={isSubmitting}
-          />
-        </div>
-
-        <div className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            id="isActive"
-            checked={formData.isActive}
-            onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-            disabled={isSubmitting}
-          />
-          <label htmlFor="isActive" className="text-xs md:text-sm font-medium text-gray-700">
-            Quiz Aktif
-          </label>
-        </div>
-
-        <div className="flex gap-3 pt-4">
-          <button
-            onClick={onClose}
-            disabled={isSubmitting}
-            className="flex-1 px-3 md:px-4 py-2 bg-gray-200 hover:bg-gray-300 disabled:bg-gray-100 text-gray-700 rounded-lg font-medium transition-colors text-sm"
-          >
-            Batal
-          </button>
-          <button
-            onClick={onSubmit}
-            disabled={isSubmitting}
-            className="flex-1 px-3 md:px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors text-sm flex items-center justify-center gap-2"
-          >
-            {isSubmitting ? <Loader size={16} className="animate-spin" /> : null}
-            {isSubmitting ? 'Menyimpan...' : submitText}
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-);
-
-// Component untuk Modal Delete
-interface ModalDeleteProps {
-  quizTitle: string;
-  onConfirm: () => void;
-  onClose: () => void;
-  isSubmitting: boolean;
-}
-
-const ModalDelete: React.FC<ModalDeleteProps> = ({ quizTitle, onConfirm, onClose, isSubmitting }) => (
-  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-    <div className="bg-white rounded-lg shadow-lg w-full max-w-sm border border-gray-200">
-      <div className="flex items-center justify-between p-4 md:p-6 border-b border-gray-200">
-        <h2 className="text-lg md:text-xl font-semibold text-gray-800">Konfirmasi Hapus</h2>
-        <button onClick={onClose} disabled={isSubmitting} className="text-gray-400 hover:text-gray-600 disabled:text-gray-300">
-          <X size={20} />
-        </button>
-      </div>
-
-      <div className="p-4 md:p-6 space-y-4">
-        <div className="text-center">
-          <Trash2 size={32} className="text-red-600 mx-auto mb-3" />
-          <h3 className="text-base md:text-lg font-medium text-gray-800 mb-2">Hapus Quiz?</h3>
-          <p className="text-gray-600 text-xs md:text-sm">
-            Apakah Anda yakin ingin menghapus quiz "<strong>{quizTitle}</strong>"? Semua pertanyaan terkait juga akan terhapus. Tindakan ini tidak dapat dibatalkan.
-          </p>
-        </div>
-
-        <div className="flex gap-3 pt-4">
-          <button
-            onClick={onClose}
-            disabled={isSubmitting}
-            className="flex-1 px-3 md:px-4 py-2 bg-gray-200 hover:bg-gray-300 disabled:bg-gray-100 text-gray-700 rounded-lg font-medium transition-colors text-sm"
-          >
-            Batal
-          </button>
-          <button
-            onClick={onConfirm}
-            disabled={isSubmitting}
-            className="flex-1 px-3 md:px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors text-sm flex items-center justify-center gap-2"
-          >
-            {isSubmitting ? <Loader size={16} className="animate-spin" /> : null}
-            {isSubmitting ? 'Menghapus...' : 'Hapus'}
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-);
 
 export default ManageQuiz;
