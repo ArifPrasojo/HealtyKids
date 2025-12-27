@@ -1,216 +1,82 @@
 // src/services/api/quizService.ts
+import axios from 'axios';
 
-const API_BASE_URL = import.meta.env?.VITE_API_URL || 'http://localhost:3000';
+// --- PERUBAHAN KERAS (HARDCODE) ---
+// Kita hapus "import.meta.env..." supaya kodingan dipaksa ke URL yang benar.
+// Berdasarkan Postman Anda, path yang benar harus ada '/admin'
+const API_BASE_URL = 'http://localhost:3000/admin';
+
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  }
+});
 
 export interface QuizItem {
   id: number;
-  duration: number;
   title: string;
   description: string;
+  duration: number;
   isActive: boolean;
-  isDelete?: boolean;
-  createdAt?: string;
-  updatedAt?: string | null;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface QuizFormData {
-  duration: number;
   title: string;
   description: string;
+  duration: number;
   isActive: boolean;
 }
 
-export interface ApiResponse<T = any> {
+interface ApiResponse<T> {
   success: boolean;
-  message?: string;
-  data?: T;
-  error?: string;
+  message: string;
+  data: T;
 }
 
-/**
- * Service untuk mengelola API calls terkait quiz management
- */
-class QuizService {
-  private baseUrl: string;
-
-  constructor() {
-    this.baseUrl = `${API_BASE_URL}`;
-  }
-
-  /**
-   * Mengambil semua data quizzes
-   */
-  async getAllQuizzes(): Promise<ApiResponse<QuizItem[]>> {
+export const quizService = {
+  // Get All Quizzes
+  getAllQuizzes: async (): Promise<ApiResponse<QuizItem[]>> => {
     try {
-      const response = await fetch(`${this.baseUrl}/quiz`);
-      
-      if (!response.ok) {
-        console.error('HTTP Error:', response.status, response.statusText);
-        throw new Error(`Gagal mengambil data quiz: ${response.status}`);
-      }
-      
-      const text = await response.text();
-      
-      // Check if response is empty
-      if (!text) {
-        return { success: true, data: [] };
-      }
-      
-      // Try to parse JSON
-      try {
-        const result = JSON.parse(text);
-        // Filter out deleted quizzes
-        if (result.success && Array.isArray(result.data)) {
-          result.data = result.data.filter((quiz: QuizItem) => !quiz.isDelete);
-        }
-        return result;
-      } catch (parseError) {
-        console.error('JSON Parse Error:', text);
-        throw new Error('Response bukan format JSON yang valid');
-      }
-    } catch (error) {
-      throw error;
+      // Axios menggabung: 'http://localhost:3000/admin' + '/quiz'
+      // JADI: http://localhost:3000/admin/quiz
+      const response = await api.get('/quiz'); 
+      return response.data;
+    } catch (error: any) {
+      console.error("FULL ERROR:", error);
+      throw new Error(error.response?.data?.message || 'Gagal memuat data quiz');
+    }
+  },
+
+  // Create Quiz
+  createQuiz: async (data: QuizFormData): Promise<ApiResponse<QuizItem>> => {
+    try {
+      const response = await api.post('/quiz', data);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Gagal membuat quiz');
+    }
+  },
+
+  // Update Quiz
+  updateQuiz: async (id: number, data: QuizFormData): Promise<ApiResponse<QuizItem>> => {
+    try {
+      const response = await api.put(`/quiz/${id}`, data);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Gagal mengupdate quiz');
+    }
+  },
+
+  // Delete Quiz
+  deleteQuiz: async (id: number): Promise<ApiResponse<null>> => {
+    try {
+      const response = await api.delete(`/quiz/${id}`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Gagal menghapus quiz');
     }
   }
-
-  /**
-   * Mengambil data quiz berdasarkan ID
-   */
-  async getQuizById(quizId: number): Promise<ApiResponse<QuizItem>> {
-    try {
-      const response = await fetch(`${this.baseUrl}/quiz/${quizId}`);
-      
-      if (!response.ok) {
-        throw new Error('Gagal mengambil data quiz');
-      }
-      
-      const text = await response.text();
-      
-      if (!text) {
-        throw new Error('Response kosong dari server');
-      }
-      
-      try {
-        return JSON.parse(text);
-      } catch (parseError) {
-        console.error('JSON Parse Error:', text);
-        throw new Error('Response bukan format JSON yang valid');
-      }
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  /**
-   * Menambah quiz baru
-   */
-  async createQuiz(quizData: QuizFormData): Promise<ApiResponse> {
-    try {
-      const response = await fetch(`${this.baseUrl}/quiz`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(quizData)
-      });
-
-      const text = await response.text();
-      
-      if (!text) {
-        throw new Error('Response kosong dari server');
-      }
-      
-      let data;
-      try {
-        data = JSON.parse(text);
-      } catch (parseError) {
-        console.error('JSON Parse Error:', text);
-        throw new Error('Response bukan format JSON yang valid');
-      }
-      
-      if (!response.ok) {
-        throw new Error(data.message || `HTTP Error: ${response.status}`);
-      }
-
-      return data;
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  /**
-   * Mengupdate data quiz
-   */
-  async updateQuiz(quizId: number, quizData: QuizFormData): Promise<ApiResponse> {
-    try {
-      const response = await fetch(`${this.baseUrl}/quiz/${quizId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(quizData)
-      });
-
-      const text = await response.text();
-      
-      if (!text) {
-        throw new Error('Response kosong dari server');
-      }
-      
-      let data;
-      try {
-        data = JSON.parse(text);
-      } catch (parseError) {
-        console.error('JSON Parse Error:', text);
-        throw new Error('Response bukan format JSON yang valid');
-      }
-      
-      if (!response.ok) {
-        throw new Error(data.message || `HTTP Error: ${response.status}`);
-      }
-
-      return data;
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  /**
-   * Menghapus quiz
-   */
-  async deleteQuiz(quizId: number): Promise<ApiResponse> {
-    try {
-      const response = await fetch(`${this.baseUrl}/quiz/${quizId}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      });
-
-      const text = await response.text();
-      
-      if (!text) {
-        throw new Error('Response kosong dari server');
-      }
-      
-      let data;
-      try {
-        data = JSON.parse(text);
-      } catch (parseError) {
-        console.error('JSON Parse Error:', text);
-        throw new Error('Response bukan format JSON yang valid');
-      }
-      
-      if (!response.ok) {
-        throw new Error(data.message || `HTTP Error: ${response.status}`);
-      }
-      
-      return data;
-    } catch (error) {
-      throw error;
-    }
-  }
-}
-
-// Export singleton instance
-export const quizService = new QuizService();
+};
