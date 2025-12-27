@@ -11,4 +11,8 @@ quizAdminRoute.put('/questions/:id{[0-9]+}', controller.updateQuestion)
 quizAdminRoute.delete('/questions/:id{[0-9]+}', controller.deleteQuestion)
 quizAdminRoute.get('/questions/:id{[0-9]+}/answer', controller.getAllAnswer)
 quizAdminRoute.put('/questions/:id{[0-9]+}/answer', controller.updateQuestionAnswer)
-export { quizAdminRoute }
+
+const quizStudentRoute = new Hono()
+quizStudentRoute.get('/', controller.getQuizStudent)
+
+export { quizAdminRoute, quizStudentRoute }

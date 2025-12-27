@@ -19,7 +19,6 @@ import ManageUsers from './pages/admin/ManageUser'
 import './App.css'
 import ManageSubMaterials from './pages/admin/ManageSubMaterial'
 import ManageMaterials from './pages/admin/ManageMaterial'
-import ManageQuiz from './pages/admin/ManageQuiz'
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -127,14 +126,6 @@ function App() {
           } 
         />
 
-        <Route 
-          path="/admin/quiz" 
-          element={
-            <ProtectedRoute isAuthenticated={isAuthenticated} userRole={userRole}>
-              {userRole === 'admin' ? <ManageQuiz/> : <Navigate to="/dashboard" replace />}
-            </ProtectedRoute>
-          } 
-        />
         <Route 
           path="/materi" 
           element={
