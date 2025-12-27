@@ -13,23 +13,24 @@ import HealthWordSearchPage from './pages/siswa/HealthWordSearchPage'
 import MateriHome from './pages/siswa/MateriHome'
 import GameHome from './pages/siswa/GameHome'
 import ProtectedRoute from './routes/ProtectedRoute'
-import ManageMateri from './pages/admin/ManageMaterial'
-import SubMateri from './pages/admin/ManageSubMaterial'
 import ManageUsers from './pages/admin/ManageUser'    
 import './App.css'
 import ManageSubMaterials from './pages/admin/ManageSubMaterial'
 import ManageMaterials from './pages/admin/ManageMaterial'
+import ManageQuiz from './pages/admin/ManageQuiz' // Import Quiz Management
+import ManageQuestions from './pages/admin/ManageQuestions'
+import ManageAnswers from './pages/admin/ManageAnswers'
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userRole, setUserRole] = useState<'admin' | 'siswa' | null>(null); // Tambah state untuk role
+  const [userRole, setUserRole] = useState<'admin' | 'siswa' | null>(null);
 
   useEffect(() => {
     // Check if user is logged in (check localStorage, token, etc.)
     const token = localStorage.getItem('authToken');
     const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-    const role = localStorage.getItem('userRole') as 'admin' | 'siswa' | null; // Ambil role dari localStorage
+    const role = localStorage.getItem('userRole') as 'admin' | 'siswa' | null;
     
     if (token && isLoggedIn && role) {
       setIsAuthenticated(true);
@@ -41,12 +42,12 @@ function App() {
     setIsLoading(false);
   };
 
-  const handleLogin = (role: 'admin' | 'siswa') => { // Update handleLogin untuk menerima role
+  const handleLogin = (role: 'admin' | 'siswa') => {
     setIsAuthenticated(true);
     setUserRole(role);
     localStorage.setItem('isLoggedIn', 'true');
-    localStorage.setItem('authToken', 'dummy-token'); // In real app, use actual JWT token
-    localStorage.setItem('userRole', role); // Simpan role
+    localStorage.setItem('authToken', 'dummy-token');
+    localStorage.setItem('userRole', role);
   };
 
   const handleLogout = () => {
@@ -55,8 +56,8 @@ function App() {
     localStorage.removeItem('isLoggedIn');
     localStorage.removeItem('authToken');
     localStorage.removeItem('userData');
-    localStorage.removeItem('userRole'); // Hapus role
-    localStorage.clear(); // Clear all stored data
+    localStorage.removeItem('userRole');
+    localStorage.clear();
     sessionStorage.clear();
   };
 
@@ -99,24 +100,16 @@ function App() {
           } 
         />
 
+        {/* Admin Routes */}
         <Route 
-        path="/admin/manangeuser"
-        element={
-          <ProtectedRoute isAuthenticated={isAuthenticated} userRole={userRole}>
-            {userRole === 'admin' ? <ManageUsers /> : <Navigate to="/dashboard" replace />}
-          </ProtectedRoute>
-        }
+          path="/admin/manageuser"
+          element={
+            <ProtectedRoute isAuthenticated={isAuthenticated} userRole={userRole}>
+              {userRole === 'admin' ? <ManageUsers /> : <Navigate to="/dashboard" replace />}
+            </ProtectedRoute>
+          }
         />
         
-        <Route 
-        path="/admin/materials/:materialId/sub-materials"
-        element={
-          <ProtectedRoute isAuthenticated={isAuthenticated} userRole={userRole}>
-            {userRole === 'admin' ? <ManageSubMaterials /> : <Navigate to="/dashboard" replace />}
-          </ProtectedRoute>
-        }
-        />
-
         <Route 
           path="/admin/managemateri" 
           element={
@@ -126,6 +119,42 @@ function App() {
           } 
         />
 
+        <Route 
+          path="/admin/materials/:materialId/sub-materials"
+          element={
+            <ProtectedRoute isAuthenticated={isAuthenticated} userRole={userRole}>
+              {userRole === 'admin' ? <ManageSubMaterials /> : <Navigate to="/dashboard" replace />}
+            </ProtectedRoute>
+          }
+        />
+
+        <Route 
+          path="/admin/managequiz" 
+          element={
+            <ProtectedRoute isAuthenticated={isAuthenticated} userRole={userRole}>
+              {userRole === 'admin' ? <ManageQuiz /> : <Navigate to="/dashboard" replace />}
+            </ProtectedRoute>
+          } 
+        />
+
+        {/* Route baru untuk mengelola Pertanyaan di dalam Quiz tertentu */}
+        <Route 
+          path="/admin/managequiz/:quizId/questions" 
+          element={
+            <ProtectedRoute isAuthenticated={isAuthenticated} userRole={userRole}>
+              {userRole === 'admin' ? <ManageQuestions /> : <Navigate to="/dashboard" replace />}
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/admin/questions/:questionId/answers" 
+          element={
+            <ProtectedRoute isAuthenticated={isAuthenticated} userRole={userRole}>
+              {userRole === 'admin' ? <ManageAnswers /> : <Navigate to="/dashboard" replace />}
+            </ProtectedRoute>
+          } 
+        />
+        {/* Student Routes */}
         <Route 
           path="/materi" 
           element={
