@@ -250,3 +250,41 @@ export const updateQuestionAnswer = async (questionId: number, data: updateQuest
 
     return result
 }
+
+// SERVICE STUDENT
+export const getQuizStudent = async () => {
+    const [result] = await db.query.quiz.findMany({
+        columns: {
+            duration: true,
+            title: true,
+            description: true,
+            isActive: true,
+        },
+        where: (q, { eq }) => eq(q.isDelete, false),
+        with: {
+            questions: {
+                columns: {
+                    id: true,
+                    photo: true,
+                    question: true,
+                },
+                where: (qq, { eq }) => eq(qq.isDelete, false),
+                with: {
+                    answers: {
+                        columns: {
+                            id: true,
+                            answer: true,
+                        },
+                        where: (qa, { eq }) => eq(qa.isDelete, false)
+                    }
+                }
+            }
+        }
+    })
+
+    if (result.isActive == false) {
+        throw new HttpError(404, "Quiz Belum Dimulai")
+    }
+
+    return result
+}
