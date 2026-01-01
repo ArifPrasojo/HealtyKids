@@ -43,7 +43,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
       textColor: 'text-purple-700',
       iconBg: 'bg-gradient-to-br from-purple-400 to-fuchsia-600',
       accentColor: 'bg-purple-500',
-      route: '/admin/manangeuser'
+      route: '/admin/manageuser'
     }
   ];
 
