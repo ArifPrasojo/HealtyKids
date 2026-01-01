@@ -31,7 +31,7 @@ const GameHome: React.FC<GameHomeProps> = ({ onLogout }) => {
     },
     {
       id: 2,
-      title: 'Health Crossword',
+      title: 'Teka Teki Silang Kesehatan',
       description: 'Isi kotak kosong dengan kata-kata kesehatan yang benar',
       icon: '📝',
       route: '/game/crossword',

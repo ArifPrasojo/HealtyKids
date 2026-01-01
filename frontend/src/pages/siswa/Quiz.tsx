@@ -14,11 +14,11 @@ const Quiz: React.FC = () => {
   const navigate = useNavigate(); // Tambah navigate
 
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [selectedAnswers, setSelectedAnswers] = useState<number[]>(new Array(10).fill(-1)); // -1 berarti belum dijawab
+  const [selectedAnswers, setSelectedAnswers] = useState<number[]>(new Array(25).fill(-1)); // -1 berarti belum dijawab
   const [showResults, setShowResults] = useState(false);
   const [score, setScore] = useState(0);
   const [totalXP, setTotalXP] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(600); // 10 menit dalam detik
+  const [timeLeft, setTimeLeft] = useState(1200); // 10 menit dalam detik
 
   // Timer effect
   useEffect(() => {
@@ -148,6 +148,172 @@ const Quiz: React.FC = () => {
         "Petting"
       ],
       correctAnswer: 3
+    },
+    {
+      id: 11,
+      question: "Mengapa anal sex berbahaya untuk kesehatan?",
+      options: [
+        "Karena tidak akan menyebabkan kehamilan",
+        "Karena dinding anus sensitif, mudah robek, dan penuh bakteri",
+        "Karena hanya dilakukan oleh pasangan menikah",
+        "darena bisa menyebabkan bau tidak sedap"
+      ],
+      correctAnswer: 2
+    },
+    {
+      id: 12,
+      question: "Infeksi Menular Seksual (IMS) bisa menular melalui cara berikut, kecuali…",
+      options: [
+        "Hubungan seks vaginal",
+        "Hubungan seks oral",
+        "Berjabat tangan dengan penderita",
+        "Hubungan seks anal"
+
+      ],
+      correctAnswer: 3
+    },
+    {
+      id: 13,
+      question: "IMS yang dapat menyebabkan kutil di area genital dan berisiko kanker serviks adalah…",
+      options: [
+        "Gonore",
+        "Sifilis",
+        "HPV (Human Papilloma Virus",
+        "Herpes Genital"
+      ],
+      correctAnswer: 3
+    },
+    {
+      id: 14,
+      question: "HIV/AIDS TIDAK menular melalui",
+      options: [
+        "Darah",
+        "Sperma",
+        "Keringat",
+        "Cairan vagina"
+      ],
+      correctAnswer: 3
+    },
+          {
+      id: 15,
+      question: "Apa itu \"periode jendela\" pada infeksi HIV?",
+      options: [
+        "Masa di mana penderita sudah parah dan harus dirawat",
+        "Masa setelah terpapar di mana virus sudah ada tapi tes mungkin belum mendeteks",
+        "Masa di mana penderita bebas beraktivitas tanpa gejala",
+        "Masa penyembuhan total dari HIV"
+      ],
+      correctAnswer: 2
+    },
+    {
+      id: 16,
+      question: "Mengapa kehamilan di luar nikah pada remaja berisiko menyebabkan depresi?",
+      options: [
+        "Karena harus berhenti sekolah",
+        "Karena tubuhnya berubah menjadi gemuk",
+        "Karena mendapat stigma negatif dari masyaraka",
+        "Karena tidak bisa lagi main dengan teman"
+      ],
+      correctAnswer: 3
+    },
+          {
+      id: 17,
+      question: "Perilaku seksual bisa menyebabkan kecanduan. Mengapa hal itu bisa terjadi?",
+      options: [
+        "Karena dipaksa oleh pasangan",
+        "Karena otak mengulangi aktivitas yang melepaskan dopamin (rasa senang) ",
+        "Karena melihat iklan di televisi",
+        "Karena kurangnya kegiatan lain"
+      ],
+      correctAnswer: 2
+    },
+          {
+      id: 18,
+      question: "Faktor eksternal yang paling kuat memengaruhi remaja melakukan perilaku seksual berisiko adalah……",
+      options: [
+        "Tayangan di media sosial",
+        "Pengaruh atau tekanan dari teman sebaya",
+        "Kurang perhatian orang tua",
+        "Banyak waktu luang"
+      ],
+      correctAnswer: 2
+    },
+          {
+      id: 19,
+      question: "Manakah cara pencegahan perilaku seksual berisiko yang tepat?",
+      options: [
+        "Tidak bergaul dengan lawan jenis sama sekali",
+        "Menghabiskan waktu hanya untuk belajar",
+        "Membuat batasan diri dan melakukan kegiatan positif ",
+        "Memutuskan untuk pacaran serius agar tidak salah pergaulan"
+      ],
+      correctAnswer: 3
+    },
+          {
+      id: 20,
+      question: "Sebaiknya kita mencari informasi tentang kesehatan reproduksi dari…",
+      options: [
+        "Cerita teman yang sudah berpengalaman",
+        "Grup media sosial tanpa moderator ahli",
+        "Sumber valid seperti tenaga kesehatan atau fasilitas kesehatan",
+        "Film atau sinetron yang mengandung edukasi"
+      ],
+      correctAnswer: 3
+    },
+          {
+      id: 21,
+      question: "Apa alasan utama dari dalam diri remaja yang mendorong perilaku seksual berisiko?",
+      options: [
+        "Ingin terlihat keren dan modern di mata teman-teman.",
+        "Kurangnya pengetahuan dan adanya rasa penasaran yang besar",
+        "Adanya program acara televisi yang tidak mendidik",
+        "Karena tidak ada larangan yang jelas dari orang tua."
+      ],
+      correctAnswer: 2
+    },
+          {
+      id: 22,
+      question: "Bagaimana sebaiknya sikap kita jika melihat teman melakukan perilaku berisiko?",
+      options: [
+        "Ikut melakukan agar tidak dianggap ketinggalan zaman.",
+        "Menjauhi teman tersebut sepenuhnya.",
+        "Menegur dengan baik dan menjaga diri sendiri untuk tidak ikut-ikutan",
+        "Pura-pura tidak melihat dan tidak peduli."
+      ],
+      correctAnswer: 3
+    },
+          {
+      id: 23,
+      question: "Apa dampak emosional yang mungkin dialami remaja setelah melakukan perilaku seksual berisiko?",
+      options: [
+        "Merasa lebih percaya diri dan dewasa.",
+        "Emosi menjadi tidak stabil, seperti mudah merasa bersalah dan depresi",
+        "Menjalin hubungan yang lebih erat dengan pasangan.",
+        "Tidak merasakan dampak apa-apa."
+      ],
+      correctAnswer: 2
+    },
+          {
+      id: 24,
+      question: "Mengapa jejak digital dari aktivitas seksual online seperti berbagi foto intim sangat berbahaya?",
+      options: [
+        "Karena bisa membuat baterai handphone cepat habis",
+        "Karena dapat tersebar luas di internet dan sulit dihapus, merusak reputasi",
+        "Karena melanggar hak cipta fotografi.",
+        "Karena akan memenuhi memori penyimpanan."
+      ],
+      correctAnswer: 2
+    },
+          {
+      id: 25,
+      question: "Bagaimana cara terbaik untuk memenuhi rasa penasaran tentang seksualitas yang wajar?",
+      options: [
+        "Mencoba sendiri bersama pacar",
+        "Mencari informasi dari sumber yang valid dan terpercaya",
+        "Hanya bertanya kepada teman sebaya.",
+        "Menonton video-video di internet secara sembunyi-sembunyi"
+      ],
+      correctAnswer: 2
     }
   ];
 
@@ -244,19 +410,22 @@ const Quiz: React.FC = () => {
 
             {/* Question Navigation */}
             <div className="md:ml-8">
-              <h3 className="text-xs md:text-sm font-bold text-gray-700 mb-2 text-center">Question Navigation</h3>
-              <div className="overflow-x-auto max-w-full">
-                <div className="grid grid-cols-5 md:flex md:flex-wrap md:justify-center gap-2 md:gap-2 min-w-max md:min-w-0">
+              <h3 className="text-xs md:text-sm font-bold text-gray-700 mb-2 text-center md:text-left">
+                Question Navigation
+              </h3>
+              <div className="overflow-x-auto max-w-full pb-2 md:pb-0"> {/* Tambah padding bottom sedikit untuk scroll mobile */}
+                {/* PERUBAHAN UTAMA DI SINI */}
+                <div className="grid grid-cols-5 md:grid-cols-10 gap-2 md:gap-3 justify-items-center">
                   {questions.map((_, index) => (
                     <button
                       key={index}
                       onClick={() => setCurrentQuestion(index)}
-                      className={`w-8 h-8 md:w-9 md:h-9 rounded-lg text-xs md:text-sm font-bold transition-all duration-200 flex-shrink-0 ${
+                      className={`w-8 h-8 md:w-10 md:h-10 rounded-lg text-xs md:text-sm font-bold transition-all duration-200 flex items-center justify-center ${
                         currentQuestion === index
-                          ? 'bg-gradient-to-r from-green-400 to-emerald-500 text-white shadow-lg transform scale-110'
+                          ? 'bg-gradient-to-r from-green-400 to-emerald-500 text-white shadow-lg transform scale-110 z-10'
                           : selectedAnswers[index] !== -1
                           ? 'bg-blue-400 text-white'
-                          : 'bg-gray-100 text-gray-400'
+                          : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
                       }`}
                     >
                       {index + 1}
@@ -274,7 +443,6 @@ const Quiz: React.FC = () => {
           <div className="flex items-center justify-between mb-4 md:mb-6">
             <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-green-50 to-emerald-50 px-3 md:px-4 py-2 rounded-full border border-green-200">
               <span className="text-green-600 font-bold text-xs md:text-sm">Soal {currentQuestion + 1} dari {questions.length}</span>
-              <span className="text-lg md:text-xl">🎯</span>
             </div>
             
             {selectedAnswers[currentQuestion] !== -1 && (
