@@ -297,7 +297,7 @@ const Materi2: React.FC = () => {
                   </div>
 
                   {/* Video/Image Player Area */}
-                  <div className="p-5 md:p-5 bg-gray-100">
+                  {/* <div className="p-5 md:p-5 bg-gray-100">
                     <img 
                       src="/src/assets/images/foto.png"
                       alt="Ilustrasi Materi"
@@ -309,7 +309,7 @@ const Materi2: React.FC = () => {
                         objectFit: 'contain'
                       }}
                     />
-                  </div>
+                  </div> */}
 
                   {/* Note/Reminder Section */}
                   <div className="p-4 lg:p-6 bg-yellow-50 border-b border-yellow-200">
