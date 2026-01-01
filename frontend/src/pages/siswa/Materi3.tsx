@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Layout from '../../components/layouts/Layout';
 
 // ID Materi Utama untuk penyimpanan progress
-const MATERI_ID = 1;
+const MATERI_ID = 3;
 
 interface ModuleItem {
   id: number;
@@ -14,9 +14,9 @@ interface ModuleItem {
   description: string;
 }
 
-const Materi: React.FC = () => {
+const Materi3: React.FC = () => {
   const navigate = useNavigate();
-  const [currentVideo, setCurrentVideo] = useState(0); // Index aktif (0, 1, atau 2)
+  const [currentVideo, setCurrentVideo] = useState(0); 
   const [isPlaying, setIsPlaying] = useState(false);
   
   // State UI
@@ -37,20 +37,24 @@ const Materi: React.FC = () => {
     return [];
   });
 
-  // --- DATA SIDEBAR (3 Blok Sub-bab) ---
+  // --- DATA SIDEBAR (Diupdate sesuai materi baru: 7 Sub-bab) ---
   const sections: { id: number; items: ModuleItem[]; icon: string }[] = [
     {
       id: 1,
       icon: '⭕',
       items: [
-        { id: 1, title: 'Definisi Remaja', duration: '5 min', completed: false, emoji: '📘', description: 'Pengertian masa remaja' },
-        { id: 2, title: 'Definisi Pubertas', duration: '5 min', completed: false, emoji: '📜', description: 'Pengertian pubertas' },
-        { id: 3, title: 'Tanda Pubertas', duration: '5 min', completed: false, emoji: '🖼️', description: 'Ilustrasi tanda pubertas' }
+        { id: 1, title: 'IMS: Gonore', duration: '3 min', completed: false, emoji: '🦠', description: 'Infeksi Gonore (Kencing Nanah)' },
+        { id: 2, title: 'IMS: Sifilis', duration: '3 min', completed: false, emoji: '✋', description: 'Infeksi Sifilis (Raja Singa)' },
+        { id: 3, title: 'IMS: Herpes Genital', duration: '3 min', completed: false, emoji: '🤕', description: 'Infeksi Herpes pada area genital' },
+        { id: 4, title: 'IMS: HPV', duration: '3 min', completed: false, emoji: '🏵️', description: 'Virus Kutil & Kanker Serviks' },
+        { id: 5, title: 'HIV/AIDS', duration: '5 min', completed: false, emoji: '🎗️', description: 'Definisi dan cara penularan' },
+        { id: 6, title: 'Periode Jendela HIV', duration: '4 min', completed: false, emoji: '⏳', description: 'Tahapan infeksi HIV' },
+        { id: 7, title: 'Dampak Lainnya', duration: '5 min', completed: false, emoji: '🧠', description: 'KTD, Kecanduan, & Emosi' }
       ]
     },
   ];
 
-  const flatModules: ModuleItem[] = sections.flatMap(s => s.items);
+  const flatModules = sections.flatMap(s => s.items);
   const currentModule = flatModules[currentVideo];
 
   // Simpan Progress
@@ -87,64 +91,238 @@ const Materi: React.FC = () => {
   };
 
   // --- RENDER CONTENT DINAMIS ---
-  // Fungsi ini menentukan apa yang tampil berdasarkan ID item yang sedang aktif
   const renderContent = () => {
     switch (currentModule.id) {
-      case 1: // BLOK 1: DEFINISI REMAJA
+      
+      // BLOK 1: IMS & GONORE
+      case 1: 
         return (
           <div className="animate-in fade-in duration-500">
-            <h3 className="font-bold text-gray-800 mb-4 text-lg lg:text-xl">1. Definisi Remaja</h3>
-            <p className="text-gray-700 leading-relaxed text-sm lg:text-base text-justify">
-              Remaja adalah masa peralihan atau masa transisi dari anak menuju masa dewasa. Ini adalah fase di mana individu mengalami pertumbuhan dan perkembangan fisik maupun mental yang sangat pesat.
-            </p>
-            <div className="mt-4 bg-blue-50 p-4 rounded-xl border border-blue-100">
-              <p className="font-semibold text-gray-800 mb-2">Secara psikologis, masa remaja ditandai dengan:</p>
-              <ul className="list-disc list-inside space-y-2 text-gray-700 text-sm lg:text-base ml-2">
-                <li><span className="font-medium">Pengembangan Proses Berpikir:</span> Mulai mengembangkan proses berpikir operasional formal dan berpikir abstrak.</li>
-                <li><span className="font-medium">Pengambilan Keputusan:</span> Belajar membayangkan dan mempertimbangkan konsekuensi dari tindakannya.</li>
-                <li><span className="font-medium">Pembentukan Diri:</span> Munculnya rasa identitas diri yang kuat.</li>
-                <li><span className="font-medium">Aspek Sosial:</span> Meningkatnya keterlibatan sosial dan interaksi dengan teman sebaya.</li>
-                <li><span className="font-medium">Kesadaran Seksual:</span> Mulai adanya kesadaran akan seksualitasnya.</li>
-              </ul>
-            </div>
-          </div>
-        );
-
-      case 2: // BLOK 2: DEFINISI PUBERTAS
-        return (
-          <div className="animate-in fade-in duration-500">
-            <h3 className="font-bold text-gray-800 mb-4 text-lg lg:text-xl">2. Definisi Pubertas</h3>
+            <h3 className="font-bold text-gray-800 mb-4 text-lg lg:text-xl">A. Infeksi Menular Seksual (IMS)</h3>
             <p className="text-gray-700 leading-relaxed text-sm lg:text-base text-justify mb-4">
-              Pubertas adalah tahapan dalam perkembangan yang dialami anak-anak, di mana mereka mengalami perubahan dari makhluk aseksual menjadi makhluk seksual.
+              Infeksi menular seksual adalah jenis infeksi yang dapat menyebar melalui berbagai jenis hubungan seksual, yaitu vaginal, oral, dan anal. Salah satu contohnya adalah Gonore.
             </p>
-            <div className="bg-green-50 p-4 rounded-xl border border-green-100">
-              <p className="text-gray-700 leading-relaxed text-sm lg:text-base">
-                Pada tahap ini, remaja mengalami proses <strong>kematangan seksual</strong> secara pesat. Tubuh mulai memproduksi hormon-hormon seksual yang memicu perubahan fisik dan emosional, yang ditandai dengan munculnya berbagai tanda pubertas (sekunder dan primer).
+            
+            <div className="bg-red-50 p-4 rounded-xl border border-red-100 mb-6">
+              <h4 className="font-bold text-red-700 mb-2">🦠 Gonore (Kencing Nanah)</h4>
+              <p className="text-gray-700 text-sm lg:text-base">
+                Gonore dapat menyebabkan infeksi di uretra, serviks, anus, atau tenggorokan, tergantung pada jenis hubungan seks yang dilakukan.
               </p>
             </div>
+
+            <div className="flex flex-col items-center">
+              <img 
+                src="/src/assets/images/image_2a0aed.png" // Ganti path sesuai lokasi file Anda
+                alt="Ilustrasi Gonore"
+                className="rounded-xl shadow-md max-w-full h-auto max-h-[300px] object-contain"
+              />
+              <span className="text-xs text-gray-500 mt-2 italic">Ilustrasi gejala dan bakteri Gonore</span>
+            </div>
           </div>
         );
 
-      case 3: // BLOK 3: GAMBAR (TANDA PUBERTAS)
+      // BLOK 2: SIFILIS
+      case 2: 
         return (
-          <div className="animate-in fade-in duration-500 flex flex-col items-center justify-center h-full">
-            <h3 className="font-bold text-gray-800 mb-4 text-lg lg:text-xl self-start">3. Ilustrasi Tanda Pubertas</h3>
-            <div className="w-full bg-gray-100 rounded-2xl p-4 border border-gray-200 shadow-inner">
-              <img 
-                src="/src/assets/images/foto.png"
-                alt="Ilustrasi Tanda Pubertas"
-                className="rounded-xl mx-auto shadow-sm hover:scale-105 transition-transform duration-500"
-                style={{
-                  maxWidth: '100%',
-                  height: 'auto',
-                  maxHeight: '400px', // Membatasi tinggi agar pas di layar
-                  objectFit: 'contain'
-                }}
-              />
+          <div className="animate-in fade-in duration-500">
+            <h3 className="font-bold text-gray-800 mb-4 text-lg lg:text-xl">B. Sifilis (Raja Singa)</h3>
+            <div className="bg-orange-50 p-4 rounded-xl border border-orange-100 mb-4">
+              <p className="text-gray-700 leading-relaxed text-sm lg:text-base text-justify">
+                Sifilis dapat menyerang berbagai bagian tubuh seperti selaput lendir, anus, bibir, lidah, dan mulut. Penyebaran sifilis terutama terjadi melalui hubungan seksual, baik secara genital, oral maupun anal, dan dapat menyerang baik pria maupun wanita.
+              </p>
             </div>
-            <p className="mt-4 text-center text-gray-500 text-sm">
-              Perhatikan gambar di atas untuk memahami perubahan fisik yang terjadi.
+
+            <div className="flex flex-col items-center mt-6">
+              <img 
+                src="/src/assets/images/image_2a0daf.png" // Ganti path sesuai lokasi file Anda
+                alt="Ilustrasi Sifilis"
+                className="rounded-xl shadow-md max-w-full h-auto max-h-[350px] object-contain"
+              />
+              <span className="text-xs text-gray-500 mt-2 italic">Contoh gejala bercak merah pada tangan akibat Sifilis</span>
+            </div>
+          </div>
+        );
+
+      // BLOK 3: HERPES GENITAL
+      case 3: 
+        return (
+          <div className="animate-in fade-in duration-500">
+            <h3 className="font-bold text-gray-800 mb-4 text-lg lg:text-xl">C. Herpes Genital</h3>
+            <p className="text-gray-700 leading-relaxed text-sm lg:text-base text-justify mb-4">
+              Herpes genital merupakan bintil-bintil berisi cairan dan terasa nyeri di area kemaluan.
             </p>
+            
+            <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-200 mb-6">
+              <ul className="list-disc list-inside space-y-2 text-gray-700 text-sm lg:text-base">
+                <li>Dapat menular melalui hubungan seksual secara berlebihan.</li>
+                <li><strong>Catatan:</strong> Tidak semua herpes disebabkan karena perilaku seksual, namun herpes genital spesifik menyerang area kelamin.</li>
+              </ul>
+            </div>
+
+            <div className="flex flex-col items-center">
+              <img 
+                src="/src/assets/images/image_2a0dcd.png" // Ganti path sesuai lokasi file Anda
+                alt="Ilustrasi Herpes Genital"
+                className="rounded-xl shadow-md max-w-full h-auto max-h-[350px] object-contain"
+              />
+              <span className="text-xs text-gray-500 mt-2 italic">Ilustrasi virus dan gejala Herpes Genital</span>
+            </div>
+          </div>
+        );
+
+      // BLOK 4: HPV
+      case 4: 
+        return (
+          <div className="animate-in fade-in duration-500">
+            <h3 className="font-bold text-gray-800 mb-4 text-lg lg:text-xl">D. HPV (Human Papilloma Virus)</h3>
+            <p className="text-gray-700 leading-relaxed text-sm lg:text-base text-justify mb-4">
+              HPV merupakan virus yang menyerang kulit yang dapat menyebabkan munculnya <strong>kutil pada area genital</strong>.
+            </p>
+
+            <div className="bg-pink-50 p-4 rounded-xl border border-pink-200 mb-6">
+              <h4 className="font-bold text-pink-700 mb-2">⚠️ Bahaya Kanker Serviks</h4>
+              <p className="text-gray-700 text-sm lg:text-base mb-2">
+                HPV menjadi penyebab utama dari kanker serviks pada wanita.
+              </p>
+              <p className="text-gray-600 text-sm italic">
+                Saat ini, Kemenkes RI sedang menggalakkan program eliminasi kanker serviks akibat banyak kasus yang terdeteksi setiap tahunnya.
+              </p>
+            </div>
+
+            <div className="flex flex-col items-center">
+              <img 
+                src="/src/assets/images/image_2a0dd5.png" // Ganti path sesuai lokasi file Anda
+                alt="Ilustrasi HPV"
+                className="rounded-xl shadow-md max-w-full h-auto max-h-[350px] object-contain"
+              />
+              <span className="text-xs text-gray-500 mt-2 italic">Ilustrasi Kutil Kelamin akibat HPV</span>
+            </div>
+          </div>
+        );
+
+      // BLOK 5: HIV/AIDS (INTRO)
+      case 5: 
+        return (
+          <div className="animate-in fade-in duration-500">
+            <h3 className="font-bold text-gray-800 mb-4 text-lg lg:text-xl">E. HIV/AIDS</h3>
+            <div className="space-y-4 text-sm lg:text-base text-gray-700 text-justify">
+              <p>
+                <strong>HIV (Human Immunodeficiency Virus)</strong> adalah virus yang menyerang sistem kekebalan tubuh. Infeksi ini menyebabkan tubuh kehilangan daya tahan, sehingga rentan terhadap berbagai penyakit lain yang disebut <strong>AIDS (Acquired Immunodeficiency Syndrome)</strong>.
+              </p>
+              
+              <div className="bg-gray-100 p-4 rounded-xl border border-gray-200">
+                <h4 className="font-bold text-gray-800 mb-2">🩸 Cara Penularan:</h4>
+                <p className="mb-2">Melalui cairan tubuh seperti:</p>
+                <ul className="list-disc list-inside ml-2 mb-3 font-medium text-red-600">
+                  <li>Darah</li>
+                  <li>Sperma</li>
+                  <li>Cairan Vagina</li>
+                  <li>Cairan dalam Anus</li>
+                </ul>
+                <p className="text-xs lg:text-sm text-gray-600">
+                  Dapat menular melalui perilaku seksual tidak aman (tanpa kondom) atau penggunaan <strong>jarum suntik bergantian</strong> (narkoba suntik).
+                </p>
+              </div>
+
+              <div className="bg-blue-50 p-3 rounded-lg border border-blue-100 text-sm">
+                <span className="font-bold text-blue-700">❗ Fakta:</span> Kasus HIV/AIDS di Indonesia diprediksi mencapai 564.000 pada tahun 2025, dan remaja termasuk di dalamnya.
+              </div>
+            </div>
+          </div>
+        );
+
+      // BLOK 6: PERIODE JENDELA HIV
+      case 6: 
+        return (
+          <div className="animate-in fade-in duration-500">
+            <h3 className="font-bold text-gray-800 mb-4 text-lg lg:text-xl">Tahapan Penularan (Periode Jendela)</h3>
+            <p className="mb-4 text-sm lg:text-base text-gray-600">Proses perjalanan virus HIV dalam tubuh:</p>
+
+            <div className="space-y-4">
+              {/* Tahap 1 */}
+              <div className="flex gap-4 items-start bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+                <div className="bg-red-100 text-red-600 font-bold px-3 py-1 rounded-lg text-sm whitespace-nowrap">Awal</div>
+                <div>
+                  <h4 className="font-bold text-gray-800">2 Minggu - 6 Bulan</h4>
+                  <p className="text-sm text-gray-600">Periode jendela. 2-3 minggu awal muncul gejala seperti <strong>flu biasa</strong>.</p>
+                </div>
+              </div>
+
+              {/* Gambar Flu */}
+              <div className="flex justify-center my-2">
+                 <img 
+                  src="/src/assets/images/image_2a0e0c.png" // Ganti path sesuai lokasi file Anda
+                  alt="Gejala seperti flu"
+                  className="rounded-lg max-w-[200px] h-auto object-contain border border-gray-200"
+                />
+              </div>
+
+              {/* Tahap 2 */}
+              <div className="flex gap-4 items-start bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+                <div className="bg-yellow-100 text-yellow-600 font-bold px-3 py-1 rounded-lg text-sm whitespace-nowrap">HIV +</div>
+                <div>
+                  <h4 className="font-bold text-gray-800">3 - 10 Tahun</h4>
+                  <p className="text-sm text-gray-600">Tampak sehat dan dapat beraktivitas seperti biasa tanpa gejala (Masa Inkubasi).</p>
+                </div>
+              </div>
+
+              {/* Tahap 3 */}
+              <div className="flex gap-4 items-start bg-white p-4 rounded-xl border border-gray-200 shadow-sm border-l-4 border-l-red-500">
+                <div className="bg-red-600 text-white font-bold px-3 py-1 rounded-lg text-sm whitespace-nowrap">AIDS</div>
+                <div>
+                  <h4 className="font-bold text-gray-800">1 - 2 Tahun Akhir</h4>
+                  <p className="text-sm text-gray-600">Timbul infeksi oportunistik. Gejala: diare kronis, berat badan turun drastis, demam berkepanjangan, gangguan saraf.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      // BLOK 7: DAMPAK LAINNYA
+      case 7: 
+        return (
+          <div className="animate-in fade-in duration-500">
+            <h3 className="font-bold text-gray-800 mb-4 text-lg lg:text-xl">F. Dampak Psikologis & Sosial</h3>
+            
+            <div className="grid grid-cols-1 gap-4">
+              
+              {/* KTD */}
+              <div className="bg-purple-50 p-4 rounded-xl border border-purple-100">
+                <h4 className="font-bold text-purple-800 mb-1">1. Kehamilan Tidak Diinginkan (KTD)</h4>
+                <p className="text-sm text-gray-700 text-justify">
+                  Remaja di bawah 20 tahun belum memiliki sistem reproduksi yang sempurna. Kehamilan di luar nikah berisiko medis dan dapat menyebabkan depresi.
+                </p>
+              </div>
+
+              {/* Kecanduan */}
+              <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
+                <h4 className="font-bold text-blue-800 mb-1">2. Kecanduan (Efek Dopamin)</h4>
+                <p className="text-sm text-gray-700 text-justify">
+                  Aktivitas seksual atau pornografi memicu otak mengeluarkan <em>dopamin</em> (rasa senang). Jika dilakukan berulang, otak akan "mencatat" kegiatan itu dan memicu kecanduan.
+                </p>
+              </div>
+
+              {/* Emosi & Jejak Digital */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-red-50 p-4 rounded-xl border border-red-100">
+                   <h4 className="font-bold text-red-800 mb-1">3. Emosi Tidak Stabil</h4>
+                   <p className="text-xs text-gray-700">Rasa bersalah, mudah marah, dan depresi berlebihan.</p>
+                </div>
+                <div className="bg-gray-100 p-4 rounded-xl border border-gray-200">
+                   <h4 className="font-bold text-gray-800 mb-1">4. Jejak Digital</h4>
+                   <p className="text-xs text-gray-700">VCS atau foto syur yang tersebar sulit dihapus dan bisa menjadi viral.</p>
+                </div>
+              </div>
+
+               {/* Stigma */}
+               <div className="bg-orange-50 p-4 rounded-xl border border-orange-100">
+                <h4 className="font-bold text-orange-800 mb-1">5. Stigma Negatif Masyarakat</h4>
+                <p className="text-sm text-gray-700">
+                   Dianggap tabu, dikucilkan, hingga risiko putus sekolah karena melanggar aturan.
+                </p>
+              </div>
+
+            </div>
           </div>
         );
 
@@ -157,7 +335,7 @@ const Materi: React.FC = () => {
     <Layout hideLogoMobile={true}>
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
         
-        {/* --- MODAL KONFIRMASI (Tampil di akhir Slide 3) --- */}
+        {/* --- MODAL KONFIRMASI --- */}
         {showConfirmModal && (
           <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4">
             <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 lg:p-8 transform transition-all animate-in fade-in zoom-in duration-300">
@@ -171,7 +349,7 @@ const Materi: React.FC = () => {
                   Selamat! 🎉
                 </h3>
                 <p className="text-base lg:text-lg text-gray-600 mb-6">
-                  Anda telah menyelesaikan bab ini. Lanjut ke menu utama?
+                  Anda telah mempelajari dampak perilaku seksual. Lanjut ke menu utama?
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3">
                   <button
@@ -220,7 +398,7 @@ const Materi: React.FC = () => {
                 }}>
                   <div className="absolute lg:relative left-0 lg:left-auto top-0 bottom-0 w-80 lg:w-auto bg-green-50 lg:bg-green-50 rounded-r-3xl lg:rounded-3xl shadow-2xl lg:shadow-xl border border-green-200 overflow-hidden lg:sticky lg:top-6">
                     <div className="bg-gradient-to-r from-green-600 to-emerald-600 p-4 flex items-center justify-between">
-                      <h2 className="text-white font-bold text-base lg:text-lg">Daftar Materi</h2>
+                      <h2 className="text-white font-bold text-base lg:text-lg">Materi Akibat</h2>
                       <button
                         onClick={() => setIsSidebarOpen(false)}
                         className="text-white hover:bg-white/20 rounded-full p-1 transition-colors lg:hidden"
@@ -306,9 +484,9 @@ const Materi: React.FC = () => {
                 </div>
               )}
 
-              {/* --- RIGHT CONTENT AREA (Konten Berubah Sesuai ID) --- */}
+              {/* --- RIGHT CONTENT AREA --- */}
               <div className={`${isSidebarOpen ? 'lg:col-span-3' : 'col-span-1'}`}>
-                <div className="bg-white rounded-2xl lg:rounded-3xl shadow-xl border border-gray-200 overflow-hidden flex flex-col min-h-[500px]">
+                <div className="bg-white rounded-2xl lg:rounded-3xl shadow-xl border border-gray-200 overflow-hidden flex flex-col min-h-[600px]">
                   
                   {/* Content Header */}
                   <div className="p-4 lg:p-6 border-b border-gray-200 flex items-center justify-between shrink-0 bg-white z-10">
@@ -326,10 +504,10 @@ const Materi: React.FC = () => {
                     )}
                   </div>
 
-                  {/* Reminder Box (Selalu muncul di atas) */}
+                  {/* Reminder Box */}
                   <div className="p-3 lg:p-4 bg-yellow-50 border-b border-yellow-200 shrink-0">
                     <p className="text-center text-gray-700 font-medium text-xs lg:text-sm">
-                      <span className="text-yellow-600">💡</span> Info: Pelajari setiap bagian sebelum menekan tombol Lanjut.
+                      <span className="text-yellow-600">💡</span> Pelajari bahaya dan akibat perilaku seksual agar bisa menghindarinya.
                     </p>
                   </div>
 
@@ -374,4 +552,4 @@ const Materi: React.FC = () => {
   );
 };
 
-export default Materi;
+export default Materi3;

@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../../components/layouts/Layout';
 
-// ID Materi Utama untuk penyimpanan progress
-const MATERI_ID = 1;
+// ID Materi untuk "Cara Mencegah"
+const MATERI_ID = 5; 
 
 interface ModuleItem {
   id: number;
@@ -14,9 +14,9 @@ interface ModuleItem {
   description: string;
 }
 
-const Materi: React.FC = () => {
+const Materi5: React.FC = () => {
   const navigate = useNavigate();
-  const [currentVideo, setCurrentVideo] = useState(0); // Index aktif (0, 1, atau 2)
+  const [currentVideo, setCurrentVideo] = useState(0); 
   const [isPlaying, setIsPlaying] = useState(false);
   
   // State UI
@@ -37,20 +37,22 @@ const Materi: React.FC = () => {
     return [];
   });
 
-  // --- DATA SIDEBAR (3 Blok Sub-bab) ---
+  // --- DATA SIDEBAR (5 Poin Pencegahan) ---
   const sections: { id: number; items: ModuleItem[]; icon: string }[] = [
     {
       id: 1,
-      icon: '⭕',
+      icon: '🛡️',
       items: [
-        { id: 1, title: 'Definisi Remaja', duration: '5 min', completed: false, emoji: '📘', description: 'Pengertian masa remaja' },
-        { id: 2, title: 'Definisi Pubertas', duration: '5 min', completed: false, emoji: '📜', description: 'Pengertian pubertas' },
-        { id: 3, title: 'Tanda Pubertas', duration: '5 min', completed: false, emoji: '🖼️', description: 'Ilustrasi tanda pubertas' }
+        { id: 1, title: 'Kegiatan Positif', duration: '3 min', completed: false, emoji: '🏃‍♂️', description: 'Manfaatkan waktu luang' },
+        { id: 2, title: 'Hindari Pemicu', duration: '3 min', completed: false, emoji: '🚫', description: 'Jauhi dorongan seksual' },
+        { id: 3, title: 'Batasan Diri', duration: '3 min', completed: false, emoji: '🚧', description: 'Prinsip remaja bijak' },
+        { id: 4, title: 'Ingat Masa Depan', duration: '3 min', completed: false, emoji: '🎓', description: 'Pola pikir jangka panjang' },
+        { id: 5, title: 'Cari Informasi', duration: '3 min', completed: false, emoji: 'ℹ️', description: 'Sumber valid & Faskes' }
       ]
     },
   ];
 
-  const flatModules: ModuleItem[] = sections.flatMap(s => s.items);
+  const flatModules = sections.flatMap(s => s.items);
   const currentModule = flatModules[currentVideo];
 
   // Simpan Progress
@@ -87,64 +89,160 @@ const Materi: React.FC = () => {
   };
 
   // --- RENDER CONTENT DINAMIS ---
-  // Fungsi ini menentukan apa yang tampil berdasarkan ID item yang sedang aktif
   const renderContent = () => {
     switch (currentModule.id) {
-      case 1: // BLOK 1: DEFINISI REMAJA
+      
+      // 1. KEGIATAN POSITIF
+      case 1: 
         return (
           <div className="animate-in fade-in duration-500">
-            <h3 className="font-bold text-gray-800 mb-4 text-lg lg:text-xl">1. Definisi Remaja</h3>
-            <p className="text-gray-700 leading-relaxed text-sm lg:text-base text-justify">
-              Remaja adalah masa peralihan atau masa transisi dari anak menuju masa dewasa. Ini adalah fase di mana individu mengalami pertumbuhan dan perkembangan fisik maupun mental yang sangat pesat.
+            <h3 className="font-bold text-gray-800 mb-4 text-lg lg:text-xl">1. Lakukan Kegiatan Positif</h3>
+            <p className="text-gray-700 leading-relaxed text-sm lg:text-base text-justify mb-6">
+              Manfaatkan waktu luang kamu untuk kegiatan positif seperti olahraga, melakukan hobi yang kamu suka, belajar, atau juga bisa dengan bergabung dengan aktivitas di luar rumah lainnya.
             </p>
-            <div className="mt-4 bg-blue-50 p-4 rounded-xl border border-blue-100">
-              <p className="font-semibold text-gray-800 mb-2">Secara psikologis, masa remaja ditandai dengan:</p>
-              <ul className="list-disc list-inside space-y-2 text-gray-700 text-sm lg:text-base ml-2">
-                <li><span className="font-medium">Pengembangan Proses Berpikir:</span> Mulai mengembangkan proses berpikir operasional formal dan berpikir abstrak.</li>
-                <li><span className="font-medium">Pengambilan Keputusan:</span> Belajar membayangkan dan mempertimbangkan konsekuensi dari tindakannya.</li>
-                <li><span className="font-medium">Pembentukan Diri:</span> Munculnya rasa identitas diri yang kuat.</li>
-                <li><span className="font-medium">Aspek Sosial:</span> Meningkatnya keterlibatan sosial dan interaksi dengan teman sebaya.</li>
-                <li><span className="font-medium">Kesadaran Seksual:</span> Mulai adanya kesadaran akan seksualitasnya.</li>
+            
+            {/* Visualisasi untuk menggantikan gambar aktivitas */}
+            <div className="bg-blue-50 p-6 rounded-2xl border border-blue-100">
+              <h4 className="text-center font-bold text-blue-800 mb-4">Contoh Aktivitas Positif</h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-white p-3 rounded-xl text-center shadow-sm">
+                  <div className="text-3xl mb-2">🍳</div>
+                  <span className="text-xs font-bold text-gray-600">Memasak</span>
+                </div>
+                <div className="bg-white p-3 rounded-xl text-center shadow-sm">
+                  <div className="text-3xl mb-2">📚</div>
+                  <span className="text-xs font-bold text-gray-600">Belajar</span>
+                </div>
+                <div className="bg-white p-3 rounded-xl text-center shadow-sm">
+                  <div className="text-3xl mb-2">⚽</div>
+                  <span className="text-xs font-bold text-gray-600">Olahraga</span>
+                </div>
+                <div className="bg-white p-3 rounded-xl text-center shadow-sm">
+                  <div className="text-3xl mb-2">💬</div>
+                  <span className="text-xs font-bold text-gray-600">Berdiskusi</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      // 2. HINDARI PEMICU
+      case 2: 
+        return (
+          <div className="animate-in fade-in duration-500">
+            <h3 className="font-bold text-gray-800 mb-4 text-lg lg:text-xl">2. Hindari Aktivitas Pemicu</h3>
+            
+            <div className="bg-red-50 p-6 rounded-2xl border border-red-100 mb-6 flex flex-col items-center text-center">
+              <div className="text-5xl mb-4">🔞</div>
+              <h4 className="font-bold text-red-800 mb-2">Jauhi Dorongan Seksual</h4>
+              <p className="text-gray-700 text-sm lg:text-base">
+                Hindari hal-hal yang dapat memancing hasrat yang belum saatnya.
+              </p>
+            </div>
+
+            <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+              <h4 className="font-bold text-gray-800 mb-3 border-b pb-2">Apa saja yang harus dihindari?</h4>
+              <ul className="space-y-4">
+                <li className="flex items-start bg-gray-50 p-3 rounded-lg">
+                  <span className="text-red-500 mr-3 text-xl">❌</span>
+                  <span className="text-gray-700 text-sm">Meraba-raba tubuh pasangan.</span>
+                </li>
+                <li className="flex items-start bg-gray-50 p-3 rounded-lg">
+                  <span className="text-red-500 mr-3 text-xl">❌</span>
+                  <span className="text-gray-700 text-sm">Menonton video porno.</span>
+                </li>
+                <li className="flex items-start bg-gray-50 p-3 rounded-lg">
+                  <span className="text-red-500 mr-3 text-xl">❌</span>
+                  <span className="text-gray-700 text-sm">Membayangkan hal-hal yang berbau pornografi.</span>
+                </li>
               </ul>
             </div>
           </div>
         );
 
-      case 2: // BLOK 2: DEFINISI PUBERTAS
+      // 3. BATASAN DIRI
+      case 3: 
         return (
           <div className="animate-in fade-in duration-500">
-            <h3 className="font-bold text-gray-800 mb-4 text-lg lg:text-xl">2. Definisi Pubertas</h3>
-            <p className="text-gray-700 leading-relaxed text-sm lg:text-base text-justify mb-4">
-              Pubertas adalah tahapan dalam perkembangan yang dialami anak-anak, di mana mereka mengalami perubahan dari makhluk aseksual menjadi makhluk seksual.
-            </p>
-            <div className="bg-green-50 p-4 rounded-xl border border-green-100">
-              <p className="text-gray-700 leading-relaxed text-sm lg:text-base">
-                Pada tahap ini, remaja mengalami proses <strong>kematangan seksual</strong> secara pesat. Tubuh mulai memproduksi hormon-hormon seksual yang memicu perubahan fisik dan emosional, yang ditandai dengan munculnya berbagai tanda pubertas (sekunder dan primer).
+            <h3 className="font-bold text-gray-800 mb-4 text-lg lg:text-xl">3. Buat Batasan Bagi Diri Sendiri</h3>
+            
+            <div className="bg-gradient-to-r from-purple-500 to-indigo-600 p-6 rounded-2xl text-white mb-6 shadow-lg relative overflow-hidden">
+              <div className="relative z-10">
+                <h4 className="text-lg font-bold mb-2">Jadilah Remaja Bijak! 🧠</h4>
+                <p className="text-sm opacity-90 leading-relaxed">
+                  "Kamu harus mempunyai batasan-batasan yang harus ditaati dan mampu membedakan mana yang benar dan mana yang tidak seharusnya dilakukan."
+                </p>
+              </div>
+              <div className="absolute right-[-20px] bottom-[-20px] text-9xl opacity-10">🛡️</div>
+            </div>
+
+            <div className="bg-green-50 p-4 rounded-xl border-l-4 border-green-500">
+              <p className="text-gray-700 text-sm lg:text-base text-justify">
+                <strong>Manfaat:</strong> Batasan tersebut dapat menjauhkan kamu dari perbuatan negatif dan penyesalan di kemudian hari.
               </p>
             </div>
           </div>
         );
 
-      case 3: // BLOK 3: GAMBAR (TANDA PUBERTAS)
+      // 4. INGAT MASA DEPAN
+      case 4: 
         return (
-          <div className="animate-in fade-in duration-500 flex flex-col items-center justify-center h-full">
-            <h3 className="font-bold text-gray-800 mb-4 text-lg lg:text-xl self-start">3. Ilustrasi Tanda Pubertas</h3>
-            <div className="w-full bg-gray-100 rounded-2xl p-4 border border-gray-200 shadow-inner">
-              <img 
-                src="/src/assets/images/foto.png"
-                alt="Ilustrasi Tanda Pubertas"
-                className="rounded-xl mx-auto shadow-sm hover:scale-105 transition-transform duration-500"
-                style={{
-                  maxWidth: '100%',
-                  height: 'auto',
-                  maxHeight: '400px', // Membatasi tinggi agar pas di layar
-                  objectFit: 'contain'
-                }}
-              />
-            </div>
-            <p className="mt-4 text-center text-gray-500 text-sm">
-              Perhatikan gambar di atas untuk memahami perubahan fisik yang terjadi.
+          <div className="animate-in fade-in duration-500">
+            <h3 className="font-bold text-gray-800 mb-4 text-lg lg:text-xl">4. Selalu Ingat Masa Depan</h3>
+            
+            <p className="text-gray-700 leading-relaxed text-sm lg:text-base text-justify mb-6">
+              Masa depanmu masih sangat panjang. Jangan korbankan impian besar hanya untuk kesenangan sesaat.
             </p>
+
+            <div className="flex flex-col gap-4">
+              <div className="bg-yellow-50 p-5 rounded-2xl border border-yellow-200">
+                <div className="flex items-center space-x-3 mb-2">
+                  <div className="text-2xl">💡</div>
+                  <h4 className="font-bold text-yellow-800">Pola Pikir Jangka Panjang</h4>
+                </div>
+                <p className="text-gray-700 text-sm text-justify">
+                  Dengan menanamkan mindset ini, kita akan <strong>berpikir berkali-kali</strong> sebelum melakukan hal negatif.
+                </p>
+              </div>
+
+              <div className="bg-white p-5 rounded-2xl border border-gray-200 text-center">
+                <div className="text-5xl mb-3">🎓</div>
+                <h4 className="font-bold text-gray-800">Fokus pada Risiko</h4>
+                <p className="text-gray-600 text-xs mt-2">
+                  Selalu pertimbangkan risiko (kehamilan, penyakit, putus sekolah) di masa yang akan datang.
+                </p>
+              </div>
+            </div>
+          </div>
+        );
+
+      // 5. CARI INFORMASI
+      case 5: 
+        return (
+          <div className="animate-in fade-in duration-500">
+            <h3 className="font-bold text-gray-800 mb-4 text-lg lg:text-xl">5. Cari Informasi Kesehatan yang Benar</h3>
+            
+            <p className="text-gray-700 leading-relaxed text-sm lg:text-base text-justify mb-6">
+              Zaman sekarang informasi dapat dicari melalui genggaman saja. Namun, hati-hati dengan hoax!
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-blue-50 p-5 rounded-2xl border border-blue-100 flex flex-col items-center text-center">
+                <div className="text-4xl mb-3">📱</div>
+                <h4 className="font-bold text-blue-800 mb-2">Media Digital</h4>
+                <p className="text-xs text-gray-600">
+                  Pastikan kamu mendapatkan informasi dari sumber yang <strong>valid dan terpercaya</strong> (seperti website kemkes atau jurnal ilmiah).
+                </p>
+              </div>
+
+              <div className="bg-green-50 p-5 rounded-2xl border border-green-100 flex flex-col items-center text-center">
+                <div className="text-4xl mb-3">🏥</div>
+                <h4 className="font-bold text-green-800 mb-2">Fasilitas Kesehatan</h4>
+                <p className="text-xs text-gray-600">
+                  Jika ingin berinteraksi langsung, jangan ragu datang ke <strong>Puskesmas</strong> atau fasilitas kesehatan terdekat.
+                </p>
+              </div>
+            </div>
           </div>
         );
 
@@ -157,7 +255,7 @@ const Materi: React.FC = () => {
     <Layout hideLogoMobile={true}>
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
         
-        {/* --- MODAL KONFIRMASI (Tampil di akhir Slide 3) --- */}
+        {/* --- MODAL KONFIRMASI --- */}
         {showConfirmModal && (
           <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4">
             <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 lg:p-8 transform transition-all animate-in fade-in zoom-in duration-300">
@@ -168,10 +266,10 @@ const Materi: React.FC = () => {
                   </svg>
                 </div>
                 <h3 className="text-xl lg:text-2xl font-bold text-gray-800 mb-3">
-                  Selamat! 🎉
+                  Luar Biasa! 🛡️
                 </h3>
                 <p className="text-base lg:text-lg text-gray-600 mb-6">
-                  Anda telah menyelesaikan bab ini. Lanjut ke menu utama?
+                  Kamu sudah mempelajari cara mencegah perilaku berisiko. Terapkan dalam keseharianmu ya!
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3">
                   <button
@@ -187,7 +285,7 @@ const Materi: React.FC = () => {
                     }}
                     className="flex-1 px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-full font-bold transition-all shadow-lg hover:shadow-xl hover:-translate-y-1"
                   >
-                    Ya, Selesai
+                    Selesai
                   </button>
                 </div>
               </div>
@@ -220,7 +318,7 @@ const Materi: React.FC = () => {
                 }}>
                   <div className="absolute lg:relative left-0 lg:left-auto top-0 bottom-0 w-80 lg:w-auto bg-green-50 lg:bg-green-50 rounded-r-3xl lg:rounded-3xl shadow-2xl lg:shadow-xl border border-green-200 overflow-hidden lg:sticky lg:top-6">
                     <div className="bg-gradient-to-r from-green-600 to-emerald-600 p-4 flex items-center justify-between">
-                      <h2 className="text-white font-bold text-base lg:text-lg">Daftar Materi</h2>
+                      <h2 className="text-white font-bold text-base lg:text-lg">Pencegahan</h2>
                       <button
                         onClick={() => setIsSidebarOpen(false)}
                         className="text-white hover:bg-white/20 rounded-full p-1 transition-colors lg:hidden"
@@ -306,7 +404,7 @@ const Materi: React.FC = () => {
                 </div>
               )}
 
-              {/* --- RIGHT CONTENT AREA (Konten Berubah Sesuai ID) --- */}
+              {/* --- RIGHT CONTENT AREA --- */}
               <div className={`${isSidebarOpen ? 'lg:col-span-3' : 'col-span-1'}`}>
                 <div className="bg-white rounded-2xl lg:rounded-3xl shadow-xl border border-gray-200 overflow-hidden flex flex-col min-h-[500px]">
                   
@@ -326,10 +424,10 @@ const Materi: React.FC = () => {
                     )}
                   </div>
 
-                  {/* Reminder Box (Selalu muncul di atas) */}
-                  <div className="p-3 lg:p-4 bg-yellow-50 border-b border-yellow-200 shrink-0">
+                  {/* Reminder Box */}
+                  <div className="p-3 lg:p-4 bg-blue-50 border-b border-blue-200 shrink-0">
                     <p className="text-center text-gray-700 font-medium text-xs lg:text-sm">
-                      <span className="text-yellow-600">💡</span> Info: Pelajari setiap bagian sebelum menekan tombol Lanjut.
+                      <span className="text-blue-600">🛡️</span> Pelajari cara mencegahnya agar masa depanmu cerah.
                     </p>
                   </div>
 
@@ -374,4 +472,4 @@ const Materi: React.FC = () => {
   );
 };
 
-export default Materi;
+export default Materi5;

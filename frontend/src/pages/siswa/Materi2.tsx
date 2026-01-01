@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../../components/layouts/Layout';
+// Import komponen UI yang sebelumnya hilang
+import { Button } from '../../components/ui/Button'; 
 
-// ID Materi Utama untuk penyimpanan progress
-const MATERI_ID = 1;
+// --- KONFIGURASI ID MATERI ---
+const MATERI_ID = 2; 
 
 interface ModuleItem {
   id: number;
@@ -12,18 +14,18 @@ interface ModuleItem {
   completed: boolean;
   emoji: string;
   description: string;
+  content: string;
 }
 
-const Materi: React.FC = () => {
+const Materi2: React.FC = () => {
   const navigate = useNavigate();
-  const [currentVideo, setCurrentVideo] = useState(0); // Index aktif (0, 1, atau 2)
+  const [currentVideo, setCurrentVideo] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
-  
-  // State UI
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
-  // --- INTEGRASI PROGRESS (LocalStorage) ---
+  // --- LOGIKA PROGRESS (LocalStorage) ---
+  // Membaca progress awal dari LocalStorage saat halaman dimuat
   const [completedVideos, setCompletedVideos] = useState<number[]>(() => {
     try {
       const saved = localStorage.getItem('materi_progress');
@@ -32,20 +34,49 @@ const Materi: React.FC = () => {
         return parsed[MATERI_ID] || [];
       }
     } catch (e) {
-      console.error("Gagal membaca progress", e);
+      return [];
     }
     return [];
   });
 
-  // --- DATA SIDEBAR (3 Blok Sub-bab) ---
+  // --- DATA KONTEN (Sesuaikan isi materi di sini) ---
   const sections: { id: number; items: ModuleItem[]; icon: string }[] = [
     {
       id: 1,
       icon: '⭕',
       items: [
-        { id: 1, title: 'Definisi Remaja', duration: '5 min', completed: false, emoji: '📘', description: 'Pengertian masa remaja' },
-        { id: 2, title: 'Definisi Pubertas', duration: '5 min', completed: false, emoji: '📜', description: 'Pengertian pubertas' },
-        { id: 3, title: 'Tanda Pubertas', duration: '5 min', completed: false, emoji: '🖼️', description: 'Ilustrasi tanda pubertas' }
+        { 
+          id: 1, title: 'Pengertian', duration: '5 min', completed: false, emoji: '📘', description: 'Definisi Perilaku Seksual',
+          content: 'Perilaku seksual mencakup semua tindakan yang dipengaruhi oleh dorongan keinginan seksual, baik terhadap lawan jenis maupun sesama jenis. Bentuk-bentuk tindakan ini sangat beragam, mulai dari perasaan tertarik hingga tindakan berkencan, bercium, dan berhubungan intim.'
+        },
+        { 
+          id: 2, title: 'Pacaran - Sentuhan', duration: '8 min', completed: false, emoji: '📜', description: 'Tahap Awal Pacaran',
+          content: 'Pacaran sebenarnya tidak berbahaya. Namun, jika pacaran tersebut tidak dibatasi oleh norma, maka pacaran dapat menjadi berisiko.\n\na) Berawal dari sentuhan\nKebiasaan sentuhan seperti berpegangan tangan dan berpelukan menjadi hal pertama yang dilakukan saat pacaran. Namun, dari berpegangan tangan inilah munculah tindakan lain.\n\nb) Berciuman\nSebagai cara mengekspresikan cinta, ciuman di pipi ataupun kecupan di bibir merupakan cara mengekspresikan betapa besarnya rasa cinta mereka kepada pasangannya. Mulai dari sini adalah tanda lampu kuning yang berkedip. Kok bisa? Dari ciuman ini dapat meningkatkan hasrat seksual remaja dan ingin melakukan tindakan yang lebih.'
+        },
+        { 
+          id: 3, title: 'Necking & Petting', duration: '6 min', completed: false, emoji: '🎮', description: 'Tahap Lanjutan Pacaran',
+          content: 'c) Necking\nApa itu? Necking merupakan bentuk ekspresi dari pelukan dan ciuman yang lebih intens dibandingkan ciuman biasa. Dilihat dari namanya, necking dilakukan di area leher dan dapat meningkatkan hasrat seksual.\n\nd) Petting\nSelanjutnya, apabila remaja sudah tidak bisa lagi menahan hasrat seksualnya, maka mereka akan melakukan hal yang namanya petting. Petting adalah gabungan dari 3 perilaku yang sudah kita bahas tadi (touching, kissing, necking) tapi ditambah dengan sentuhan di area sensitif dan intensitasnya lebih dalam dan intens.'
+        },
+        { 
+          id: 4, title: 'LGBT', duration: '5 min', completed: false, emoji: '🏳️', description: 'Lesbian, Gay, Biseksual, Transgender',
+          content: 'Tentunya bagi remaja zaman sekarang tidak asing dengan yang namanya LGBT. LGBT adalah sebuah singkatan yaitu lesbian, gay, biseksual dan transgender.\n\nGay dan Lesbian merupakan seseorang laki-laki atau perempuan yang menyukai jenis kelamin yang sama dan biseksual merupakan seseorang yang menyukai 2 jenis kelamin.\n\nLGBT selain dilarang oleh agama, juga dapat menjadi perilaku seksual berisiko. Mengapa? Karena mereka mempunyai aktivitas seksual yang tidak seharusnya dilakukan dan tidak pada tempat yang seharusnya.'
+        },
+        { 
+          id: 5, title: 'Cyber Sex', duration: '6 min', completed: false, emoji: '💻', description: 'Aktivitas Seksual Online',
+          content: 'Era digital memungkinkan kegiatan seks dilakukan secara online. Salah satu bentuk aktivitas seksual di media sosial adalah "Video Call Sex (VCS)". Aktivitas ini dapat mencakup berbagai bentuk, seperti berbicara tentang hal-hal seksual, melakukan tindakan eksplisit, atau menampilkan bagian tubuh yang bersifat intim.'
+        },
+        { 
+          id: 6, title: 'Oral Seks', duration: '7 min', completed: false, emoji: '⚠️', description: 'Hubungan Seksual - Oral',
+          content: 'Oral seks merupakan perilaku seksual yang melibatkan mulut dan bagian genital pasangan. Cara yang satu ini sering dilakukan remaja karena mereka menganggap oral seks lebih aman karena tidak melibatkan langsung 2 bagian kelamin namun tetap memberikan rasa kepuasan.'
+        },
+        { 
+          id: 7, title: 'Intercourse Sex', duration: '8 min', completed: false, emoji: '🚫', description: 'Hubungan Seksual - Intercourse',
+          content: 'Intercourse sex merupakan perilaku seksual yang lebih intim dimana sudah melibatkan 2 bagian kelamin. Intercourse sex dilakukan dengan memasukkan penis ke dalam vagina untuk mencapai kepuasan seksual. Hal ini seharusnya dilakukan oleh pasangan suami istri yang sudah sah dalam hukum negara. Namun, karena rasa penasaran remaja yang besar, remaja terkadang tidak terkontrol dan akhirnya berawal pacaran lanjut ke tahap ini.'
+        },
+        { 
+          id: 8, title: 'Anal Sex', duration: '7 min', completed: false, emoji: '❌', description: 'Hubungan Seksual - Anal',
+          content: 'Anal sex merupakan hubungan seksual yang dilakukan melalui jalur belakang (anus). Anal sex sangat berbahaya karena anus tidak didesain untuk berhubungan seksual sehingga dinding anus sangat sensitif dan mudah robek serta dalam anus terdapat banyak sekali bakteri sumber penyakit.'
+        }
       ]
     },
   ];
@@ -53,23 +84,22 @@ const Materi: React.FC = () => {
   const flatModules: ModuleItem[] = sections.flatMap(s => s.items);
   const currentModule = flatModules[currentVideo];
 
-  // Simpan Progress
+  // --- FUNGSI SAVE PROGRESS ---
   const saveProgress = (videoIndex: number) => {
     if (!completedVideos.includes(videoIndex)) {
       const newCompleted = [...completedVideos, videoIndex];
       setCompletedVideos(newCompleted);
 
+      // Simpan ke LocalStorage
       const saved = localStorage.getItem('materi_progress');
       const parsed = saved ? JSON.parse(saved) : {};
-      
       parsed[MATERI_ID] = newCompleted;
       localStorage.setItem('materi_progress', JSON.stringify(parsed));
     }
   };
 
-  // Navigasi Next
   const handleNextLesson = () => {
-    saveProgress(currentVideo);
+    saveProgress(currentVideo); // Simpan progress saat klik lanjut
     if (currentVideo < flatModules.length - 1) {
       setCurrentVideo(currentVideo + 1);
       setIsPlaying(false);
@@ -78,7 +108,6 @@ const Materi: React.FC = () => {
     }
   };
 
-  // Navigasi Back
   const handlePreviousLesson = () => {
     if (currentVideo > 0) {
       setCurrentVideo(currentVideo - 1);
@@ -86,83 +115,20 @@ const Materi: React.FC = () => {
     }
   };
 
-  // --- RENDER CONTENT DINAMIS ---
-  // Fungsi ini menentukan apa yang tampil berdasarkan ID item yang sedang aktif
-  const renderContent = () => {
-    switch (currentModule.id) {
-      case 1: // BLOK 1: DEFINISI REMAJA
-        return (
-          <div className="animate-in fade-in duration-500">
-            <h3 className="font-bold text-gray-800 mb-4 text-lg lg:text-xl">1. Definisi Remaja</h3>
-            <p className="text-gray-700 leading-relaxed text-sm lg:text-base text-justify">
-              Remaja adalah masa peralihan atau masa transisi dari anak menuju masa dewasa. Ini adalah fase di mana individu mengalami pertumbuhan dan perkembangan fisik maupun mental yang sangat pesat.
-            </p>
-            <div className="mt-4 bg-blue-50 p-4 rounded-xl border border-blue-100">
-              <p className="font-semibold text-gray-800 mb-2">Secara psikologis, masa remaja ditandai dengan:</p>
-              <ul className="list-disc list-inside space-y-2 text-gray-700 text-sm lg:text-base ml-2">
-                <li><span className="font-medium">Pengembangan Proses Berpikir:</span> Mulai mengembangkan proses berpikir operasional formal dan berpikir abstrak.</li>
-                <li><span className="font-medium">Pengambilan Keputusan:</span> Belajar membayangkan dan mempertimbangkan konsekuensi dari tindakannya.</li>
-                <li><span className="font-medium">Pembentukan Diri:</span> Munculnya rasa identitas diri yang kuat.</li>
-                <li><span className="font-medium">Aspek Sosial:</span> Meningkatnya keterlibatan sosial dan interaksi dengan teman sebaya.</li>
-                <li><span className="font-medium">Kesadaran Seksual:</span> Mulai adanya kesadaran akan seksualitasnya.</li>
-              </ul>
-            </div>
-          </div>
-        );
-
-      case 2: // BLOK 2: DEFINISI PUBERTAS
-        return (
-          <div className="animate-in fade-in duration-500">
-            <h3 className="font-bold text-gray-800 mb-4 text-lg lg:text-xl">2. Definisi Pubertas</h3>
-            <p className="text-gray-700 leading-relaxed text-sm lg:text-base text-justify mb-4">
-              Pubertas adalah tahapan dalam perkembangan yang dialami anak-anak, di mana mereka mengalami perubahan dari makhluk aseksual menjadi makhluk seksual.
-            </p>
-            <div className="bg-green-50 p-4 rounded-xl border border-green-100">
-              <p className="text-gray-700 leading-relaxed text-sm lg:text-base">
-                Pada tahap ini, remaja mengalami proses <strong>kematangan seksual</strong> secara pesat. Tubuh mulai memproduksi hormon-hormon seksual yang memicu perubahan fisik dan emosional, yang ditandai dengan munculnya berbagai tanda pubertas (sekunder dan primer).
-              </p>
-            </div>
-          </div>
-        );
-
-      case 3: // BLOK 3: GAMBAR (TANDA PUBERTAS)
-        return (
-          <div className="animate-in fade-in duration-500 flex flex-col items-center justify-center h-full">
-            <h3 className="font-bold text-gray-800 mb-4 text-lg lg:text-xl self-start">3. Ilustrasi Tanda Pubertas</h3>
-            <div className="w-full bg-gray-100 rounded-2xl p-4 border border-gray-200 shadow-inner">
-              <img 
-                src="/src/assets/images/foto.png"
-                alt="Ilustrasi Tanda Pubertas"
-                className="rounded-xl mx-auto shadow-sm hover:scale-105 transition-transform duration-500"
-                style={{
-                  maxWidth: '100%',
-                  height: 'auto',
-                  maxHeight: '400px', // Membatasi tinggi agar pas di layar
-                  objectFit: 'contain'
-                }}
-              />
-            </div>
-            <p className="mt-4 text-center text-gray-500 text-sm">
-              Perhatikan gambar di atas untuk memahami perubahan fisik yang terjadi.
-            </p>
-          </div>
-        );
-
-      default:
-        return <div>Konten tidak ditemukan</div>;
-    }
+  const handleBackToDashboard = () => {
+    navigate('/materihome');
   };
 
   return (
     <Layout hideLogoMobile={true}>
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
         
-        {/* --- MODAL KONFIRMASI (Tampil di akhir Slide 3) --- */}
+        {/* --- MODAL KONFIRMASI --- */}
         {showConfirmModal && (
           <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4">
-            <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 lg:p-8 transform transition-all animate-in fade-in zoom-in duration-300">
+            <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 lg:p-8 transform transition-all">
               <div className="text-center">
-                <div className="w-16 h-16 lg:w-20 lg:h-20 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                <div className="w-16 h-16 lg:w-20 lg:h-20 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
                   <svg className="w-8 h-8 lg:w-10 lg:h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
@@ -171,23 +137,23 @@ const Materi: React.FC = () => {
                   Selamat! 🎉
                 </h3>
                 <p className="text-base lg:text-lg text-gray-600 mb-6">
-                  Anda telah menyelesaikan bab ini. Lanjut ke menu utama?
+                  Apakah semua materi sudah Anda pahami?
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3">
                   <button
                     onClick={() => setShowConfirmModal(false)}
                     className="flex-1 px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-full font-bold transition-all"
                   >
-                    Ulangi
+                    Belum, Review Lagi
                   </button>
                   <button
                     onClick={() => {
-                      saveProgress(currentVideo); 
-                      navigate('/materihome');
+                        saveProgress(currentVideo);
+                        navigate('/materihome');
                     }}
-                    className="flex-1 px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-full font-bold transition-all shadow-lg hover:shadow-xl hover:-translate-y-1"
+                    className="flex-1 px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-full font-bold transition-all shadow-lg"
                   >
-                    Ya, Selesai
+                    Ya, Sudah Paham
                   </button>
                 </div>
               </div>
@@ -196,7 +162,7 @@ const Materi: React.FC = () => {
         )}
 
         <div className="w-full px-4 md:px-6 py-4 md:py-8">
-          {/* Hamburger Button (Mobile) */}
+          {/* Hamburger Button Mobile */}
           {!isSidebarOpen && (
             <button
               onClick={() => setIsSidebarOpen(true)}
@@ -211,7 +177,7 @@ const Materi: React.FC = () => {
           <div className="w-full">
             <div className={`grid ${isSidebarOpen ? 'lg:grid-cols-4' : 'grid-cols-1'} gap-4 md:gap-6 transition-all duration-300`}>
               
-              {/* --- LEFT SIDEBAR (Daftar Menu) --- */}
+              {/* --- LEFT SIDEBAR --- */}
               {isSidebarOpen && (
                 <div className="lg:col-span-1 fixed lg:relative inset-0 lg:inset-auto z-50 lg:z-auto bg-black/50 lg:bg-transparent" onClick={(e) => {
                   if (e.target === e.currentTarget && window.innerWidth < 1024) {
@@ -219,8 +185,9 @@ const Materi: React.FC = () => {
                   }
                 }}>
                   <div className="absolute lg:relative left-0 lg:left-auto top-0 bottom-0 w-80 lg:w-auto bg-green-50 lg:bg-green-50 rounded-r-3xl lg:rounded-3xl shadow-2xl lg:shadow-xl border border-green-200 overflow-hidden lg:sticky lg:top-6">
+                    {/* Header Title with Close Button */}
                     <div className="bg-gradient-to-r from-green-600 to-emerald-600 p-4 flex items-center justify-between">
-                      <h2 className="text-white font-bold text-base lg:text-lg">Daftar Materi</h2>
+                      <h2 className="text-white font-bold text-base lg:text-lg">Perilaku Seksual</h2>
                       <button
                         onClick={() => setIsSidebarOpen(false)}
                         className="text-white hover:bg-white/20 rounded-full p-1 transition-colors lg:hidden"
@@ -231,6 +198,7 @@ const Materi: React.FC = () => {
                       </button>
                     </div>
 
+                    {/* List Items */}
                     <div className="p-3 max-h-[calc(100vh-200px)] overflow-y-auto">
                       <div className="space-y-3">
                         {sections.map(section => (
@@ -274,8 +242,8 @@ const Materi: React.FC = () => {
                                         }`}>
                                           {item.title}
                                         </div>
-                                        <div className="text-xs lg:text-sm text-gray-500 mt-1 truncate">
-                                          {item.description}
+                                        <div className="text-xs lg:text-sm text-gray-500 mt-1">
+                                          {item.duration} • {item.description}
                                         </div>
                                       </div>
                                     </div>
@@ -287,6 +255,7 @@ const Materi: React.FC = () => {
                         ))}
                       </div>
 
+                      {/* Tombol Kembali ke Dashboard Sidebar */}
                       <div className="mt-6 p-4 lg:p-5 bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl border-2 border-green-200 hover:bg-gradient-to-r hover:from-green-100 hover:to-emerald-100 transition-all duration-300 cursor-pointer group shadow-sm" onClick={() => navigate('/materihome')}>
                         <div className="flex items-center space-x-3 lg:space-x-4">
                           <div className="w-10 h-10 lg:w-12 lg:h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-md">
@@ -296,7 +265,7 @@ const Materi: React.FC = () => {
                           </div>
                           <div>
                             <div className="text-sm lg:text-base font-bold text-gray-800 group-hover:text-green-700 transition-colors">
-                              Kembali ke Home
+                              Kembali ke Materi Home
                             </div>
                           </div>
                         </div>
@@ -306,13 +275,14 @@ const Materi: React.FC = () => {
                 </div>
               )}
 
-              {/* --- RIGHT CONTENT AREA (Konten Berubah Sesuai ID) --- */}
+              {/* --- RIGHT CONTENT AREA --- */}
               <div className={`${isSidebarOpen ? 'lg:col-span-3' : 'col-span-1'}`}>
-                <div className="bg-white rounded-2xl lg:rounded-3xl shadow-xl border border-gray-200 overflow-hidden flex flex-col min-h-[500px]">
+                <div className="bg-white rounded-2xl lg:rounded-3xl shadow-xl border border-gray-200 overflow-hidden">
                   
                   {/* Content Header */}
-                  <div className="p-4 lg:p-6 border-b border-gray-200 flex items-center justify-between shrink-0 bg-white z-10">
+                  <div className="p-4 lg:p-6 border-b border-gray-200 flex items-center justify-between">
                     <h1 className="text-lg lg:text-2xl font-bold text-gray-800 flex-1 pr-2">{currentModule.title}</h1>
+                    
                     {!isSidebarOpen && (
                       <button
                         onClick={() => setIsSidebarOpen(true)}
@@ -321,25 +291,42 @@ const Materi: React.FC = () => {
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                         </svg>
-                        <span>Menu</span>
+                        <span>Materi</span>
                       </button>
                     )}
                   </div>
 
-                  {/* Reminder Box (Selalu muncul di atas) */}
-                  <div className="p-3 lg:p-4 bg-yellow-50 border-b border-yellow-200 shrink-0">
-                    <p className="text-center text-gray-700 font-medium text-xs lg:text-sm">
-                      <span className="text-yellow-600">💡</span> Info: Pelajari setiap bagian sebelum menekan tombol Lanjut.
+                  {/* Video/Image Player Area */}
+                  <div className="p-5 md:p-5 bg-gray-100">
+                    <img 
+                      src="/src/assets/images/foto.png"
+                      alt="Ilustrasi Materi"
+                      className="rounded-xl mx-auto"
+                      style={{
+                        width: '100%',
+                        height: 'auto',
+                        maxHeight: '400px',
+                        objectFit: 'contain'
+                      }}
+                    />
+                  </div>
+
+                  {/* Note/Reminder Section */}
+                  <div className="p-4 lg:p-6 bg-yellow-50 border-b border-yellow-200">
+                    <p className="text-center text-gray-700 font-medium text-xs lg:text-base">
+                      <span className="text-yellow-600">⚠️</span> Ingat: Sebagai remaja yang cerdas, batasi tindakan supaya tidak merugikan diri sendiri!
                     </p>
                   </div>
 
-                  {/* DYNAMIC CONTENT AREA */}
-                  <div className="flex-1 p-6 lg:p-8 overflow-y-auto">
-                    {renderContent()}
+                  {/* Description Content */}
+                  <div className="p-4 lg:p-6">
+                    <p className="text-gray-700 leading-relaxed mb-3 lg:mb-4 text-xs lg:text-base whitespace-pre-line text-justify">
+                      {currentModule.content}
+                    </p>
                   </div>
 
-                  {/* Footer Navigation */}
-                  <div className="p-4 lg:p-6 border-t border-gray-200 flex items-center justify-between gap-3 shrink-0 bg-gray-50">
+                  {/* Bottom Navigation Buttons (Sesuai Asset Asli) */}
+                  <div className="p-4 lg:p-6 border-t border-gray-200 flex items-center justify-between gap-3">
                     <button 
                       onClick={handlePreviousLesson}
                       disabled={currentVideo === 0}
@@ -354,7 +341,7 @@ const Materi: React.FC = () => {
 
                     <button 
                       onClick={handleNextLesson}
-                      className="hover:scale-105 transition-transform"
+                      className="disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 transition-transform"
                     >
                       <img 
                         src="/src/assets/icons/lanjut.svg" 
@@ -374,4 +361,4 @@ const Materi: React.FC = () => {
   );
 };
 
-export default Materi;
+export default Materi2;

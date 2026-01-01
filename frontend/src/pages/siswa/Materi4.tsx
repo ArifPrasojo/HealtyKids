@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Layout from '../../components/layouts/Layout';
 
 // ID Materi Utama untuk penyimpanan progress
-const MATERI_ID = 1;
+const MATERI_ID = 4; 
 
 interface ModuleItem {
   id: number;
@@ -16,7 +16,7 @@ interface ModuleItem {
 
 const Materi: React.FC = () => {
   const navigate = useNavigate();
-  const [currentVideo, setCurrentVideo] = useState(0); // Index aktif (0, 1, atau 2)
+  const [currentVideo, setCurrentVideo] = useState(0); 
   const [isPlaying, setIsPlaying] = useState(false);
   
   // State UI
@@ -37,20 +37,20 @@ const Materi: React.FC = () => {
     return [];
   });
 
-  // --- DATA SIDEBAR (3 Blok Sub-bab) ---
+  // --- DATA SIDEBAR (3 Poin Utama) ---
   const sections: { id: number; items: ModuleItem[]; icon: string }[] = [
     {
       id: 1,
       icon: '⭕',
       items: [
-        { id: 1, title: 'Definisi Remaja', duration: '5 min', completed: false, emoji: '📘', description: 'Pengertian masa remaja' },
-        { id: 2, title: 'Definisi Pubertas', duration: '5 min', completed: false, emoji: '📜', description: 'Pengertian pubertas' },
-        { id: 3, title: 'Tanda Pubertas', duration: '5 min', completed: false, emoji: '🖼️', description: 'Ilustrasi tanda pubertas' }
+        { id: 1, title: 'Pengaruh Teman', duration: '5 min', completed: false, emoji: '👥', description: 'Tekanan teman sebaya' },
+        { id: 2, title: 'Rasa Penasaran', duration: '5 min', completed: false, emoji: '🤔', description: 'Keingintahuan tinggi' },
+        { id: 3, title: 'Kurangnya Pengetahuan', duration: '5 min', completed: false, emoji: '📚', description: 'Informasi yang salah' }
       ]
     },
   ];
 
-  const flatModules: ModuleItem[] = sections.flatMap(s => s.items);
+  const flatModules = sections.flatMap(s => s.items);
   const currentModule = flatModules[currentVideo];
 
   // Simpan Progress
@@ -87,64 +87,99 @@ const Materi: React.FC = () => {
   };
 
   // --- RENDER CONTENT DINAMIS ---
-  // Fungsi ini menentukan apa yang tampil berdasarkan ID item yang sedang aktif
   const renderContent = () => {
     switch (currentModule.id) {
-      case 1: // BLOK 1: DEFINISI REMAJA
+      
+      // BLOK 1: PENGARUH TEMAN SEBAYA
+      case 1: 
         return (
           <div className="animate-in fade-in duration-500">
-            <h3 className="font-bold text-gray-800 mb-4 text-lg lg:text-xl">1. Definisi Remaja</h3>
-            <p className="text-gray-700 leading-relaxed text-sm lg:text-base text-justify">
-              Remaja adalah masa peralihan atau masa transisi dari anak menuju masa dewasa. Ini adalah fase di mana individu mengalami pertumbuhan dan perkembangan fisik maupun mental yang sangat pesat.
-            </p>
-            <div className="mt-4 bg-blue-50 p-4 rounded-xl border border-blue-100">
-              <p className="font-semibold text-gray-800 mb-2">Secara psikologis, masa remaja ditandai dengan:</p>
-              <ul className="list-disc list-inside space-y-2 text-gray-700 text-sm lg:text-base ml-2">
-                <li><span className="font-medium">Pengembangan Proses Berpikir:</span> Mulai mengembangkan proses berpikir operasional formal dan berpikir abstrak.</li>
-                <li><span className="font-medium">Pengambilan Keputusan:</span> Belajar membayangkan dan mempertimbangkan konsekuensi dari tindakannya.</li>
-                <li><span className="font-medium">Pembentukan Diri:</span> Munculnya rasa identitas diri yang kuat.</li>
-                <li><span className="font-medium">Aspek Sosial:</span> Meningkatnya keterlibatan sosial dan interaksi dengan teman sebaya.</li>
-                <li><span className="font-medium">Kesadaran Seksual:</span> Mulai adanya kesadaran akan seksualitasnya.</li>
+            <h3 className="font-bold text-gray-800 mb-4 text-lg lg:text-xl">1. Pengaruh Teman Sebaya</h3>
+            
+            <div className="bg-blue-50 p-6 rounded-2xl border border-blue-100 mb-6 flex flex-col items-center text-center">
+              <div className="text-6xl mb-4">👥</div>
+              <p className="text-gray-700 leading-relaxed text-sm lg:text-base text-justify">
+                Lingkungan pergaulan yang diikuti oleh seorang remaja dapat memberikan pengaruh besar terhadap perilaku teman sebayanya.
+              </p>
+            </div>
+
+            <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+              <h4 className="font-bold text-blue-800 mb-2">Mengapa pengaruh teman begitu kuat?</h4>
+              <ul className="space-y-3">
+                <li className="flex items-start">
+                  <span className="bg-blue-100 text-blue-600 p-1 rounded mr-3 text-xs mt-1">Fakta</span>
+                  <span className="text-gray-700 text-sm lg:text-base">
+                    Remaja umumnya merasa bahwa <strong>tekanan dari teman sebaya lebih besar</strong> dibandingkan tekanan yang diberikan oleh pasangan.
+                  </span>
+                </li>
+                <li className="flex items-start">
+                  <span className="bg-blue-100 text-blue-600 p-1 rounded mr-3 text-xs mt-1">Alasan</span>
+                  <span className="text-gray-700 text-sm lg:text-base">
+                    Hal ini terjadi karena kebutuhan untuk <strong>diterima dan diakui</strong> dalam kelompok pergaulan memiliki pengaruh yang lebih kuat dibandingkan pengaruh dari individu lain.
+                  </span>
+                </li>
               </ul>
             </div>
           </div>
         );
 
-      case 2: // BLOK 2: DEFINISI PUBERTAS
+      // BLOK 2: RASA PENASARAN
+      case 2: 
         return (
           <div className="animate-in fade-in duration-500">
-            <h3 className="font-bold text-gray-800 mb-4 text-lg lg:text-xl">2. Definisi Pubertas</h3>
-            <p className="text-gray-700 leading-relaxed text-sm lg:text-base text-justify mb-4">
-              Pubertas adalah tahapan dalam perkembangan yang dialami anak-anak, di mana mereka mengalami perubahan dari makhluk aseksual menjadi makhluk seksual.
-            </p>
-            <div className="bg-green-50 p-4 rounded-xl border border-green-100">
-              <p className="text-gray-700 leading-relaxed text-sm lg:text-base">
-                Pada tahap ini, remaja mengalami proses <strong>kematangan seksual</strong> secara pesat. Tubuh mulai memproduksi hormon-hormon seksual yang memicu perubahan fisik dan emosional, yang ditandai dengan munculnya berbagai tanda pubertas (sekunder dan primer).
+            <h3 className="font-bold text-gray-800 mb-4 text-lg lg:text-xl">2. Rasa Penasaran</h3>
+            
+            <div className="flex flex-col md:flex-row gap-4 mb-6">
+              <div className="bg-orange-50 p-5 rounded-2xl border border-orange-100 flex-1">
+                <div className="text-4xl mb-3">🔍</div>
+                <h4 className="font-bold text-orange-800 mb-2">Keingintahuan Tinggi</h4>
+                <p className="text-gray-700 text-sm lg:text-base text-justify">
+                  Remaja yang memiliki rasa penasaran yang sangat tinggi, akan mencari berbagai cara untuk memenuhi rasa ingin tahunya tersebut.
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-red-50 p-5 rounded-2xl border border-red-100">
+              <div className="flex items-center space-x-3 mb-2">
+                <div className="text-2xl">⚠️</div>
+                <h4 className="font-bold text-red-800">Bahaya Tanpa Sadar</h4>
+              </div>
+              <p className="text-gray-700 text-sm lg:text-base text-justify">
+                Mereka mungkin melakukan hal itu meskipun ia <strong>tidak tahu</strong> atau bahkan <strong>tidak menyadari dampak</strong> dari tindakan seksual pranikah yang dilakukannya. Rasa ingin tahu tanpa bekal pengetahuan adalah risiko besar.
               </p>
             </div>
           </div>
         );
 
-      case 3: // BLOK 3: GAMBAR (TANDA PUBERTAS)
+      // BLOK 3: KURANGNYA PENGETAHUAN
+      case 3: 
         return (
-          <div className="animate-in fade-in duration-500 flex flex-col items-center justify-center h-full">
-            <h3 className="font-bold text-gray-800 mb-4 text-lg lg:text-xl self-start">3. Ilustrasi Tanda Pubertas</h3>
-            <div className="w-full bg-gray-100 rounded-2xl p-4 border border-gray-200 shadow-inner">
-              <img 
-                src="/src/assets/images/foto.png"
-                alt="Ilustrasi Tanda Pubertas"
-                className="rounded-xl mx-auto shadow-sm hover:scale-105 transition-transform duration-500"
-                style={{
-                  maxWidth: '100%',
-                  height: 'auto',
-                  maxHeight: '400px', // Membatasi tinggi agar pas di layar
-                  objectFit: 'contain'
-                }}
-              />
-            </div>
-            <p className="mt-4 text-center text-gray-500 text-sm">
-              Perhatikan gambar di atas untuk memahami perubahan fisik yang terjadi.
+          <div className="animate-in fade-in duration-500">
+            <h3 className="font-bold text-gray-800 mb-4 text-lg lg:text-xl">3. Kurangnya Pengetahuan</h3>
+            
+            <p className="text-gray-700 leading-relaxed text-sm lg:text-base text-justify mb-6">
+              Kurangnya pengetahuan dan pemahaman remaja tentang kesehatan reproduksi seksual seringkali disebabkan oleh adanya <strong>sumber informasi yang tidak tepat</strong>.
             </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Box Kiri: Masalah */}
+              <div className="bg-gray-100 p-4 rounded-xl border border-gray-200">
+                <div className="text-4xl mb-2 text-center">❌</div>
+                <h4 className="font-bold text-gray-800 text-center mb-2">Info Salah</h4>
+                <p className="text-xs lg:text-sm text-gray-600 text-center">
+                  Informasi dari teman yang salah atau internet yang tidak valid dapat menjerumuskan.
+                </p>
+              </div>
+
+              {/* Box Kanan: Solusi */}
+              <div className="bg-green-50 p-4 rounded-xl border border-green-200">
+                <div className="text-4xl mb-2 text-center">✅</div>
+                <h4 className="font-bold text-green-800 text-center mb-2">Pentingnya Edukasi</h4>
+                <p className="text-xs lg:text-sm text-gray-700 text-center">
+                  Remaja yang memiliki pengetahuan yang baik serta kemampuan mengendalikan diri cenderung <strong>tidak melakukan</strong> perilaku seksual sebelum menikah.
+                </p>
+              </div>
+            </div>
           </div>
         );
 
@@ -157,7 +192,7 @@ const Materi: React.FC = () => {
     <Layout hideLogoMobile={true}>
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
         
-        {/* --- MODAL KONFIRMASI (Tampil di akhir Slide 3) --- */}
+        {/* --- MODAL KONFIRMASI --- */}
         {showConfirmModal && (
           <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4">
             <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 lg:p-8 transform transition-all animate-in fade-in zoom-in duration-300">
@@ -171,7 +206,7 @@ const Materi: React.FC = () => {
                   Selamat! 🎉
                 </h3>
                 <p className="text-base lg:text-lg text-gray-600 mb-6">
-                  Anda telah menyelesaikan bab ini. Lanjut ke menu utama?
+                  Anda telah mempelajari faktor penyebab perilaku seksual remaja.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3">
                   <button
@@ -220,7 +255,7 @@ const Materi: React.FC = () => {
                 }}>
                   <div className="absolute lg:relative left-0 lg:left-auto top-0 bottom-0 w-80 lg:w-auto bg-green-50 lg:bg-green-50 rounded-r-3xl lg:rounded-3xl shadow-2xl lg:shadow-xl border border-green-200 overflow-hidden lg:sticky lg:top-6">
                     <div className="bg-gradient-to-r from-green-600 to-emerald-600 p-4 flex items-center justify-between">
-                      <h2 className="text-white font-bold text-base lg:text-lg">Daftar Materi</h2>
+                      <h2 className="text-white font-bold text-base lg:text-lg">Faktor Penyebab</h2>
                       <button
                         onClick={() => setIsSidebarOpen(false)}
                         className="text-white hover:bg-white/20 rounded-full p-1 transition-colors lg:hidden"
@@ -306,7 +341,7 @@ const Materi: React.FC = () => {
                 </div>
               )}
 
-              {/* --- RIGHT CONTENT AREA (Konten Berubah Sesuai ID) --- */}
+              {/* --- RIGHT CONTENT AREA --- */}
               <div className={`${isSidebarOpen ? 'lg:col-span-3' : 'col-span-1'}`}>
                 <div className="bg-white rounded-2xl lg:rounded-3xl shadow-xl border border-gray-200 overflow-hidden flex flex-col min-h-[500px]">
                   
@@ -326,10 +361,10 @@ const Materi: React.FC = () => {
                     )}
                   </div>
 
-                  {/* Reminder Box (Selalu muncul di atas) */}
+                  {/* Reminder Box */}
                   <div className="p-3 lg:p-4 bg-yellow-50 border-b border-yellow-200 shrink-0">
                     <p className="text-center text-gray-700 font-medium text-xs lg:text-sm">
-                      <span className="text-yellow-600">💡</span> Info: Pelajari setiap bagian sebelum menekan tombol Lanjut.
+                      <span className="text-yellow-600">💡</span> Pelajari faktor ini untuk meningkatkan kesadaran diri.
                     </p>
                   </div>
 

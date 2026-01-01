@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react'; // Tambahkan useState & useEffect
 import { useNavigate } from 'react-router-dom';
 import Layout from '../../components/layouts/Layout';
 import CloudBackground from '../../components/layouts/CloudBackground';
@@ -23,31 +23,43 @@ interface MateriCard {
 
 const MateriHome: React.FC<MateriHomeProps> = ({ onLogout }) => {
   const navigate = useNavigate();
+  
+  // State untuk menyimpan progress yang diambil dari localStorage
+  const [userProgress, setUserProgress] = useState<Record<number, number[]>>({});
 
-  const materiData: MateriCard[] = [
+  // 1. Ambil data progress saat halaman dimuat
+  useEffect(() => {
+    const savedProgress = localStorage.getItem('materi_progress');
+    if (savedProgress) {
+      setUserProgress(JSON.parse(savedProgress));
+    }
+  }, []);
+
+  // Data master materi
+  const rawMateriData: MateriCard[] = [
     {
-      id: 1,
+      id: 1, // ID ini PENTING, harus sama dengan ID saat menyimpan di halaman Materi
       title: 'Masa Remaja dan Pubertas',
       description: 'Materi ini membahas definisi masa remaja sebagai masa transisi penting dalam kehidupan seseorang, serta menjelaskan tahap pubertas yang menyertainya.',
       icon: '🧑‍🤝‍🧑',
       color: 'from-pink-400 to-pink-600',
       bgColor: 'bg-pink-500',
       textColor: 'text-pink-500',
-      levels: 8,
-      completedLevels: 2,
+      levels: 3, // Sesuaikan dengan jumlah total sub-bab di materi 1
+      completedLevels: 0, // Default 0, nanti di-override logic bawah
       route: '/materi'
     },
     {
       id: 2,
-      title: 'Pengertian dan Bentuk Perilaku Seksual Berisiko',
+      title: 'Perilaku Seksual',
       description: 'Mencakup semua tindakan yang dipengaruhi oleh dorongan keinginan seksual',
       icon: '🔤',
       color: 'from-blue-400 to-blue-600',
       bgColor: 'bg-blue-500',
       textColor: 'text-blue-500',
-      levels: 10,
-      completedLevels: 1,
-      route: '/materi'
+      levels: 8,
+      completedLevels: 0,
+      route: '/materi2'
     },
     {
       id: 3,
@@ -57,47 +69,47 @@ const MateriHome: React.FC<MateriHomeProps> = ({ onLogout }) => {
       color: 'from-green-400 to-green-600',
       bgColor: 'bg-green-500',
       textColor: 'text-green-500',
-      levels: 12,
-      completedLevels: 3,
-      route: '/materi'
+      levels: 7,
+      completedLevels: 0,
+      route: '/materi3'
     },
     {
       id: 4,
-      title: 'Cara Mencegah Perilaku Seksual Berisiko',
-      description: 'Manfaatkan waktu luang untuk olahraga, hobi, belajar, atau aktivitas positif di luar rumah',
+      title: 'Faktor Remaja Melakukan Perilaku Seksual',
+      description: 'Lingkungan pergaulan yang diikuti oleh seorang remaja dapat memberikan pengaruh besar terhadap perilaku teman sebayanya',
       icon: '🎨',
       color: 'from-yellow-400 to-yellow-600',
       bgColor: 'bg-yellow-500',
       textColor: 'text-yellow-600',
-      levels: 6,
-      completedLevels: 2,
-      route: '/materi'
+      levels: 3,
+      completedLevels: 0,
+      route: '/materi4'
     },
     {
       id: 5,
-      title: 'Faktor Pendorong Perilaku Seksual',
-      description: 'Tekanan dari lingkungan pergaulan lebih besar dibandingkan dari pasangan',
+      title: 'Bagaimana Cara Mencegahnya?',
+      description: 'Manfaatkan waktu luang kamu untuk kegiatan positif',
       icon: '🌍',
       color: 'from-purple-400 to-purple-600',
       bgColor: 'bg-purple-500',
       textColor: 'text-purple-500',
-      levels: 9,
-      completedLevels: 3,
-      route: '/materi'
-    },
-    {
-      id: 6,
-      title: 'Cara Mencegah Perilaku Seksual Berisiko',
-      description: 'Manfaatkan waktu luang untuk olahraga, hobi, belajar, atau aktivitas positif di luar rumah.',
-      icon: '🎵',
-      color: 'from-orange-400 to-orange-600',
-      bgColor: 'bg-orange-500',
-      textColor: 'text-orange-500',
-      levels: 7,
-      completedLevels: 1,
-      route: '/materi'
+      levels: 5,
+      completedLevels: 0,
+      route: '/materi5'
     }
   ];
+
+  // 2. Gabungkan data raw dengan data progress dari localStorage
+  const materiData = rawMateriData.map(item => {
+    // Cek apakah ada progress tersimpan untuk ID materi ini
+    const completedItems = userProgress[item.id] || [];
+    return {
+      ...item,
+      // Update completedLevels berdasarkan panjang array yang tersimpan
+      // Math.min memastikan tidak melebihi total levels (opsional, untuk keamanan)
+      completedLevels: Math.min(completedItems.length, item.levels) 
+    };
+  });
 
   const handleMateriClick = (route: string) => {
     navigate(route);
