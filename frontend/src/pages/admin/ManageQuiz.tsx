@@ -13,7 +13,8 @@ const ManageQuiz: React.FC = () => {
   const [quiz, setQuiz] = useState<QuizData | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const API_URL = 'http://localhost:3000/admin/quiz';
+  const API_BASE_URL = import.meta.env?.VITE_API_URL || 'http://localhost:3000';
+  const API_URL = `${API_BASE_URL}/admin/quiz`;
 
   useEffect(() => {
     fetchQuiz();
@@ -27,7 +28,7 @@ const ManageQuiz: React.FC = () => {
     } catch (error) {
       console.error("Error fetching quiz:", error);
     } finally {
-      setLoading(loading => false);
+      setLoading(false);
     }
   };
 

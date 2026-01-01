@@ -5,12 +5,13 @@ const ManageAnswers: React.FC = () => {
   const { questionId } = useParams();
   const navigate = useNavigate();
   const [answers, setAnswers] = useState<any[]>([]);
+  const API_BASE_URL = import.meta.env?.VITE_API_URL || 'http://localhost:3000';
 
   useEffect(() => { fetchAnswers(); }, [questionId]);
 
   const fetchAnswers = async () => {
     // Sesuai image_2cba9e.jpg
-    const res = await fetch(`http://localhost:3000/admin/quiz/questions/${questionId}/answer`);
+    const res = await fetch(`${API_BASE_URL}/admin/quiz/questions/${questionId}/answer`);
     const result = await res.json();
     if (result.success) setAnswers(result.data);
   };
@@ -26,7 +27,7 @@ const ManageAnswers: React.FC = () => {
     };
 
     try {
-      const res = await fetch(`http://localhost:3000/admin/quiz/questions/${questionId}/answer`, {
+      const res = await fetch(`${API_BASE_URL}/admin/quiz/questions/${questionId}/answer`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
