@@ -13,7 +13,8 @@ const ManageQuestions: React.FC = () => {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState({ question: '', explanation: '', photo: '' });
   const navigate = useNavigate();
-  const BASE_URL = 'http://localhost:3000/admin/quiz/questions';
+  const API_BASE_URL = import.meta.env?.VITE_API_URL || 'http://localhost:3000';
+  const BASE_URL = `${API_BASE_URL}/admin/quiz/questions`;
 
   useEffect(() => { fetchQuestions(); }, []);
 
@@ -32,50 +33,49 @@ const ManageQuestions: React.FC = () => {
     }
   };
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-  // Membangun payload dasar
-  const payload: any = {
-    question: form.question,
-    explanation: form.explanation,
-  };
+    // Membangun payload dasar
+    const payload: any = {
+      question: form.question,
+      explanation: form.explanation,
+    };
 
-  // Hanya tambahkan photo jika user memilih file baru (Base64)
-  // Sesuai image_2cb7f5.jpg & image_2cb7f9.png
-  if (form.photo && form.photo.startsWith('data:image')) {
-    payload.photo = form.photo;
-  }
-
-  const url = editingId 
-    ? `http://localhost:3000/admin/quiz/questions/${editingId}` // Sesuai image_2cb7f9.png
-    : `http://localhost:3000/admin/quiz/questions`; // Sesuai image_2cb7f5.jpg
-  
-  const method = editingId ? 'PUT' : 'POST';
-
-  try {
-    const res = await fetch(url, {
-      method: method,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-
-    const result = await res.json();
-    if (res.ok) {
-      alert("Berhasil!");
-      resetForm();
-      fetchQuestions();
-    } else {
-      alert(`Gagal: ${result.message || "Cek konsol"}`);
+    // Hanya tambahkan photo jika user memilih file baru (Base64)
+    if (form.photo && form.photo.startsWith('data:image')) {
+      payload.photo = form.photo;
     }
-  } catch (error) {
-    console.error("Error:", error);
-  }
-};
+
+    const url = editingId 
+      ? `${API_BASE_URL}/admin/quiz/questions/${editingId}` 
+      : `${API_BASE_URL}/admin/quiz/questions`;
+    
+    const method = editingId ? 'PUT' : 'POST';
+
+    try {
+      const res = await fetch(url, {
+        method: method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const result = await res.json();
+      if (res.ok) {
+        alert("Berhasil!");
+        resetForm();
+        fetchQuestions();
+      } else {
+        alert(`Gagal: ${result.message || "Cek konsol"}`);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
 
   const startEdit = (q: Question) => {
     setEditingId(q.id);
-    setForm({ question: q.question, explanation: q.explanation, photo: '' }); // photo dikosongkan jika tidak ingin ganti
+    setForm({ question: q.question, explanation: q.explanation, photo: '' });
   };
 
   const resetForm = () => {
@@ -114,7 +114,7 @@ const handleSubmit = async (e: React.FormEvent) => {
         {questions.map(q => (
           <div key={q.id} className="border p-4 rounded flex justify-between items-center bg-gray-50">
             <div className="flex gap-4 items-center">
-              {q.photo && <img src={`http://localhost:3000${q.photo}`} className="w-16 h-16 object-cover rounded" alt="quiz" />}
+              {q.photo && <img src={`${API_BASE_URL}${q.photo}`} className="w-16 h-16 object-cover rounded" alt="quiz" />}
               <div>
                 <p className="font-medium">{q.question}</p>
                 <p className="text-xs text-gray-500">{q.explanation}</p>
