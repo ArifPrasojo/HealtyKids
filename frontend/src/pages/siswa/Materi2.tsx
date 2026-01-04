@@ -15,6 +15,7 @@ interface ModuleItem {
   emoji: string;
   description: string;
   content: string;
+
 }
 
 const Materi2: React.FC = () => {
@@ -137,14 +138,14 @@ const Materi2: React.FC = () => {
                   Selamat! 🎉
                 </h3>
                 <p className="text-base lg:text-lg text-gray-600 mb-6">
-                  Apakah semua materi sudah Anda pahami?
+                  Anda telah mempelajari perilaku seksual. 
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3">
                   <button
                     onClick={() => setShowConfirmModal(false)}
                     className="flex-1 px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-full font-bold transition-all"
                   >
-                    Belum, Review Lagi
+                    Ulangi
                   </button>
                   <button
                     onClick={() => {
@@ -153,7 +154,7 @@ const Materi2: React.FC = () => {
                     }}
                     className="flex-1 px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-full font-bold transition-all shadow-lg"
                   >
-                    Ya, Sudah Paham
+                    Selesai
                   </button>
                 </div>
               </div>

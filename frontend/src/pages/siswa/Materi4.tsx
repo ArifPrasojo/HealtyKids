@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../../components/layouts/Layout';
 
 // ID Materi Utama untuk penyimpanan progress
-const MATERI_ID = 4; 
+const MATERI_ID = 4;
 
 interface ModuleItem {
   id: number;
@@ -12,13 +12,16 @@ interface ModuleItem {
   completed: boolean;
   emoji: string;
   description: string;
+  content: string; // Isi materi dalam bentuk text (support \n untuk baris baru)
+  images: string[]; // Array URL gambar
 }
 
-const Materi: React.FC = () => {
+const Materi4: React.FC = () => {
   const navigate = useNavigate();
-  const [currentVideo, setCurrentVideo] = useState(0); 
+  const [currentVideo, setCurrentVideo] = useState(0);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isPlaying, setIsPlaying] = useState(false);
-  
+
   // State UI
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -37,15 +40,43 @@ const Materi: React.FC = () => {
     return [];
   });
 
-  // --- DATA SIDEBAR (3 Poin Utama) ---
+  // --- DATA KONTEN (Dikonversi dari switch-case lama ke struktur baru) ---
   const sections: { id: number; items: ModuleItem[]; icon: string }[] = [
     {
       id: 1,
       icon: '⭕',
       items: [
-        { id: 1, title: 'Pengaruh Teman', duration: '5 min', completed: false, emoji: '👥', description: 'Tekanan teman sebaya' },
-        { id: 2, title: 'Rasa Penasaran', duration: '5 min', completed: false, emoji: '🤔', description: 'Keingintahuan tinggi' },
-        { id: 3, title: 'Kurangnya Pengetahuan', duration: '5 min', completed: false, emoji: '📚', description: 'Informasi yang salah' }
+        { 
+          id: 1, 
+          title: 'Pengaruh Teman', 
+          duration: '5 min', 
+          completed: false, 
+          emoji: '👥', 
+          description: 'Tekanan teman sebaya',
+          // Contoh penggunaan array gambar (kosongkan jika belum ada gambar)
+          images: [], 
+          content: `1. Pengaruh Teman Sebaya\n\nLingkungan pergaulan yang diikuti oleh seorang remaja dapat memberikan pengaruh besar terhadap perilaku teman sebayanya.\n\nMengapa pengaruh teman begitu kuat?\n\n🔹 Fakta:\nRemaja umumnya merasa bahwa tekanan dari teman sebaya lebih besar dibandingkan tekanan yang diberikan oleh pasangan.\n\n🔹 Alasan:\nHal ini terjadi karena kebutuhan untuk diterima dan diakui dalam kelompok pergaulan memiliki pengaruh yang lebih kuat dibandingkan pengaruh dari individu lain.`
+        },
+        { 
+          id: 2, 
+          title: 'Rasa Penasaran', 
+          duration: '5 min', 
+          completed: false, 
+          emoji: '🤔', 
+          description: 'Keingintahuan tinggi',
+          images: [], 
+          content: `2. Rasa Penasaran\n\n🔍 Keingintahuan Tinggi\nRemaja yang memiliki rasa penasaran yang sangat tinggi, akan mencari berbagai cara untuk memenuhi rasa ingin tahunya tersebut.\n\n⚠️ Bahaya Tanpa Sadar\nMereka mungkin melakukan hal itu meskipun ia tidak tahu atau bahkan tidak menyadari dampak dari tindakan seksual pranikah yang dilakukannya. Rasa ingin tahu tanpa bekal pengetahuan adalah risiko besar.`
+        },
+        { 
+          id: 3, 
+          title: 'Kurangnya Pengetahuan', 
+          duration: '5 min', 
+          completed: false, 
+          emoji: '📚', 
+          description: 'Informasi yang salah',
+          images: [], 
+          content: `3. Kurangnya Pengetahuan\n\nKurangnya pengetahuan dan pemahaman remaja tentang kesehatan reproduksi seksual seringkali disebabkan oleh adanya sumber informasi yang tidak tepat.\n\n❌ Info Salah\nInformasi dari teman yang salah atau internet yang tidak valid dapat menjerumuskan.\n\n✅ Pentingnya Edukasi\nRemaja yang memiliki pengetahuan yang baik serta kemampuan mengendalikan diri cenderung tidak melakukan perilaku seksual sebelum menikah.`
+        }
       ]
     },
   ];
@@ -61,7 +92,7 @@ const Materi: React.FC = () => {
 
       const saved = localStorage.getItem('materi_progress');
       const parsed = saved ? JSON.parse(saved) : {};
-      
+
       parsed[MATERI_ID] = newCompleted;
       localStorage.setItem('materi_progress', JSON.stringify(parsed));
     }
@@ -86,112 +117,10 @@ const Materi: React.FC = () => {
     }
   };
 
-  // --- RENDER CONTENT DINAMIS ---
-  const renderContent = () => {
-    switch (currentModule.id) {
-      
-      // BLOK 1: PENGARUH TEMAN SEBAYA
-      case 1: 
-        return (
-          <div className="animate-in fade-in duration-500">
-            <h3 className="font-bold text-gray-800 mb-4 text-lg lg:text-xl">1. Pengaruh Teman Sebaya</h3>
-            
-            <div className="bg-blue-50 p-6 rounded-2xl border border-blue-100 mb-6 flex flex-col items-center text-center">
-              <div className="text-6xl mb-4">👥</div>
-              <p className="text-gray-700 leading-relaxed text-sm lg:text-base text-justify">
-                Lingkungan pergaulan yang diikuti oleh seorang remaja dapat memberikan pengaruh besar terhadap perilaku teman sebayanya.
-              </p>
-            </div>
-
-            <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-              <h4 className="font-bold text-blue-800 mb-2">Mengapa pengaruh teman begitu kuat?</h4>
-              <ul className="space-y-3">
-                <li className="flex items-start">
-                  <span className="bg-blue-100 text-blue-600 p-1 rounded mr-3 text-xs mt-1">Fakta</span>
-                  <span className="text-gray-700 text-sm lg:text-base">
-                    Remaja umumnya merasa bahwa <strong>tekanan dari teman sebaya lebih besar</strong> dibandingkan tekanan yang diberikan oleh pasangan.
-                  </span>
-                </li>
-                <li className="flex items-start">
-                  <span className="bg-blue-100 text-blue-600 p-1 rounded mr-3 text-xs mt-1">Alasan</span>
-                  <span className="text-gray-700 text-sm lg:text-base">
-                    Hal ini terjadi karena kebutuhan untuk <strong>diterima dan diakui</strong> dalam kelompok pergaulan memiliki pengaruh yang lebih kuat dibandingkan pengaruh dari individu lain.
-                  </span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        );
-
-      // BLOK 2: RASA PENASARAN
-      case 2: 
-        return (
-          <div className="animate-in fade-in duration-500">
-            <h3 className="font-bold text-gray-800 mb-4 text-lg lg:text-xl">2. Rasa Penasaran</h3>
-            
-            <div className="flex flex-col md:flex-row gap-4 mb-6">
-              <div className="bg-orange-50 p-5 rounded-2xl border border-orange-100 flex-1">
-                <div className="text-4xl mb-3">🔍</div>
-                <h4 className="font-bold text-orange-800 mb-2">Keingintahuan Tinggi</h4>
-                <p className="text-gray-700 text-sm lg:text-base text-justify">
-                  Remaja yang memiliki rasa penasaran yang sangat tinggi, akan mencari berbagai cara untuk memenuhi rasa ingin tahunya tersebut.
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-red-50 p-5 rounded-2xl border border-red-100">
-              <div className="flex items-center space-x-3 mb-2">
-                <div className="text-2xl">⚠️</div>
-                <h4 className="font-bold text-red-800">Bahaya Tanpa Sadar</h4>
-              </div>
-              <p className="text-gray-700 text-sm lg:text-base text-justify">
-                Mereka mungkin melakukan hal itu meskipun ia <strong>tidak tahu</strong> atau bahkan <strong>tidak menyadari dampak</strong> dari tindakan seksual pranikah yang dilakukannya. Rasa ingin tahu tanpa bekal pengetahuan adalah risiko besar.
-              </p>
-            </div>
-          </div>
-        );
-
-      // BLOK 3: KURANGNYA PENGETAHUAN
-      case 3: 
-        return (
-          <div className="animate-in fade-in duration-500">
-            <h3 className="font-bold text-gray-800 mb-4 text-lg lg:text-xl">3. Kurangnya Pengetahuan</h3>
-            
-            <p className="text-gray-700 leading-relaxed text-sm lg:text-base text-justify mb-6">
-              Kurangnya pengetahuan dan pemahaman remaja tentang kesehatan reproduksi seksual seringkali disebabkan oleh adanya <strong>sumber informasi yang tidak tepat</strong>.
-            </p>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Box Kiri: Masalah */}
-              <div className="bg-gray-100 p-4 rounded-xl border border-gray-200">
-                <div className="text-4xl mb-2 text-center">❌</div>
-                <h4 className="font-bold text-gray-800 text-center mb-2">Info Salah</h4>
-                <p className="text-xs lg:text-sm text-gray-600 text-center">
-                  Informasi dari teman yang salah atau internet yang tidak valid dapat menjerumuskan.
-                </p>
-              </div>
-
-              {/* Box Kanan: Solusi */}
-              <div className="bg-green-50 p-4 rounded-xl border border-green-200">
-                <div className="text-4xl mb-2 text-center">✅</div>
-                <h4 className="font-bold text-green-800 text-center mb-2">Pentingnya Edukasi</h4>
-                <p className="text-xs lg:text-sm text-gray-700 text-center">
-                  Remaja yang memiliki pengetahuan yang baik serta kemampuan mengendalikan diri cenderung <strong>tidak melakukan</strong> perilaku seksual sebelum menikah.
-                </p>
-              </div>
-            </div>
-          </div>
-        );
-
-      default:
-        return <div>Konten tidak ditemukan</div>;
-    }
-  };
-
   return (
     <Layout hideLogoMobile={true}>
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-        
+
         {/* --- MODAL KONFIRMASI --- */}
         {showConfirmModal && (
           <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4">
@@ -217,12 +146,12 @@ const Materi: React.FC = () => {
                   </button>
                   <button
                     onClick={() => {
-                      saveProgress(currentVideo); 
+                      saveProgress(currentVideo);
                       navigate('/materihome');
                     }}
                     className="flex-1 px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-full font-bold transition-all shadow-lg hover:shadow-xl hover:-translate-y-1"
                   >
-                    Ya, Selesai
+                    Selesai
                   </button>
                 </div>
               </div>
@@ -245,7 +174,7 @@ const Materi: React.FC = () => {
 
           <div className="w-full">
             <div className={`grid ${isSidebarOpen ? 'lg:grid-cols-4' : 'grid-cols-1'} gap-4 md:gap-6 transition-all duration-300`}>
-              
+
               {/* --- LEFT SIDEBAR (Daftar Menu) --- */}
               {isSidebarOpen && (
                 <div className="lg:col-span-1 fixed lg:relative inset-0 lg:inset-auto z-50 lg:z-auto bg-black/50 lg:bg-transparent" onClick={(e) => {
@@ -279,22 +208,20 @@ const Materi: React.FC = () => {
                                   return (
                                     <div
                                       key={item.id}
-                                      onClick={() => { 
-                                        setCurrentVideo(flatIndex); 
+                                      onClick={() => {
+                                        setCurrentVideo(flatIndex);
                                         setIsPlaying(false);
                                         if (window.innerWidth < 1024) setIsSidebarOpen(false);
                                       }}
-                                      className={`flex items-center space-x-3 lg:space-x-4 p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-300 ${
-                                        active 
-                                          ? 'bg-gradient-to-r from-green-100 to-emerald-100 border-2 border-green-300 shadow-md' 
+                                      className={`flex items-center space-x-3 lg:space-x-4 p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-300 ${active
+                                          ? 'bg-gradient-to-r from-green-100 to-emerald-100 border-2 border-green-300 shadow-md'
                                           : 'hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 border-2 border-transparent hover:border-green-200'
-                                      }`}
+                                        }`}
                                     >
-                                      <div className={`w-6 h-6 lg:w-7 lg:h-7 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
-                                        done 
-                                          ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-md' 
+                                      <div className={`w-6 h-6 lg:w-7 lg:h-7 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-300 ${done
+                                          ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-md'
                                           : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
-                                      }`}>
+                                        }`}>
                                         {done ? (
                                           <svg className="w-4 h-4 lg:w-5 lg:h-5" fill="currentColor" viewBox="0 0 20 20">
                                             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -304,9 +231,8 @@ const Materi: React.FC = () => {
                                         )}
                                       </div>
                                       <div className="flex-1 min-w-0">
-                                        <div className={`text-sm lg:text-base font-semibold truncate transition-colors ${
-                                          active ? 'text-green-700' : 'text-gray-700'
-                                        }`}>
+                                        <div className={`text-sm lg:text-base font-semibold truncate transition-colors ${active ? 'text-green-700' : 'text-gray-700'
+                                          }`}>
                                           {item.title}
                                         </div>
                                         <div className="text-xs lg:text-sm text-gray-500 mt-1 truncate">
@@ -341,10 +267,10 @@ const Materi: React.FC = () => {
                 </div>
               )}
 
-              {/* --- RIGHT CONTENT AREA --- */}
+              {/* --- RIGHT CONTENT AREA (Dinamyc Render) --- */}
               <div className={`${isSidebarOpen ? 'lg:col-span-3' : 'col-span-1'}`}>
                 <div className="bg-white rounded-2xl lg:rounded-3xl shadow-xl border border-gray-200 overflow-hidden flex flex-col min-h-[500px]">
-                  
+
                   {/* Content Header */}
                   <div className="p-4 lg:p-6 border-b border-gray-200 flex items-center justify-between shrink-0 bg-white z-10">
                     <h1 className="text-lg lg:text-2xl font-bold text-gray-800 flex-1 pr-2">{currentModule.title}</h1>
@@ -368,32 +294,58 @@ const Materi: React.FC = () => {
                     </p>
                   </div>
 
-                  {/* DYNAMIC CONTENT AREA */}
+                  {/* DYNAMIC CONTENT BODY */}
                   <div className="flex-1 p-6 lg:p-8 overflow-y-auto">
-                    {renderContent()}
+                    <div className="animate-in fade-in duration-500">
+                      
+                      {/* Judul Konten */}
+                      <h3 className="font-bold text-gray-800 mb-4 text-lg lg:text-xl">
+                         {currentModule.title}
+                      </h3>
+                      
+                      {/* Render Gambar (Jika Ada) */}
+                      {currentModule.images && currentModule.images.length > 0 && (
+                        <div className={`grid gap-4 mb-6 ${currentModule.images.length > 1 ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'}`}>
+                          {currentModule.images.map((img, index) => (
+                            <img 
+                              key={index} 
+                              src={img} 
+                              alt={`Ilustrasi ${index + 1}`} 
+                              className="rounded-xl shadow-md w-full object-cover border border-gray-100"
+                            />
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Render Text Content (dengan whitespace-pre-line) */}
+                      <div className="text-gray-700 leading-relaxed text-sm lg:text-base text-justify whitespace-pre-line">
+                        {currentModule.content}
+                      </div>
+
+                    </div>
                   </div>
 
                   {/* Footer Navigation */}
                   <div className="p-4 lg:p-6 border-t border-gray-200 flex items-center justify-between gap-3 shrink-0 bg-gray-50">
-                    <button 
+                    <button
                       onClick={handlePreviousLesson}
                       disabled={currentVideo === 0}
                       className="disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 transition-transform"
                     >
-                      <img 
-                        src="/src/assets/icons/kembali.svg" 
-                        alt="Kembali" 
+                      <img
+                        src="/src/assets/icons/kembali.svg"
+                        alt="Kembali"
                         className="h-12 lg:h-14 w-auto"
                       />
                     </button>
 
-                    <button 
+                    <button
                       onClick={handleNextLesson}
                       className="hover:scale-105 transition-transform"
                     >
-                      <img 
-                        src="/src/assets/icons/lanjut.svg" 
-                        alt="Lanjut" 
+                      <img
+                        src="/src/assets/icons/lanjut.svg"
+                        alt="Lanjut"
                         className="h-12 lg:h-14 w-auto"
                       />
                     </button>
@@ -409,4 +361,4 @@ const Materi: React.FC = () => {
   );
 };
 
-export default Materi;
+export default Materi4;

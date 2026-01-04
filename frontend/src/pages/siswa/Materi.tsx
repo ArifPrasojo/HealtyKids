@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../../components/layouts/Layout';
 
@@ -12,11 +12,14 @@ interface ModuleItem {
   completed: boolean;
   emoji: string;
   description: string;
+  content: string; // Isi materi text dengan format \n untuk baris baru
+  images: string[]; // Array URL gambar
 }
 
 const Materi: React.FC = () => {
   const navigate = useNavigate();
-  const [currentVideo, setCurrentVideo] = useState(0); // Index aktif (0, 1, atau 2)
+  const [currentVideo, setCurrentVideo] = useState(0);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isPlaying, setIsPlaying] = useState(false);
   
   // State UI
@@ -37,15 +40,42 @@ const Materi: React.FC = () => {
     return [];
   });
 
-  // --- DATA SIDEBAR (3 Blok Sub-bab) ---
+  // --- DATA KONTEN ---
   const sections: { id: number; items: ModuleItem[]; icon: string }[] = [
     {
       id: 1,
       icon: '⭕',
       items: [
-        { id: 1, title: 'Definisi Remaja', duration: '5 min', completed: false, emoji: '📘', description: 'Pengertian masa remaja' },
-        { id: 2, title: 'Definisi Pubertas', duration: '5 min', completed: false, emoji: '📜', description: 'Pengertian pubertas' },
-        { id: 3, title: 'Tanda Pubertas', duration: '5 min', completed: false, emoji: '🖼️', description: 'Ilustrasi tanda pubertas' }
+        { 
+          id: 1, 
+          title: 'Definisi Remaja', 
+          duration: '5 min', 
+          completed: false, 
+          emoji: '📘', 
+          description: 'Pengertian masa remaja',
+          images: [],
+          content: `Remaja adalah masa peralihan atau masa transisi dari anak menuju masa dewasa. Ini adalah fase di mana individu mengalami pertumbuhan dan perkembangan fisik maupun mental yang sangat pesat.\n\nSecara psikologis, masa remaja ditandai dengan:\n\n🔸 Pengembangan Proses Berpikir: Mulai mengembangkan proses berpikir operasional formal dan berpikir abstrak.\n\n🔸 Pengambilan Keputusan: Belajar membayangkan dan mempertimbangkan konsekuensi dari tindakannya.\n\n🔸 Pembentukan Diri: Munculnya rasa identitas diri yang kuat.\n\n🔸 Aspek Sosial: Meningkatnya keterlibatan sosial dan interaksi dengan teman sebaya.\n\n🔸 Kesadaran Seksual: Mulai adanya kesadaran akan seksualitasnya.`
+        },
+        { 
+          id: 2, 
+          title: 'Definisi Pubertas', 
+          duration: '5 min', 
+          completed: false, 
+          emoji: '📜', 
+          description: 'Pengertian pubertas',
+          images: [],
+          content: `Pubertas adalah tahapan dalam perkembangan yang dialami anak-anak, di mana mereka mengalami perubahan dari makhluk aseksual menjadi makhluk seksual.\n\nPada tahap ini, remaja mengalami proses kematangan seksual secara pesat. Tubuh mulai memproduksi hormon-hormon seksual yang memicu perubahan fisik dan emosional, yang ditandai dengan munculnya berbagai tanda pubertas (sekunder dan primer).`
+        },
+        { 
+          id: 3, 
+          title: 'Tanda Pubertas', 
+          duration: '5 min', 
+          completed: false, 
+          emoji: '🖼️', 
+          description: 'Ilustrasi tanda pubertas',
+          images: ['/src/assets/images/foto.png'], 
+          content: `Berikut adalah ilustrasi mengenai tanda-tanda pubertas yang terjadi pada remaja.\n\nPerubahan ini meliputi perubahan fisik yang terlihat (sekunder) maupun kematangan organ reproduksi (primer).`
+        },
       ]
     },
   ];
@@ -86,78 +116,11 @@ const Materi: React.FC = () => {
     }
   };
 
-  // --- RENDER CONTENT DINAMIS ---
-  // Fungsi ini menentukan apa yang tampil berdasarkan ID item yang sedang aktif
-  const renderContent = () => {
-    switch (currentModule.id) {
-      case 1: // BLOK 1: DEFINISI REMAJA
-        return (
-          <div className="animate-in fade-in duration-500">
-            <h3 className="font-bold text-gray-800 mb-4 text-lg lg:text-xl">1. Definisi Remaja</h3>
-            <p className="text-gray-700 leading-relaxed text-sm lg:text-base text-justify">
-              Remaja adalah masa peralihan atau masa transisi dari anak menuju masa dewasa. Ini adalah fase di mana individu mengalami pertumbuhan dan perkembangan fisik maupun mental yang sangat pesat.
-            </p>
-            <div className="mt-4 bg-blue-50 p-4 rounded-xl border border-blue-100">
-              <p className="font-semibold text-gray-800 mb-2">Secara psikologis, masa remaja ditandai dengan:</p>
-              <ul className="list-disc list-inside space-y-2 text-gray-700 text-sm lg:text-base ml-2">
-                <li><span className="font-medium">Pengembangan Proses Berpikir:</span> Mulai mengembangkan proses berpikir operasional formal dan berpikir abstrak.</li>
-                <li><span className="font-medium">Pengambilan Keputusan:</span> Belajar membayangkan dan mempertimbangkan konsekuensi dari tindakannya.</li>
-                <li><span className="font-medium">Pembentukan Diri:</span> Munculnya rasa identitas diri yang kuat.</li>
-                <li><span className="font-medium">Aspek Sosial:</span> Meningkatnya keterlibatan sosial dan interaksi dengan teman sebaya.</li>
-                <li><span className="font-medium">Kesadaran Seksual:</span> Mulai adanya kesadaran akan seksualitasnya.</li>
-              </ul>
-            </div>
-          </div>
-        );
-
-      case 2: // BLOK 2: DEFINISI PUBERTAS
-        return (
-          <div className="animate-in fade-in duration-500">
-            <h3 className="font-bold text-gray-800 mb-4 text-lg lg:text-xl">2. Definisi Pubertas</h3>
-            <p className="text-gray-700 leading-relaxed text-sm lg:text-base text-justify mb-4">
-              Pubertas adalah tahapan dalam perkembangan yang dialami anak-anak, di mana mereka mengalami perubahan dari makhluk aseksual menjadi makhluk seksual.
-            </p>
-            <div className="bg-green-50 p-4 rounded-xl border border-green-100">
-              <p className="text-gray-700 leading-relaxed text-sm lg:text-base">
-                Pada tahap ini, remaja mengalami proses <strong>kematangan seksual</strong> secara pesat. Tubuh mulai memproduksi hormon-hormon seksual yang memicu perubahan fisik dan emosional, yang ditandai dengan munculnya berbagai tanda pubertas (sekunder dan primer).
-              </p>
-            </div>
-          </div>
-        );
-
-      case 3: // BLOK 3: GAMBAR (TANDA PUBERTAS)
-        return (
-          <div className="animate-in fade-in duration-500 flex flex-col items-center justify-center h-full">
-            <h3 className="font-bold text-gray-800 mb-4 text-lg lg:text-xl self-start">3. Ilustrasi Tanda Pubertas</h3>
-            <div className="w-full bg-gray-100 rounded-2xl p-4 border border-gray-200 shadow-inner">
-              <img 
-                src="/src/assets/images/foto.png"
-                alt="Ilustrasi Tanda Pubertas"
-                className="rounded-xl mx-auto shadow-sm hover:scale-105 transition-transform duration-500"
-                style={{
-                  maxWidth: '100%',
-                  height: 'auto',
-                  maxHeight: '400px', // Membatasi tinggi agar pas di layar
-                  objectFit: 'contain'
-                }}
-              />
-            </div>
-            <p className="mt-4 text-center text-gray-500 text-sm">
-              Perhatikan gambar di atas untuk memahami perubahan fisik yang terjadi.
-            </p>
-          </div>
-        );
-
-      default:
-        return <div>Konten tidak ditemukan</div>;
-    }
-  };
-
   return (
     <Layout hideLogoMobile={true}>
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
         
-        {/* --- MODAL KONFIRMASI (Tampil di akhir Slide 3) --- */}
+        {/* --- MODAL KONFIRMASI --- */}
         {showConfirmModal && (
           <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4">
             <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 lg:p-8 transform transition-all animate-in fade-in zoom-in duration-300">
@@ -171,7 +134,7 @@ const Materi: React.FC = () => {
                   Selamat! 🎉
                 </h3>
                 <p className="text-base lg:text-lg text-gray-600 mb-6">
-                  Anda telah menyelesaikan bab ini. Lanjut ke menu utama?
+                  Anda telah mempelajari Masa Remaja dan Pubertas
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3">
                   <button
@@ -187,7 +150,7 @@ const Materi: React.FC = () => {
                     }}
                     className="flex-1 px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-full font-bold transition-all shadow-lg hover:shadow-xl hover:-translate-y-1"
                   >
-                    Ya, Selesai
+                    Selesai
                   </button>
                 </div>
               </div>
@@ -306,7 +269,7 @@ const Materi: React.FC = () => {
                 </div>
               )}
 
-              {/* --- RIGHT CONTENT AREA (Konten Berubah Sesuai ID) --- */}
+              {/* --- RIGHT CONTENT AREA (Konten Dinamis) --- */}
               <div className={`${isSidebarOpen ? 'lg:col-span-3' : 'col-span-1'}`}>
                 <div className="bg-white rounded-2xl lg:rounded-3xl shadow-xl border border-gray-200 overflow-hidden flex flex-col min-h-[500px]">
                   
@@ -326,16 +289,52 @@ const Materi: React.FC = () => {
                     )}
                   </div>
 
-                  {/* Reminder Box (Selalu muncul di atas) */}
+                  {/* Reminder Box */}
                   <div className="p-3 lg:p-4 bg-yellow-50 border-b border-yellow-200 shrink-0">
                     <p className="text-center text-gray-700 font-medium text-xs lg:text-sm">
                       <span className="text-yellow-600">💡</span> Info: Pelajari setiap bagian sebelum menekan tombol Lanjut.
                     </p>
                   </div>
 
-                  {/* DYNAMIC CONTENT AREA */}
+                  {/* DYNAMIC CONTENT RENDERING (Updated: Not Centered) */}
                   <div className="flex-1 p-6 lg:p-8 overflow-y-auto">
-                    {renderContent()}
+                    {/* Hapus 'mx-auto' dan 'max-w' agar konten melebar penuh dan rata kiri */}
+                    <div className="animate-in fade-in duration-500 w-full">
+                      
+                      {/* Render Images */}
+                      {currentModule.images && currentModule.images.length > 0 && (
+                        <div className="mb-8 grid gap-6">
+                           {currentModule.images.map((imgSrc, index) => (
+                             <div key={index} className="w-full bg-gray-100 rounded-2xl p-2 border border-gray-200 shadow-inner">
+                               <img 
+                                 src={imgSrc}
+                                 alt={`Ilustrasi ${currentModule.title} ${index + 1}`}
+                                 className="rounded-xl mx-auto shadow-sm hover:scale-[1.02] transition-transform duration-500"
+                                 style={{
+                                   maxWidth: '100%',
+                                   height: 'auto',
+                                   maxHeight: '400px',
+                                   objectFit: 'contain'
+                                 }}
+                               />
+                             </div>
+                           ))}
+                        </div>
+                      )}
+
+                      {/* Render Text Content */}
+                      <div className="prose prose-lg max-w-none">
+                        {currentModule.content.split('\n').map((paragraph, index) => (
+                          paragraph.trim() ? (
+                            // Menggunakan text-left alih-alih text-justify/center
+                            <p key={index} className="text-gray-700 leading-relaxed text-sm lg:text-base text-left mb-4">
+                              {paragraph}
+                            </p>
+                          ) : <br key={index} />
+                        ))}
+                      </div>
+
+                    </div>
                   </div>
 
                   {/* Footer Navigation */}

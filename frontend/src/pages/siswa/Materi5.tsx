@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../../components/layouts/Layout';
 
 // ID Materi untuk "Cara Mencegah"
-const MATERI_ID = 5; 
+const MATERI_ID = 5;
 
 interface ModuleItem {
   id: number;
@@ -12,13 +12,16 @@ interface ModuleItem {
   completed: boolean;
   emoji: string;
   description: string;
+  content: string; // Isi materi dalam bentuk text (support \n untuk baris baru)
+  images: string[]; // Array URL gambar
 }
 
 const Materi5: React.FC = () => {
   const navigate = useNavigate();
-  const [currentVideo, setCurrentVideo] = useState(0); 
+  const [currentVideo, setCurrentVideo] = useState(0);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isPlaying, setIsPlaying] = useState(false);
-  
+
   // State UI
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -37,17 +40,62 @@ const Materi5: React.FC = () => {
     return [];
   });
 
-  // --- DATA SIDEBAR (5 Poin Pencegahan) ---
+  // --- DATA KONTEN (Dikonversi ke Struktur Data) ---
   const sections: { id: number; items: ModuleItem[]; icon: string }[] = [
     {
       id: 1,
       icon: '🛡️',
       items: [
-        { id: 1, title: 'Kegiatan Positif', duration: '3 min', completed: false, emoji: '🏃‍♂️', description: 'Manfaatkan waktu luang' },
-        { id: 2, title: 'Hindari Pemicu', duration: '3 min', completed: false, emoji: '🚫', description: 'Jauhi dorongan seksual' },
-        { id: 3, title: 'Batasan Diri', duration: '3 min', completed: false, emoji: '🚧', description: 'Prinsip remaja bijak' },
-        { id: 4, title: 'Ingat Masa Depan', duration: '3 min', completed: false, emoji: '🎓', description: 'Pola pikir jangka panjang' },
-        { id: 5, title: 'Cari Informasi', duration: '3 min', completed: false, emoji: 'ℹ️', description: 'Sumber valid & Faskes' }
+        { 
+          id: 1, 
+          title: 'Kegiatan Positif', 
+          duration: '3 min', 
+          completed: false, 
+          emoji: '🏃‍♂️', 
+          description: 'Manfaatkan waktu luang',
+          images: [], // Masukkan URL gambar di sini jika ada, contoh: ['/assets/img/sport.jpg']
+          content: `1. Lakukan Kegiatan Positif\n\nManfaatkan waktu luang kamu untuk kegiatan positif seperti olahraga, melakukan hobi yang kamu suka, belajar, atau juga bisa dengan bergabung dengan aktivitas di luar rumah lainnya.\n\n💡 Contoh Aktivitas Positif:\n🍳 Memasak\n📚 Belajar\n⚽ Olahraga\n💬 Berdiskusi`
+        },
+        { 
+          id: 2, 
+          title: 'Hindari Pemicu', 
+          duration: '3 min', 
+          completed: false, 
+          emoji: '🚫', 
+          description: 'Jauhi dorongan seksual',
+          images: [],
+          content: `2. Hindari Aktivitas Pemicu\n\n🔞 Jauhi Dorongan Seksual\nHindari hal-hal yang dapat memancing hasrat yang belum saatnya.\n\nApa saja yang harus dihindari?\n❌ Meraba-raba tubuh pasangan.\n❌ Menonton video porno.\n❌ Membayangkan hal-hal yang berbau pornografi.`
+        },
+        { 
+          id: 3, 
+          title: 'Batasan Diri', 
+          duration: '3 min', 
+          completed: false, 
+          emoji: '🚧', 
+          description: 'Prinsip remaja bijak',
+          images: [],
+          content: `3. Buat Batasan Bagi Diri Sendiri\n\n🧠 Jadilah Remaja Bijak!\n"Kamu harus mempunyai batasan-batasan yang harus ditaati dan mampu membedakan mana yang benar dan mana yang tidak seharusnya dilakukan."\n\n✅ Manfaat:\nBatasan tersebut dapat menjauhkan kamu dari perbuatan negatif dan penyesalan di kemudian hari.`
+        },
+        { 
+          id: 4, 
+          title: 'Ingat Masa Depan', 
+          duration: '3 min', 
+          completed: false, 
+          emoji: '🎓', 
+          description: 'Pola pikir jangka panjang',
+          images: [],
+          content: `4. Selalu Ingat Masa Depan\n\nMasa depanmu masih sangat panjang. Jangan korbankan impian besar hanya untuk kesenangan sesaat.\n\n💡 Pola Pikir Jangka Panjang\nDengan menanamkan mindset ini, kita akan berpikir berkali-kali sebelum melakukan hal negatif.\n\n🎓 Fokus pada Risiko\nSelalu pertimbangkan risiko (kehamilan, penyakit, putus sekolah) di masa yang akan datang.`
+        },
+        { 
+          id: 5, 
+          title: 'Cari Informasi', 
+          duration: '3 min', 
+          completed: false, 
+          emoji: 'ℹ️', 
+          description: 'Sumber valid & Faskes',
+          images: [],
+          content: `5. Cari Informasi Kesehatan yang Benar\n\nZaman sekarang informasi dapat dicari melalui genggaman saja. Namun, hati-hati dengan hoax!\n\n📱 Media Digital\nPastikan kamu mendapatkan informasi dari sumber yang valid dan terpercaya (seperti website kemkes atau jurnal ilmiah).\n\n🏥 Fasilitas Kesehatan\nJika ingin berinteraksi langsung, jangan ragu datang ke Puskesmas atau fasilitas kesehatan terdekat.`
+        }
       ]
     },
   ];
@@ -88,169 +136,6 @@ const Materi5: React.FC = () => {
     }
   };
 
-  // --- RENDER CONTENT DINAMIS ---
-  const renderContent = () => {
-    switch (currentModule.id) {
-      
-      // 1. KEGIATAN POSITIF
-      case 1: 
-        return (
-          <div className="animate-in fade-in duration-500">
-            <h3 className="font-bold text-gray-800 mb-4 text-lg lg:text-xl">1. Lakukan Kegiatan Positif</h3>
-            <p className="text-gray-700 leading-relaxed text-sm lg:text-base text-justify mb-6">
-              Manfaatkan waktu luang kamu untuk kegiatan positif seperti olahraga, melakukan hobi yang kamu suka, belajar, atau juga bisa dengan bergabung dengan aktivitas di luar rumah lainnya.
-            </p>
-            
-            {/* Visualisasi untuk menggantikan gambar aktivitas */}
-            <div className="bg-blue-50 p-6 rounded-2xl border border-blue-100">
-              <h4 className="text-center font-bold text-blue-800 mb-4">Contoh Aktivitas Positif</h4>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-white p-3 rounded-xl text-center shadow-sm">
-                  <div className="text-3xl mb-2">🍳</div>
-                  <span className="text-xs font-bold text-gray-600">Memasak</span>
-                </div>
-                <div className="bg-white p-3 rounded-xl text-center shadow-sm">
-                  <div className="text-3xl mb-2">📚</div>
-                  <span className="text-xs font-bold text-gray-600">Belajar</span>
-                </div>
-                <div className="bg-white p-3 rounded-xl text-center shadow-sm">
-                  <div className="text-3xl mb-2">⚽</div>
-                  <span className="text-xs font-bold text-gray-600">Olahraga</span>
-                </div>
-                <div className="bg-white p-3 rounded-xl text-center shadow-sm">
-                  <div className="text-3xl mb-2">💬</div>
-                  <span className="text-xs font-bold text-gray-600">Berdiskusi</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-
-      // 2. HINDARI PEMICU
-      case 2: 
-        return (
-          <div className="animate-in fade-in duration-500">
-            <h3 className="font-bold text-gray-800 mb-4 text-lg lg:text-xl">2. Hindari Aktivitas Pemicu</h3>
-            
-            <div className="bg-red-50 p-6 rounded-2xl border border-red-100 mb-6 flex flex-col items-center text-center">
-              <div className="text-5xl mb-4">🔞</div>
-              <h4 className="font-bold text-red-800 mb-2">Jauhi Dorongan Seksual</h4>
-              <p className="text-gray-700 text-sm lg:text-base">
-                Hindari hal-hal yang dapat memancing hasrat yang belum saatnya.
-              </p>
-            </div>
-
-            <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
-              <h4 className="font-bold text-gray-800 mb-3 border-b pb-2">Apa saja yang harus dihindari?</h4>
-              <ul className="space-y-4">
-                <li className="flex items-start bg-gray-50 p-3 rounded-lg">
-                  <span className="text-red-500 mr-3 text-xl">❌</span>
-                  <span className="text-gray-700 text-sm">Meraba-raba tubuh pasangan.</span>
-                </li>
-                <li className="flex items-start bg-gray-50 p-3 rounded-lg">
-                  <span className="text-red-500 mr-3 text-xl">❌</span>
-                  <span className="text-gray-700 text-sm">Menonton video porno.</span>
-                </li>
-                <li className="flex items-start bg-gray-50 p-3 rounded-lg">
-                  <span className="text-red-500 mr-3 text-xl">❌</span>
-                  <span className="text-gray-700 text-sm">Membayangkan hal-hal yang berbau pornografi.</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        );
-
-      // 3. BATASAN DIRI
-      case 3: 
-        return (
-          <div className="animate-in fade-in duration-500">
-            <h3 className="font-bold text-gray-800 mb-4 text-lg lg:text-xl">3. Buat Batasan Bagi Diri Sendiri</h3>
-            
-            <div className="bg-gradient-to-r from-purple-500 to-indigo-600 p-6 rounded-2xl text-white mb-6 shadow-lg relative overflow-hidden">
-              <div className="relative z-10">
-                <h4 className="text-lg font-bold mb-2">Jadilah Remaja Bijak! 🧠</h4>
-                <p className="text-sm opacity-90 leading-relaxed">
-                  "Kamu harus mempunyai batasan-batasan yang harus ditaati dan mampu membedakan mana yang benar dan mana yang tidak seharusnya dilakukan."
-                </p>
-              </div>
-              <div className="absolute right-[-20px] bottom-[-20px] text-9xl opacity-10">🛡️</div>
-            </div>
-
-            <div className="bg-green-50 p-4 rounded-xl border-l-4 border-green-500">
-              <p className="text-gray-700 text-sm lg:text-base text-justify">
-                <strong>Manfaat:</strong> Batasan tersebut dapat menjauhkan kamu dari perbuatan negatif dan penyesalan di kemudian hari.
-              </p>
-            </div>
-          </div>
-        );
-
-      // 4. INGAT MASA DEPAN
-      case 4: 
-        return (
-          <div className="animate-in fade-in duration-500">
-            <h3 className="font-bold text-gray-800 mb-4 text-lg lg:text-xl">4. Selalu Ingat Masa Depan</h3>
-            
-            <p className="text-gray-700 leading-relaxed text-sm lg:text-base text-justify mb-6">
-              Masa depanmu masih sangat panjang. Jangan korbankan impian besar hanya untuk kesenangan sesaat.
-            </p>
-
-            <div className="flex flex-col gap-4">
-              <div className="bg-yellow-50 p-5 rounded-2xl border border-yellow-200">
-                <div className="flex items-center space-x-3 mb-2">
-                  <div className="text-2xl">💡</div>
-                  <h4 className="font-bold text-yellow-800">Pola Pikir Jangka Panjang</h4>
-                </div>
-                <p className="text-gray-700 text-sm text-justify">
-                  Dengan menanamkan mindset ini, kita akan <strong>berpikir berkali-kali</strong> sebelum melakukan hal negatif.
-                </p>
-              </div>
-
-              <div className="bg-white p-5 rounded-2xl border border-gray-200 text-center">
-                <div className="text-5xl mb-3">🎓</div>
-                <h4 className="font-bold text-gray-800">Fokus pada Risiko</h4>
-                <p className="text-gray-600 text-xs mt-2">
-                  Selalu pertimbangkan risiko (kehamilan, penyakit, putus sekolah) di masa yang akan datang.
-                </p>
-              </div>
-            </div>
-          </div>
-        );
-
-      // 5. CARI INFORMASI
-      case 5: 
-        return (
-          <div className="animate-in fade-in duration-500">
-            <h3 className="font-bold text-gray-800 mb-4 text-lg lg:text-xl">5. Cari Informasi Kesehatan yang Benar</h3>
-            
-            <p className="text-gray-700 leading-relaxed text-sm lg:text-base text-justify mb-6">
-              Zaman sekarang informasi dapat dicari melalui genggaman saja. Namun, hati-hati dengan hoax!
-            </p>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-blue-50 p-5 rounded-2xl border border-blue-100 flex flex-col items-center text-center">
-                <div className="text-4xl mb-3">📱</div>
-                <h4 className="font-bold text-blue-800 mb-2">Media Digital</h4>
-                <p className="text-xs text-gray-600">
-                  Pastikan kamu mendapatkan informasi dari sumber yang <strong>valid dan terpercaya</strong> (seperti website kemkes atau jurnal ilmiah).
-                </p>
-              </div>
-
-              <div className="bg-green-50 p-5 rounded-2xl border border-green-100 flex flex-col items-center text-center">
-                <div className="text-4xl mb-3">🏥</div>
-                <h4 className="font-bold text-green-800 mb-2">Fasilitas Kesehatan</h4>
-                <p className="text-xs text-gray-600">
-                  Jika ingin berinteraksi langsung, jangan ragu datang ke <strong>Puskesmas</strong> atau fasilitas kesehatan terdekat.
-                </p>
-              </div>
-            </div>
-          </div>
-        );
-
-      default:
-        return <div>Konten tidak ditemukan</div>;
-    }
-  };
-
   return (
     <Layout hideLogoMobile={true}>
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
@@ -269,7 +154,7 @@ const Materi5: React.FC = () => {
                   Luar Biasa! 🛡️
                 </h3>
                 <p className="text-base lg:text-lg text-gray-600 mb-6">
-                  Kamu sudah mempelajari cara mencegah perilaku berisiko. Terapkan dalam keseharianmu ya!
+                  Anda sudah mempelajari cara mencegah perilaku berisiko.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3">
                   <button
@@ -339,6 +224,7 @@ const Materi5: React.FC = () => {
                                   const flatIndex = flatModules.findIndex(m => m.id === item.id);
                                   const active = flatIndex === currentVideo;
                                   const done = item.completed || completedVideos.includes(flatIndex);
+                                  
                                   return (
                                     <div
                                       key={item.id}
@@ -404,7 +290,7 @@ const Materi5: React.FC = () => {
                 </div>
               )}
 
-              {/* --- RIGHT CONTENT AREA --- */}
+              {/* --- RIGHT CONTENT AREA (DYNAMIC) --- */}
               <div className={`${isSidebarOpen ? 'lg:col-span-3' : 'col-span-1'}`}>
                 <div className="bg-white rounded-2xl lg:rounded-3xl shadow-xl border border-gray-200 overflow-hidden flex flex-col min-h-[500px]">
                   
@@ -431,9 +317,34 @@ const Materi5: React.FC = () => {
                     </p>
                   </div>
 
-                  {/* DYNAMIC CONTENT AREA */}
-                  <div className="flex-1 p-6 lg:p-8 overflow-y-auto">
-                    {renderContent()}
+                  {/* DYNAMIC CONTENT RENDERER */}
+                  <div className="flex-1 p-6 lg:p-8 overflow-y-auto animate-in fade-in duration-500">
+                    
+                    {/* Render Images if available */}
+                    {currentModule.images.length > 0 && (
+                       <div className={`grid grid-cols-1 ${currentModule.images.length > 1 ? 'md:grid-cols-2' : ''} gap-4 mb-6`}>
+                         {currentModule.images.map((img, idx) => (
+                           <div key={idx} className="rounded-2xl overflow-hidden shadow-lg border border-gray-100">
+                             <img src={img} alt={`Visual ${idx+1}`} className="w-full h-auto object-cover" />
+                           </div>
+                         ))}
+                       </div>
+                    )}
+
+                    {/* Render Text Content (split by new lines) */}
+                    <div className="prose prose-sm lg:prose-base max-w-none text-gray-700">
+                        {currentModule.content.split('\n').map((line, index) => {
+                            // Render kosong jika double newline (spasi antar paragraf)
+                            if (line.trim() === '') return <br key={index} />;
+                            
+                            // Render list atau poin penting dengan style berbeda jika diperlukan
+                            return (
+                                <p key={index} className="leading-relaxed text-justify mb-2">
+                                    {line}
+                                </p>
+                            );
+                        })}
+                    </div>
                   </div>
 
                   {/* Footer Navigation */}
