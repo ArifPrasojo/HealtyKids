@@ -53,7 +53,7 @@ const Materi3: React.FC = () => {
           completed: false, 
           emoji: '🦠', 
           description: 'Infeksi Gonore (Kencing Nanah)',
-          images: ['/src/assets/images/image_2a0aed.png'],
+          images: ['/src/assets/images/Gonore.jpg'],
           content: `A. Infeksi Menular Seksual (IMS)\nInfeksi menular seksual adalah jenis infeksi yang dapat menyebar melalui berbagai jenis hubungan seksual, yaitu vaginal, oral, dan anal.\n\nGonore (Kencing Nanah)\nGonore dapat menyebabkan infeksi di uretra, serviks, anus, atau tenggorokan, tergantung pada jenis hubungan seks yang dilakukan.`
         },
         { 
@@ -63,7 +63,7 @@ const Materi3: React.FC = () => {
           completed: false, 
           emoji: '✋', 
           description: 'Infeksi Sifilis (Raja Singa)',
-          images: ['/src/assets/images/image_2a0daf.png'],
+          images: ['/src/assets/images/Sifilis.jpg'],
           content: `B. Sifilis (Raja Singa)\nSifilis dapat menyerang berbagai bagian tubuh seperti selaput lendir, anus, bibir, lidah, dan mulut.\n\nPenyebaran sifilis terutama terjadi melalui hubungan seksual, baik secara genital, oral maupun anal, dan dapat menyerang baik pria maupun wanita.`
         },
         { 
@@ -73,7 +73,7 @@ const Materi3: React.FC = () => {
           completed: false, 
           emoji: '🤕', 
           description: 'Infeksi Herpes pada area genital',
-          images: ['/src/assets/images/image_2a0dcd.png'],
+          images: ['/src/assets/images/Genital.jpg'],
           content: `C. Herpes Genital\nHerpes genital merupakan bintil-bintil berisi cairan dan terasa nyeri di area kemaluan.\n\n• Dapat menular melalui hubungan seksual secara berlebihan.\n• Catatan: Tidak semua herpes disebabkan karena perilaku seksual, namun herpes genital spesifik menyerang area kelamin.`
         },
         { 
@@ -83,7 +83,7 @@ const Materi3: React.FC = () => {
           completed: false, 
           emoji: '🏵️', 
           description: 'Virus Kutil & Kanker Serviks',
-          images: ['/src/assets/images/image_2a0dd5.png'],
+          images: ['/src/assets/images/hpv.jpg'],
           content: `D. HPV (Human Papilloma Virus)\nHPV merupakan virus yang menyerang kulit yang dapat menyebabkan munculnya kutil pada area genital.\n\nBahaya Kanker Serviks:\nHPV menjadi penyebab utama dari kanker serviks pada wanita. Saat ini, Kemenkes RI sedang menggalakkan program eliminasi kanker serviks akibat banyak kasus yang terdeteksi setiap tahunnya.`
         },
         { 
@@ -103,7 +103,7 @@ const Materi3: React.FC = () => {
           completed: false, 
           emoji: '⏳', 
           description: 'Tahapan infeksi HIV',
-          images: ['/src/assets/images/image_2a0e0c.png'],
+          images: ['/src/assets/images/HIV.jpg'],
           content: `Tahapan Penularan (Periode Jendela)\nProses perjalanan virus HIV dalam tubuh:\n\n1. Tahap Awal (2 Minggu - 6 Bulan)\nPeriode jendela. Pada 2-3 minggu awal, muncul gejala seperti flu biasa.\n\n2. Tahap HIV+ (3 - 10 Tahun)\nTampak sehat dan dapat beraktivitas seperti biasa tanpa gejala (Masa Inkubasi).\n\n3. Tahap AIDS (1 - 2 Tahun Akhir)\nTimbul infeksi oportunistik. Gejala: diare kronis, berat badan turun drastis, demam berkepanjangan, gangguan saraf.`
         },
         { 
