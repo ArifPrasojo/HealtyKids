@@ -172,9 +172,8 @@ const MateriHome: React.FC<MateriHomeProps> = ({ onLogout }) => {
                   <div className="mb-4">
                     <div className={`w-16 h-16 bg-gradient-to-br ${materi.color} rounded-2xl flex items-center justify-center shadow-lg`}>
                       <span className="text-3xl">{materi.icon}</span>
-                    </div>
+                    </div> 
                   </div>
-
                   {/* Content */}
                   <h3 className="text-xl font-bold text-gray-800 mb-2">
                     {materi.title}
@@ -225,7 +224,7 @@ const MateriHome: React.FC<MateriHomeProps> = ({ onLogout }) => {
         </div>
 
         {/* Bottom Decoration */}
-        <div className="h-16 bg-gradient-to-t from-green-100 to-transparent mt-12"></div>
+        {/* <div className="h-16 bg-gradient-to-t from-green-100 to-transparent mt-12"></div> */}
       </div>
     </Layout>
   );

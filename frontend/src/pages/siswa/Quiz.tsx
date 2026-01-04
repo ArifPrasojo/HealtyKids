@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom'; // Tambah import
+import { useNavigate } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
 import CloudBackground from '../../components/layouts/CloudBackground';
 
@@ -11,35 +11,61 @@ interface QuizQuestion {
 }
 
 const Quiz: React.FC = () => {
-  const navigate = useNavigate(); // Tambah navigate
+  const navigate = useNavigate();
 
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [selectedAnswers, setSelectedAnswers] = useState<number[]>(new Array(25).fill(-1)); // -1 berarti belum dijawab
+  const [selectedAnswers, setSelectedAnswers] = useState<number[]>(new Array(25).fill(-1));
   const [showResults, setShowResults] = useState(false);
   const [score, setScore] = useState(0);
   const [totalXP, setTotalXP] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(1200); // 10 menit dalam detik
+  const [timeLeft, setTimeLeft] = useState(1200);
+  const [isPaused, setIsPaused] = useState(false);
+  const [pauseTimeRemaining, setPauseTimeRemaining] = useState(300);
 
   // Timer effect
   useEffect(() => {
-    if (timeLeft > 0) {
+    if (timeLeft > 0 && !isPaused) {
       const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
       return () => clearTimeout(timer);
-    } else {
-      // Waktu habis, submit quiz otomatis
+    } else if (timeLeft === 0) {
       handleSubmitQuiz();
     }
-  }, [timeLeft]);
+  }, [timeLeft, isPaused]);
 
-  // Format waktu ke MM:SS
+  // Pause timer effect - countdown waktu jeda
+  useEffect(() => {
+    if (isPaused && pauseTimeRemaining > 0) {
+      const interval = setInterval(() => {
+        setPauseTimeRemaining(prev => {
+          if (prev <= 1) {
+            handleResume();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [isPaused, pauseTimeRemaining]);
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const handlePause = () => {
+    if (pauseTimeRemaining > 0) {
+      setIsPaused(true);
+    }
+  };
+
+  const handleResume = () => {
+    setIsPaused(false);
+  };
+
   const questions: QuizQuestion[] = [
-{
+    {
       id: 1,
       question: "Masa remaja dikenal sebagai masa transisi. Transisi apakah yang sedang dialami remaja?",
       options: [
@@ -194,7 +220,7 @@ const Quiz: React.FC = () => {
       ],
       correctAnswer: 3
     },
-          {
+    {
       id: 15,
       question: "Apa itu \"periode jendela\" pada infeksi HIV?",
       options: [
@@ -216,7 +242,7 @@ const Quiz: React.FC = () => {
       ],
       correctAnswer: 3
     },
-          {
+    {
       id: 17,
       question: "Perilaku seksual bisa menyebabkan kecanduan. Mengapa hal itu bisa terjadi?",
       options: [
@@ -227,7 +253,7 @@ const Quiz: React.FC = () => {
       ],
       correctAnswer: 2
     },
-          {
+    {
       id: 18,
       question: "Faktor eksternal yang paling kuat memengaruhi remaja melakukan perilaku seksual berisiko adalah……",
       options: [
@@ -238,7 +264,7 @@ const Quiz: React.FC = () => {
       ],
       correctAnswer: 2
     },
-          {
+    {
       id: 19,
       question: "Manakah cara pencegahan perilaku seksual berisiko yang tepat?",
       options: [
@@ -249,7 +275,7 @@ const Quiz: React.FC = () => {
       ],
       correctAnswer: 3
     },
-          {
+    {
       id: 20,
       question: "Sebaiknya kita mencari informasi tentang kesehatan reproduksi dari…",
       options: [
@@ -260,7 +286,7 @@ const Quiz: React.FC = () => {
       ],
       correctAnswer: 3
     },
-          {
+    {
       id: 21,
       question: "Apa alasan utama dari dalam diri remaja yang mendorong perilaku seksual berisiko?",
       options: [
@@ -271,7 +297,7 @@ const Quiz: React.FC = () => {
       ],
       correctAnswer: 2
     },
-          {
+    {
       id: 22,
       question: "Bagaimana sebaiknya sikap kita jika melihat teman melakukan perilaku berisiko?",
       options: [
@@ -282,7 +308,7 @@ const Quiz: React.FC = () => {
       ],
       correctAnswer: 3
     },
-          {
+    {
       id: 23,
       question: "Apa dampak emosional yang mungkin dialami remaja setelah melakukan perilaku seksual berisiko?",
       options: [
@@ -293,7 +319,7 @@ const Quiz: React.FC = () => {
       ],
       correctAnswer: 2
     },
-          {
+    {
       id: 24,
       question: "Mengapa jejak digital dari aktivitas seksual online seperti berbagi foto intim sangat berbahaya?",
       options: [
@@ -304,7 +330,7 @@ const Quiz: React.FC = () => {
       ],
       correctAnswer: 2
     },
-          {
+    {
       id: 25,
       question: "Bagaimana cara terbaik untuk memenuhi rasa penasaran tentang seksualitas yang wajar?",
       options: [
@@ -357,19 +383,44 @@ const Quiz: React.FC = () => {
       totalXP: xpEarned,
       selectedAnswers,
       questions,
-      timeTaken: 600 - timeLeft // Waktu yang digunakan
+      timeTaken: 600 - timeLeft
     };
 
-    // Simpan ke localStorage
     localStorage.setItem('quizResults', JSON.stringify(results));
-    
-    // Arahkan ke halaman Result
     navigate('/result');
   };
 
   return (
     <div className="min-h-screen py-4 md:py-8 px-4 md:px-6 relative">
       <CloudBackground />
+      
+      {/* Pause Overlay */}
+      {isPaused && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center px-4">
+          <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full text-center">
+            <div className="mb-6">
+              <svg className="w-20 h-20 mx-auto text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <h2 className="text-3xl font-bold text-gray-800 mb-4">Quiz Dijeda</h2>
+            <p className="text-gray-600 mb-6">
+              Quiz sedang dijeda. Klik tombol lanjutkan untuk melanjutkan quiz.
+            </p>
+            <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-4 mb-6">
+              <p className="text-sm text-yellow-800 font-semibold mb-2">Waktu Jeda Tersisa:</p>
+              <p className="text-3xl font-bold text-yellow-600">{formatTime(pauseTimeRemaining)}</p>
+            </div>
+            <Button
+              onClick={handleResume}
+              className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-8 py-3 rounded-full font-bold shadow-lg text-lg w-full"
+            >
+              Lanjutkan Quiz
+            </Button>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-4xl mx-auto relative z-10">
         {/* Header Card */}
         <div className="bg-white rounded-2xl md:rounded-3xl shadow-lg p-4 md:p-6 mb-4 md:mb-6">
@@ -406,32 +457,78 @@ const Quiz: React.FC = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Pause Info */}
+              <div className="flex items-center justify-end mt-2">
+                <div className="text-[10px] md:text-xs text-gray-500">
+                  Waktu jeda tersisa: {formatTime(pauseTimeRemaining)}
+                </div>
+              </div>
             </div>
 
+            {/* Question Navigation */}
             {/* Question Navigation */}
             <div className="md:ml-8">
               <h3 className="text-xs md:text-sm font-bold text-gray-700 mb-2 text-center md:text-left">
                 Question Navigation
               </h3>
-              <div className="overflow-x-auto max-w-full pb-2 md:pb-0"> {/* Tambah padding bottom sedikit untuk scroll mobile */}
-                {/* PERUBAHAN UTAMA DI SINI */}
-                <div className="grid grid-cols-5 md:grid-cols-10 gap-2 md:gap-3 justify-items-center">
-                  {questions.map((_, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setCurrentQuestion(index)}
-                      className={`w-8 h-8 md:w-10 md:h-10 rounded-lg text-xs md:text-sm font-bold transition-all duration-200 flex items-center justify-center ${
-                        currentQuestion === index
-                          ? 'bg-gradient-to-r from-green-400 to-emerald-500 text-white shadow-lg transform scale-110 z-10'
-                          : selectedAnswers[index] !== -1
-                          ? 'bg-blue-400 text-white'
-                          : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
-                      }`}
-                    >
-                      {index + 1}
-                    </button>
-                  ))}
+              <div className="space-y-3">
+                {/* Grid soal 1-10 */}
+                <div className="overflow-x-auto max-w-full pb-2 md:pb-0">
+                  <div className="grid grid-cols-5 sm:grid-cols-5 md:grid-cols-10 gap-2 md:gap-3 justify-items-center min-w-max md:min-w-0 mx-auto">
+                    {questions.slice(0, 10).map((_, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setCurrentQuestion(index)}
+                        className={`w-8 h-8 md:w-10 md:h-10 rounded-lg text-xs md:text-sm font-bold transition-all duration-200 flex items-center justify-center ${
+                          currentQuestion === index
+                            ? 'bg-gradient-to-r from-green-400 to-emerald-500 text-white shadow-lg transform scale-110 z-10'
+                            : selectedAnswers[index] !== -1
+                            ? 'bg-blue-400 text-white'
+                            : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+                        }`}
+                      >
+                        {index + 1}
+                      </button>
+                    ))}
+                  </div>
                 </div>
+                
+                {/* Dropdown untuk soal 11-25 */}
+                {questions.length > 10 && (
+                  <details className="group flex flex-col-reverse">
+                    <summary className="cursor-pointer list-none flex items-center justify-center space-x-2 bg-gray-100 hover:bg-gray-200 px-3 md:px-4 py-2 rounded-lg transition-colors w-full">
+                      <span className="text-xs md:text-sm font-semibold text-gray-700">
+                        Soal 11-{questions.length}
+                      </span>
+                      <svg className="w-4 h-4 text-gray-600 transform group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </summary>
+                    <div className="mb-3 overflow-x-auto max-w-full pb-2 md:pb-0">
+                      <div className="grid grid-cols-5 sm:grid-cols-5 md:grid-cols-10 gap-2 md:gap-3 justify-items-center min-w-max md:min-w-0 mx-auto">
+                        {questions.slice(10).map((_, index) => {
+                          const actualIndex = index + 10;
+                          return (
+                            <button
+                              key={actualIndex}
+                              onClick={() => setCurrentQuestion(actualIndex)}
+                              className={`w-8 h-8 md:w-10 md:h-10 rounded-lg text-xs md:text-sm font-bold transition-all duration-200 flex items-center justify-center ${
+                                currentQuestion === actualIndex
+                                  ? 'bg-gradient-to-r from-green-400 to-emerald-500 text-white shadow-lg transform scale-110 z-10'
+                                  : selectedAnswers[actualIndex] !== -1
+                                  ? 'bg-blue-400 text-white'
+                                  : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+                              }`}
+                            >
+                              {actualIndex + 1}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </details>
+                )}
               </div>
             </div>
           </div>
@@ -460,7 +557,6 @@ const Quiz: React.FC = () => {
             <h2 className="text-lg md:text-2xl font-bold text-gray-800 mb-3 md:mb-4">
               {currentQuiz.question}
             </h2>
-            
           </div>
 
           {/* Answer Options */}
@@ -505,7 +601,7 @@ const Quiz: React.FC = () => {
           </div>
 
           {/* Navigation Buttons */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0 gap-3">
             <Button
               variant="secondary"
               size="lg"
@@ -514,6 +610,17 @@ const Quiz: React.FC = () => {
               className="bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white px-6 md:px-8 py-2 md:py-3 rounded-full font-bold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-sm md:text-base"
             >
               Kembali
+            </Button>
+
+            <Button
+              onClick={handlePause}
+              disabled={pauseTimeRemaining === 0}
+              className="bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 text-white px-6 md:px-8 py-2 md:py-3 rounded-full font-bold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-sm md:text-base flex items-center justify-center space-x-2"
+            >
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+              <span>Pause</span>
             </Button>
 
             {currentQuestion === questions.length - 1 ? (
