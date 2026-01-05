@@ -1,30 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-interface QuizData {
-  id: number;
-  title: string;
-  description: string;
-  duration: number;
-  isActive: boolean;
-}
+// Gunakan dua kali ../ bukan tiga kali
+import { quizService } from '../../services/api/quizService';
+import type { QuizData } from '../../services/api/quizService';
 
 const ManageQuiz: React.FC = () => {
   const [quiz, setQuiz] = useState<QuizData | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const API_BASE_URL = import.meta.env?.VITE_API_URL;
-  const API_URL = `${API_BASE_URL}/admin/quiz`;
 
   useEffect(() => {
-    fetchQuiz();
+    fetchQuizData();
   }, []);
 
-  const fetchQuiz = async () => {
+  const fetchQuizData = async () => {
     try {
-      const response = await fetch(API_URL);
-      const result = await response.json();
-      if (result.success) setQuiz(result.data);
+      const result = await quizService.getQuiz();
+      if (result.success) {
+        setQuiz(result.data);
+      }
     } catch (error) {
       console.error("Error fetching quiz:", error);
     } finally {
@@ -37,20 +31,13 @@ const ManageQuiz: React.FC = () => {
     if (!quiz) return;
 
     try {
-      const response = await fetch(API_URL, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: quiz.title,
-          description: quiz.description,
-          duration: Number(quiz.duration),
-          isActive: quiz.isActive
-        }),
-      });
-      const result = await response.json();
-      if (result.success) alert("Quiz updated successfully!");
+      const result = await quizService.updateQuiz(quiz);
+      if (result.success) {
+        alert("Quiz updated successfully!");
+      }
     } catch (error) {
       alert("Failed to update quiz");
+      console.error(error);
     }
   };
 
@@ -66,7 +53,7 @@ const ManageQuiz: React.FC = () => {
             type="text" 
             className="w-full border p-2 rounded"
             value={quiz?.title || ''} 
-            onChange={e => setQuiz({...quiz!, title: e.target.value})}
+            onChange={e => setQuiz(prev => prev ? {...prev, title: e.target.value} : null)}
           />
         </div>
         <div>
@@ -75,14 +62,14 @@ const ManageQuiz: React.FC = () => {
             type="number" 
             className="w-full border p-2 rounded"
             value={quiz?.duration || 0} 
-            onChange={e => setQuiz({...quiz!, duration: parseInt(e.target.value)})}
+            onChange={e => setQuiz(prev => prev ? {...prev, duration: parseInt(e.target.value)} : null)}
           />
         </div>
         <div className="flex items-center gap-2">
           <input 
             type="checkbox" 
-            checked={quiz?.isActive} 
-            onChange={e => setQuiz({...quiz!, isActive: e.target.checked})}
+            checked={quiz?.isActive || false} 
+            onChange={e => setQuiz(prev => prev ? {...prev, isActive: e.target.checked} : null)}
           />
           <label>Is Active</label>
         </div>

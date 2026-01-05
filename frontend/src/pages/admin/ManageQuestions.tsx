@@ -1,27 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-
-interface Question {
-  id: number;
-  question: string;
-  explanation: string;
-  photo: string | null;
-}
+import { useNavigate } from 'react-router-dom';
+// Gunakan import type untuk interface dan ../../ untuk path yang benar
+import { questionService, API_BASE_URL } from '../../services/api/questionService';
+import type { Question, QuestionPayload } from '../../services/api/questionService';
 
 const ManageQuestions: React.FC = () => {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState({ question: '', explanation: '', photo: '' });
   const navigate = useNavigate();
-  const API_BASE_URL = import.meta.env?.VITE_API_URL || 'http://localhost:3000';
-  const BASE_URL = `${API_BASE_URL}/admin/quiz/questions`;
 
-  useEffect(() => { fetchQuestions(); }, []);
+  useEffect(() => {
+    loadQuestions();
+  }, []);
 
-  const fetchQuestions = async () => {
-    const res = await fetch(BASE_URL);
-    const result = await res.json();
-    if (result.success) setQuestions(result.data);
+  const loadQuestions = async () => {
+    try {
+      const result = await questionService.getQuestions();
+      if (result.success) setQuestions(result.data);
+    } catch (error) {
+      console.error("Gagal mengambil data:", error);
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -36,40 +35,34 @@ const ManageQuestions: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Membangun payload dasar
-    const payload: any = {
+    const payload: QuestionPayload = {
       question: form.question,
       explanation: form.explanation,
     };
 
-    // Hanya tambahkan photo jika user memilih file baru (Base64)
+    // Hanya kirim foto jika ada perubahan (format Base64)
     if (form.photo && form.photo.startsWith('data:image')) {
       payload.photo = form.photo;
     }
 
-    const url = editingId 
-      ? `${API_BASE_URL}/admin/quiz/questions/${editingId}` 
-      : `${API_BASE_URL}/admin/quiz/questions`;
-    
-    const method = editingId ? 'PUT' : 'POST';
-
     try {
-      const res = await fetch(url, {
-        method: method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
+      let result;
+      if (editingId) {
+        result = await questionService.updateQuestion(editingId, payload);
+      } else {
+        result = await questionService.createQuestion(payload);
+      }
 
-      const result = await res.json();
-      if (res.ok) {
+      if (result.success) {
         alert("Berhasil!");
         resetForm();
-        fetchQuestions();
+        loadQuestions();
       } else {
-        alert(`Gagal: ${result.message || "Cek konsol"}`);
+        alert(`Gagal: ${result.message}`);
       }
     } catch (error) {
       console.error("Error:", error);
+      alert("Terjadi kesalahan pada server");
     }
   };
 
