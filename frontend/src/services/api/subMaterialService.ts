@@ -1,7 +1,5 @@
 // src/services/api/subMaterialService.ts
-
-// Ganti http://localhost:3000 dengan URL backend Anda yang sebenarnya jika berbeda
-export const API_BASE_URL = import.meta.env?.VITE_API_URL || 'http://localhost:3000';
+export const API_BASE_URL = import.meta.env?.VITE_API_URL;
 
 export interface SubMaterialItem {
   id: number;
