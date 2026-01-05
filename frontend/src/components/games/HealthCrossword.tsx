@@ -1,17 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '../ui/Button';
 import { useNavigate } from 'react-router-dom';
 import CloudBackground from '../layouts/CloudBackground';
-
-interface CrosswordClue {
-  id: number;
-  clue: string;
-  answer: string;
-  direction: 'across' | 'down';
-  startRow: number;
-  startCol: number;
-  number: number;
-}
+import type { CrosswordClue, PuzzleSet } from '../../utils/crosswordPuzzles';
+import {
+  getRandomPuzzle,
+  getPuzzleById,
+  saveCurrentPuzzle,
+  getCurrentPuzzleId,
+  clearCurrentPuzzle
+} from '../../utils/crosswordPuzzles';
 
 interface CellData {
   letter: string;
@@ -40,85 +38,42 @@ const HealthCrossword: React.FC = () => {
 
   const [selectedClue, setSelectedClue] = useState<number | null>(null);
   const [selectedDirection, setSelectedDirection] = useState<'across' | 'down'>('across');
+  const [selectedCell, setSelectedCell] = useState<{row: number, col: number} | null>(null);
+  const [currentPuzzle, setCurrentPuzzle] = useState<PuzzleSet | null>(null);
+  
+  // Refs for input elements
+  const inputRefs = useRef<(HTMLInputElement | null)[][]>(
+    Array(10).fill(null).map(() => Array(10).fill(null))
+  );
 
-  // Health-related crossword data
-  const clues: CrosswordClue[] = [
-    {
-      id: 1,
-      clue: "Organ yang memompa darah ke seluruh tubuh (7 huruf)",
-      answer: "JANTUNG",
-      direction: "across",
-      startRow: 1,
-      startCol: 1,
-      number: 1
-    },
-    {
-      id: 2,
-      clue: "Zat gizi yang diperlukan untuk pertumbuhan (7 huruf)",
-      answer: "JERUK",
-      direction: "down",
-      startRow: 1,
-      startCol: 1,
-      number: 1
-    },
-    {
-      id: 3,
-      clue: "Aktivitas fisik untuk menjaga kebugaran (8 huruf)",
-      answer: "OLAHRAGA",
-      direction: "across",
-      startRow: 3,
-      startCol: 0,
-      number: 2
-    },
-    {
-      id: 4,
-      clue: "Zat yang diperlukan untuk tulang kuat (7 huruf)",
-      answer: "KALSIUM",
-      direction: "down",
-      startRow: 2,
-      startCol: 5,
-      number: 3
-    },
-    {
-      id: 5,
-      clue: "Cairan penting untuk tubuh (3 huruf)",
-      answer: "AIR",
-      direction: "down",
-      startRow: 3,
-      startCol: 7,
-      number: 4
-    },
-    {
-      id: 6,
-      clue: "Istirahat yang cukup untuk kesehatan (5 huruf)",
-      answer: "TIDUR",
-      direction: "across",
-      startRow: 7,
-      startCol: 2,
-      number: 5
-    },
-    {
-      id: 7,
-      clue: "Organ vital untuk bernapas (4 huruf)",
-      answer: "PARU",
-      direction: "down",
-      startRow: 1,
-      startCol: 4,
-      number: 6
-    },
-    {
-      id: 8,
-      clue: "Makanan sehat dari tumbuhan (7 huruf)",
-      answer: "SAYURAN",
-      direction: "across",
-      startRow: 5,
-      startCol: 1,
-      number: 7
+  // Load or create puzzle on mount
+  useEffect(() => {
+    const savedPuzzleId = getCurrentPuzzleId();
+    
+    if (savedPuzzleId) {
+      // Load existing puzzle
+      const savedPuzzle = getPuzzleById(savedPuzzleId);
+      if (savedPuzzle) {
+        setCurrentPuzzle(savedPuzzle);
+      } else {
+        // If saved puzzle not found, get new random one
+        const newPuzzle = getRandomPuzzle();
+        setCurrentPuzzle(newPuzzle);
+        saveCurrentPuzzle(newPuzzle.id);
+      }
+    } else {
+      // No saved puzzle, get new random one
+      const newPuzzle = getRandomPuzzle();
+      setCurrentPuzzle(newPuzzle);
+      saveCurrentPuzzle(newPuzzle.id);
     }
-  ];
+  }, []);
+
+  // Get clues from current puzzle
+  const clues: CrosswordClue[] = currentPuzzle?.clues || [];
 
   // Initialize grid
-  const initializeGrid = () => {
+  const initializeGrid = useCallback(() => {
     const grid: CellData[][] = Array(10).fill(null).map(() =>
       Array(10).fill(null).map(() => ({
         letter: '',
@@ -139,7 +94,8 @@ const HealthCrossword: React.FC = () => {
           grid[row][col] = {
             letter: answer[i],
             isBlocked: false,
-            number: i === 0 ? number : grid[row][col].number,
+            // Hanya set nomor jika ini cell pertama DAN belum ada nomor sebelumnya
+            number: i === 0 ? (grid[row][col].number || number) : grid[row][col].number,
             userInput: ''
           };
         }
@@ -147,19 +103,25 @@ const HealthCrossword: React.FC = () => {
     });
 
     return grid;
-  };
+  }, [clues]);
 
   const [grid, setGrid] = useState<CellData[][]>(() => initializeGrid());
 
+  // Re-initialize grid when puzzle changes
   useEffect(() => {
-    setGameState(prev => ({
-      ...prev,
-      totalClues: clues.length
-    }));
-  }, []);
+    if (currentPuzzle) {
+      setGrid(initializeGrid());
+      setGameState(prev => ({
+        ...prev,
+        totalClues: clues.length
+      }));
+    }
+  }, [currentPuzzle, initializeGrid, clues.length]);
 
   const handleCellClick = (row: number, col: number) => {
     if (grid[row][col].isBlocked) return;
+
+    setSelectedCell({row, col});
 
     // Find clues that pass through this cell
     const passingClues = clues.filter(clue => {
@@ -191,6 +153,11 @@ const HealthCrossword: React.FC = () => {
         setSelectedDirection(passingClues[0].direction);
       }
     }
+
+    // Focus the input
+    setTimeout(() => {
+      inputRefs.current[row][col]?.focus();
+    }, 0);
   };
 
   const handleInputChange = (row: number, col: number, value: string) => {
@@ -203,8 +170,129 @@ const HealthCrossword: React.FC = () => {
     };
     setGrid(newGrid);
 
+    // Auto-move to next cell if a letter was typed
+    if (value && selectedClue) {
+      const clue = clues.find(c => c.id === selectedClue);
+      if (clue) {
+        const { direction, startRow, startCol, answer } = clue;
+        
+        // Calculate current position in the word
+        let currentIndex: number;
+        if (direction === 'across') {
+          currentIndex = col - startCol;
+        } else {
+          currentIndex = row - startRow;
+        }
+        
+        // Move to next cell if not at the end
+        if (currentIndex < answer.length - 1) {
+          const nextRow = direction === 'across' ? row : row + 1;
+          const nextCol = direction === 'across' ? col + 1 : col;
+          
+          if (nextRow < 10 && nextCol < 10 && !grid[nextRow][nextCol].isBlocked) {
+            setSelectedCell({row: nextRow, col: nextCol});
+            setTimeout(() => {
+              inputRefs.current[nextRow][nextCol]?.focus();
+            }, 0);
+          }
+        }
+      }
+    }
+
     // Check if word is completed
     checkWordCompletion();
+  };
+
+  const handleKeyDown = (row: number, col: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!selectedClue) return;
+    
+    const clue = clues.find(c => c.id === selectedClue);
+    if (!clue) return;
+    
+    const { direction, startRow, startCol, answer } = clue;
+    
+    // Handle Backspace
+    if (e.key === 'Backspace') {
+      // If current cell is empty, move to previous cell
+      if (!grid[row][col].userInput) {
+        let currentIndex: number;
+        if (direction === 'across') {
+          currentIndex = col - startCol;
+        } else {
+          currentIndex = row - startRow;
+        }
+        
+        if (currentIndex > 0) {
+          const prevRow = direction === 'across' ? row : row - 1;
+          const prevCol = direction === 'across' ? col - 1 : col;
+          
+          if (prevRow >= 0 && prevCol >= 0 && !grid[prevRow][prevCol].isBlocked) {
+            // Clear the previous cell
+            const newGrid = [...grid];
+            newGrid[prevRow][prevCol] = {
+              ...newGrid[prevRow][prevCol],
+              userInput: ''
+            };
+            setGrid(newGrid);
+            
+            setSelectedCell({row: prevRow, col: prevCol});
+            setTimeout(() => {
+              inputRefs.current[prevRow][prevCol]?.focus();
+            }, 0);
+            e.preventDefault();
+          }
+        }
+      }
+    }
+    
+    // Handle Arrow keys
+    if (e.key === 'ArrowRight' && direction === 'across') {
+      const currentIndex = col - startCol;
+      if (currentIndex < answer.length - 1) {
+        const nextCol = col + 1;
+        setSelectedCell({row, col: nextCol});
+        setTimeout(() => {
+          inputRefs.current[row][nextCol]?.focus();
+        }, 0);
+        e.preventDefault();
+      }
+    }
+    
+    if (e.key === 'ArrowLeft' && direction === 'across') {
+      const currentIndex = col - startCol;
+      if (currentIndex > 0) {
+        const prevCol = col - 1;
+        setSelectedCell({row, col: prevCol});
+        setTimeout(() => {
+          inputRefs.current[row][prevCol]?.focus();
+        }, 0);
+        e.preventDefault();
+      }
+    }
+    
+    if (e.key === 'ArrowDown' && direction === 'down') {
+      const currentIndex = row - startRow;
+      if (currentIndex < answer.length - 1) {
+        const nextRow = row + 1;
+        setSelectedCell({row: nextRow, col});
+        setTimeout(() => {
+          inputRefs.current[nextRow][col]?.focus();
+        }, 0);
+        e.preventDefault();
+      }
+    }
+    
+    if (e.key === 'ArrowUp' && direction === 'down') {
+      const currentIndex = row - startRow;
+      if (currentIndex > 0) {
+        const prevRow = row - 1;
+        setSelectedCell({row: prevRow, col});
+        setTimeout(() => {
+          inputRefs.current[prevRow][col]?.focus();
+        }, 0);
+        e.preventDefault();
+      }
+    }
   };
 
   const checkWordCompletion = () => {
@@ -303,17 +391,44 @@ const HealthCrossword: React.FC = () => {
   };
 
   const backToDashboard = () => {
+    // Clear puzzle when leaving via button
+    clearCurrentPuzzle();
     navigate('/gamehome');
   };
 
   const backToGameHome = () => {
+    // Clear puzzle when game is completed and going back
+    clearCurrentPuzzle();
     navigate('/gamehome');
   };
 
   const resetGame = () => {
+    // Clear current puzzle and get new one
+    clearCurrentPuzzle();
+    const newPuzzle = getRandomPuzzle();
+    setCurrentPuzzle(newPuzzle);
+    saveCurrentPuzzle(newPuzzle.id);
+    
     setGameState(prev => ({
       ...prev,
       gameStatus: 'menu'
+    }));
+    setSelectedClue(null);
+  };
+
+  const playAgain = () => {
+    // Clear current puzzle and get new one for replay
+    clearCurrentPuzzle();
+    const newPuzzle = getRandomPuzzle();
+    setCurrentPuzzle(newPuzzle);
+    saveCurrentPuzzle(newPuzzle.id);
+    
+    setGameState(prev => ({
+      ...prev,
+      gameStatus: 'playing',
+      score: 0,
+      correctAnswers: 0,
+      hintsUsed: 0
     }));
     setSelectedClue(null);
   };
@@ -326,13 +441,19 @@ const HealthCrossword: React.FC = () => {
 
     const { direction, startRow, startCol, answer } = clue;
     
+    const isCurrentCell = selectedCell?.row === row && selectedCell?.col === col;
+    
     if (direction === 'across') {
       if (row === startRow && col >= startCol && col < startCol + answer.length) {
-        return 'bg-green-200 border-green-400';
+        return isCurrentCell 
+          ? 'bg-green-300 border-green-500 ring-2 ring-green-400' 
+          : 'bg-green-200 border-green-400';
       }
     } else {
       if (col === startCol && row >= startRow && row < startRow + answer.length) {
-        return 'bg-green-200 border-green-400';
+        return isCurrentCell 
+          ? 'bg-green-300 border-green-500 ring-2 ring-green-400' 
+          : 'bg-green-200 border-green-400';
       }
     }
     
@@ -361,8 +482,12 @@ const HealthCrossword: React.FC = () => {
                 )}
                 <input
                   type="text"
+                  ref={(el) => {
+                    inputRefs.current[rowIndex][colIndex] = el;
+                  }}
                   value={cell.userInput}
                   onChange={(e) => handleInputChange(rowIndex, colIndex, e.target.value)}
+                  onKeyDown={(e) => handleKeyDown(rowIndex, colIndex, e)}
                   className="w-full h-full text-center border-none outline-none bg-transparent text-xs md:text-sm font-bold text-gray-800"
                   maxLength={1}
                 />
@@ -374,15 +499,27 @@ const HealthCrossword: React.FC = () => {
     </div>
   );
 
+  const selectClueAndFocus = (clue: CrosswordClue) => {
+    setSelectedClue(clue.id);
+    setSelectedDirection(clue.direction);
+    setSelectedCell({row: clue.startRow, col: clue.startCol});
+    
+    // Focus on the first cell of the clue
+    setTimeout(() => {
+      inputRefs.current[clue.startRow][clue.startCol]?.focus();
+    }, 0);
+  };
+
   const renderClues = () => (
     <div className="space-y-3 md:space-y-4">
       <div>
         <h4 className="font-bold text-base md:text-lg mb-2 md:mb-3 text-gray-800 flex items-center">
-          <span className="text-green-500 mr-2">↗</span> Mendatar
+          <span className="text-green-500 mr-2">→</span> Mendatar
         </h4>
         <div className="space-y-1.5 md:space-y-2">
           {clues
             .filter(clue => clue.direction === 'across')
+            .sort((a, b) => a.number - b.number)
             .map(clue => (
               <div
                 key={clue.id}
@@ -391,10 +528,7 @@ const HealthCrossword: React.FC = () => {
                     ? 'bg-green-100 border-2 border-green-400' 
                     : 'bg-green-50 hover:bg-green-100 border border-gray-200'
                 }`}
-                onClick={() => {
-                  setSelectedClue(clue.id);
-                  setSelectedDirection('across');
-                }}
+                onClick={() => selectClueAndFocus(clue)}
               >
                 <div className="flex items-start space-x-2 md:space-x-3">
                   <div className="flex-shrink-0 w-5 h-5 md:w-6 md:h-6 bg-green-500 text-white rounded-md flex items-center justify-center text-xs font-bold">
@@ -409,11 +543,12 @@ const HealthCrossword: React.FC = () => {
 
       <div>
         <h4 className="font-bold text-base md:text-lg mb-2 md:mb-3 text-gray-800 flex items-center">
-          <span className="text-emerald-500 mr-2">↘</span> Menurun
+          <span className="text-emerald-500 mr-2">↓</span> Menurun
         </h4>
         <div className="space-y-1.5 md:space-y-2">
           {clues
             .filter(clue => clue.direction === 'down')
+            .sort((a, b) => a.number - b.number)
             .map(clue => (
               <div
                 key={clue.id}
@@ -422,13 +557,10 @@ const HealthCrossword: React.FC = () => {
                     ? 'bg-green-100 border-2 border-green-400' 
                     : 'bg-green-50 hover:bg-green-100 border border-gray-200'
                 }`}
-                onClick={() => {
-                  setSelectedClue(clue.id);
-                  setSelectedDirection('down');
-                }}
+                onClick={() => selectClueAndFocus(clue)}
               >
                 <div className="flex items-start space-x-2 md:space-x-3">
-                  <div className="flex-shrink-0 w-5 h-5 md:w-6 md:h-6 bg-green-500 text-white rounded-md flex items-center justify-center text-xs font-bold">
+                  <div className="flex-shrink-0 w-5 h-5 md:w-6 md:h-6 bg-emerald-500 text-white rounded-md flex items-center justify-center text-xs font-bold">
                     {clue.number}
                   </div>
                   <span className="text-xs md:text-sm text-gray-700">{clue.clue}</span>
@@ -442,7 +574,18 @@ const HealthCrossword: React.FC = () => {
 
   return (
     <div className="w-full">
-      {gameState.gameStatus === 'menu' && (
+      {/* Loading state */}
+      {!currentPuzzle && (
+        <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-100 relative flex items-center justify-center">
+          <CloudBackground />
+          <div className="relative z-10 text-center">
+            <div className="text-4xl mb-4 animate-bounce">🧩</div>
+            <p className="text-lg text-gray-600">Memuat soal...</p>
+          </div>
+        </div>
+      )}
+
+      {currentPuzzle && gameState.gameStatus === 'menu' && (
         <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-100 relative flex items-center justify-center">
           <CloudBackground />
           
@@ -450,9 +593,14 @@ const HealthCrossword: React.FC = () => {
             <div className="max-w-4xl mx-auto w-full">
               <div className="text-center bg-gradient-to-br from-green-500 to-emerald-600 text-white rounded-2xl p-6 md:p-8 shadow-xl">
                 <h2 className="text-2xl md:text-4xl font-bold mb-3 md:mb-4">🧩 Teka-Teki Silang Kesehatan</h2>
-                <p className="text-sm md:text-lg mb-4 md:mb-6">
+                <p className="text-sm md:text-lg mb-2">
                   Asah pengetahuanmu dengan teka-teki yang menantang!
                 </p>
+                {currentPuzzle && (
+                  <p className="text-xs md:text-sm mb-4 md:mb-6 bg-white/20 rounded-lg px-3 py-1 inline-block">
+                    📚 Tema: {currentPuzzle.title}
+                  </p>
+                )}
                 <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 md:p-6 mb-4 md:mb-6 text-left">
                   <h4 className="font-bold text-base md:text-lg mb-2 md:mb-3 flex items-center">
                     <span className="text-pink-300 mr-2">🎯</span> Cara Bermain:
@@ -501,14 +649,19 @@ const HealthCrossword: React.FC = () => {
         </div>
       )}
 
-      {gameState.gameStatus === 'playing' && (
+      {currentPuzzle && gameState.gameStatus === 'playing' && (
         <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-100 p-4 md:p-6 relative">
           <CloudBackground />
           
           <div className="max-w-7xl mx-auto relative z-10">
             {/* Game Stats */}
             <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3 mb-4 md:mb-6">
-              <h2 className="text-xl md:text-2xl font-bold text-gray-800">Teka-Teki Silang Kesehatan</h2>
+              <div>
+                <h2 className="text-xl md:text-2xl font-bold text-gray-800">Teka-Teki Silang Kesehatan</h2>
+                {currentPuzzle && (
+                  <p className="text-sm text-gray-600">📚 {currentPuzzle.title}</p>
+                )}
+              </div>
               <div className="flex gap-3">
                 <div className="bg-white/90 backdrop-blur-sm rounded-xl px-3 md:px-4 py-2 shadow-md flex-1 md:flex-none">
                   <div className="text-xs text-gray-600">Score</div>
@@ -585,7 +738,7 @@ const HealthCrossword: React.FC = () => {
         </div>
       )}
 
-      {gameState.gameStatus === 'completed' && (
+      {currentPuzzle && gameState.gameStatus === 'completed' && (
         <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-100 p-4 md:p-6 relative flex items-center justify-center">
           <CloudBackground />
           
@@ -612,10 +765,10 @@ const HealthCrossword: React.FC = () => {
                 </div>
                 <div className="flex flex-col md:flex-row gap-3 md:gap-4 justify-center">
                   <Button 
-                    onClick={startGame} 
+                    onClick={playAgain} 
                     className="w-full md:w-auto bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-6 py-3 text-sm md:text-base"
                   >
-                    🔄 Main Lagi
+                    🔄 Main Lagi (Soal Baru)
                   </Button>
                   <Button 
                     onClick={backToGameHome} 
