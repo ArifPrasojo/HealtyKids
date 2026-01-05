@@ -41,9 +41,9 @@ const HealthCrossword: React.FC = () => {
   const [selectedCell, setSelectedCell] = useState<{row: number, col: number} | null>(null);
   const [currentPuzzle, setCurrentPuzzle] = useState<PuzzleSet | null>(null);
   
-  // Refs for input elements
+  // MODIFIKASI: Array diubah menjadi 15x15
   const inputRefs = useRef<(HTMLInputElement | null)[][]>(
-    Array(10).fill(null).map(() => Array(10).fill(null))
+    Array(15).fill(null).map(() => Array(15).fill(null))
   );
 
   // Load or create puzzle on mount
@@ -51,38 +51,34 @@ const HealthCrossword: React.FC = () => {
     const savedPuzzleId = getCurrentPuzzleId();
     
     if (savedPuzzleId) {
-      // Load existing puzzle
       const savedPuzzle = getPuzzleById(savedPuzzleId);
       if (savedPuzzle) {
         setCurrentPuzzle(savedPuzzle);
       } else {
-        // If saved puzzle not found, get new random one
         const newPuzzle = getRandomPuzzle();
         setCurrentPuzzle(newPuzzle);
         saveCurrentPuzzle(newPuzzle.id);
       }
     } else {
-      // No saved puzzle, get new random one
       const newPuzzle = getRandomPuzzle();
       setCurrentPuzzle(newPuzzle);
       saveCurrentPuzzle(newPuzzle.id);
     }
   }, []);
 
-  // Get clues from current puzzle
   const clues: CrosswordClue[] = currentPuzzle?.clues || [];
 
   // Initialize grid
   const initializeGrid = useCallback(() => {
-    const grid: CellData[][] = Array(10).fill(null).map(() =>
-      Array(10).fill(null).map(() => ({
+    // MODIFIKASI: Grid size menjadi 15x15
+    const grid: CellData[][] = Array(15).fill(null).map(() =>
+      Array(15).fill(null).map(() => ({
         letter: '',
         isBlocked: true,
         userInput: ''
       }))
     );
 
-    // Place clues in grid
     clues.forEach(clue => {
       const { answer, direction, startRow, startCol, number } = clue;
       
@@ -90,11 +86,11 @@ const HealthCrossword: React.FC = () => {
         const row = direction === 'across' ? startRow : startRow + i;
         const col = direction === 'across' ? startCol + i : startCol;
         
-        if (row < 10 && col < 10) {
+        // MODIFIKASI: Pengecekan batas menjadi < 15
+        if (row < 15 && col < 15) {
           grid[row][col] = {
             letter: answer[i],
             isBlocked: false,
-            // Hanya set nomor jika ini cell pertama DAN belum ada nomor sebelumnya
             number: i === 0 ? (grid[row][col].number || number) : grid[row][col].number,
             userInput: ''
           };
@@ -107,7 +103,6 @@ const HealthCrossword: React.FC = () => {
 
   const [grid, setGrid] = useState<CellData[][]>(() => initializeGrid());
 
-  // Re-initialize grid when puzzle changes
   useEffect(() => {
     if (currentPuzzle) {
       setGrid(initializeGrid());
@@ -123,7 +118,6 @@ const HealthCrossword: React.FC = () => {
 
     setSelectedCell({row, col});
 
-    // Find clues that pass through this cell
     const passingClues = clues.filter(clue => {
       const { direction, startRow, startCol, answer } = clue;
       
@@ -135,7 +129,6 @@ const HealthCrossword: React.FC = () => {
     });
 
     if (passingClues.length > 0) {
-      // If multiple clues, toggle between them
       if (selectedClue) {
         const currentClue = passingClues.find(c => c.id === selectedClue);
         if (currentClue) {
@@ -154,7 +147,6 @@ const HealthCrossword: React.FC = () => {
       }
     }
 
-    // Focus the input
     setTimeout(() => {
       inputRefs.current[row][col]?.focus();
     }, 0);
@@ -170,13 +162,11 @@ const HealthCrossword: React.FC = () => {
     };
     setGrid(newGrid);
 
-    // Auto-move to next cell if a letter was typed
     if (value && selectedClue) {
       const clue = clues.find(c => c.id === selectedClue);
       if (clue) {
         const { direction, startRow, startCol, answer } = clue;
         
-        // Calculate current position in the word
         let currentIndex: number;
         if (direction === 'across') {
           currentIndex = col - startCol;
@@ -184,12 +174,12 @@ const HealthCrossword: React.FC = () => {
           currentIndex = row - startRow;
         }
         
-        // Move to next cell if not at the end
         if (currentIndex < answer.length - 1) {
           const nextRow = direction === 'across' ? row : row + 1;
           const nextCol = direction === 'across' ? col + 1 : col;
           
-          if (nextRow < 10 && nextCol < 10 && !grid[nextRow][nextCol].isBlocked) {
+          // MODIFIKASI: Pengecekan batas menjadi < 15
+          if (nextRow < 15 && nextCol < 15 && !grid[nextRow][nextCol].isBlocked) {
             setSelectedCell({row: nextRow, col: nextCol});
             setTimeout(() => {
               inputRefs.current[nextRow][nextCol]?.focus();
@@ -199,7 +189,6 @@ const HealthCrossword: React.FC = () => {
       }
     }
 
-    // Check if word is completed
     checkWordCompletion();
   };
 
@@ -211,9 +200,7 @@ const HealthCrossword: React.FC = () => {
     
     const { direction, startRow, startCol, answer } = clue;
     
-    // Handle Backspace
     if (e.key === 'Backspace') {
-      // If current cell is empty, move to previous cell
       if (!grid[row][col].userInput) {
         let currentIndex: number;
         if (direction === 'across') {
@@ -227,7 +214,6 @@ const HealthCrossword: React.FC = () => {
           const prevCol = direction === 'across' ? col - 1 : col;
           
           if (prevRow >= 0 && prevCol >= 0 && !grid[prevRow][prevCol].isBlocked) {
-            // Clear the previous cell
             const newGrid = [...grid];
             newGrid[prevRow][prevCol] = {
               ...newGrid[prevRow][prevCol],
@@ -245,7 +231,6 @@ const HealthCrossword: React.FC = () => {
       }
     }
     
-    // Handle Arrow keys
     if (e.key === 'ArrowRight' && direction === 'across') {
       const currentIndex = col - startCol;
       if (currentIndex < answer.length - 1) {
@@ -323,7 +308,6 @@ const HealthCrossword: React.FC = () => {
       score: correctCount * 10
     }));
 
-    // Check if game is completed
     if (correctCount === clues.length) {
       setGameState(prev => ({
         ...prev,
@@ -340,7 +324,6 @@ const HealthCrossword: React.FC = () => {
 
     const { answer, direction, startRow, startCol } = clue;
     
-    // Find first empty cell and fill it
     for (let i = 0; i < answer.length; i++) {
       const row = direction === 'across' ? startRow : startRow + i;
       const col = direction === 'across' ? startCol + i : startCol;
@@ -391,19 +374,16 @@ const HealthCrossword: React.FC = () => {
   };
 
   const backToDashboard = () => {
-    // Clear puzzle when leaving via button
     clearCurrentPuzzle();
     navigate('/gamehome');
   };
 
   const backToGameHome = () => {
-    // Clear puzzle when game is completed and going back
     clearCurrentPuzzle();
     navigate('/gamehome');
   };
 
   const resetGame = () => {
-    // Clear current puzzle and get new one
     clearCurrentPuzzle();
     const newPuzzle = getRandomPuzzle();
     setCurrentPuzzle(newPuzzle);
@@ -417,7 +397,6 @@ const HealthCrossword: React.FC = () => {
   };
 
   const playAgain = () => {
-    // Clear current puzzle and get new one for replay
     clearCurrentPuzzle();
     const newPuzzle = getRandomPuzzle();
     setCurrentPuzzle(newPuzzle);
@@ -461,12 +440,12 @@ const HealthCrossword: React.FC = () => {
   };
 
   const renderGrid = () => (
-    <div className="grid grid-cols-10 gap-0.5 md:gap-1 bg-gray-300 p-2 md:p-4 rounded-xl md:rounded-2xl">
+    <div className="grid grid-cols-[repeat(15,minmax(0,1fr))] gap-0.5 md:gap-1 bg-gray-300 p-2 md:p-4 rounded-xl md:rounded-2xl overflow-x-auto w-full max-w-full">
       {grid.map((row, rowIndex) =>
         row.map((cell, colIndex) => (
           <div
             key={`${rowIndex}-${colIndex}`}
-            className={`w-6 h-6 md:w-8 md:h-8 border-2 flex items-center justify-center text-xs font-bold cursor-pointer transition-all relative ${
+            className={`aspect-square w-full border-2 flex items-center justify-center text-xs md:text-sm font-bold cursor-pointer transition-all relative ${
               cell.isBlocked
                 ? 'bg-gray-700'
                 : `bg-white border-gray-400 hover:border-green-300 ${getCellHighlight(rowIndex, colIndex)}`
@@ -476,7 +455,7 @@ const HealthCrossword: React.FC = () => {
             {!cell.isBlocked && (
               <>
                 {cell.number && (
-                  <div className="absolute text-[6px] md:text-[8px] text-green-600 font-bold top-0 left-0.5">
+                  <div className="absolute text-[6px] md:text-[8px] text-green-600 font-bold top-0 left-0.5 leading-none">
                     {cell.number}
                   </div>
                 )}
@@ -488,7 +467,7 @@ const HealthCrossword: React.FC = () => {
                   value={cell.userInput}
                   onChange={(e) => handleInputChange(rowIndex, colIndex, e.target.value)}
                   onKeyDown={(e) => handleKeyDown(rowIndex, colIndex, e)}
-                  className="w-full h-full text-center border-none outline-none bg-transparent text-xs md:text-sm font-bold text-gray-800"
+                  className="w-full h-full text-center border-none outline-none bg-transparent text-[10px] sm:text-xs md:text-sm font-bold text-gray-800 p-0"
                   maxLength={1}
                 />
               </>
@@ -504,7 +483,6 @@ const HealthCrossword: React.FC = () => {
     setSelectedDirection(clue.direction);
     setSelectedCell({row: clue.startRow, col: clue.startCol});
     
-    // Focus on the first cell of the clue
     setTimeout(() => {
       inputRefs.current[clue.startRow][clue.startCol]?.focus();
     }, 0);
@@ -574,7 +552,6 @@ const HealthCrossword: React.FC = () => {
 
   return (
     <div className="w-full">
-      {/* Loading state */}
       {!currentPuzzle && (
         <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-100 relative flex items-center justify-center">
           <CloudBackground />
@@ -654,7 +631,6 @@ const HealthCrossword: React.FC = () => {
           <CloudBackground />
           
           <div className="max-w-7xl mx-auto relative z-10">
-            {/* Game Stats */}
             <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3 mb-4 md:mb-6">
               <div>
                 <h2 className="text-xl md:text-2xl font-bold text-gray-800">Teka-Teki Silang Kesehatan</h2>
@@ -678,9 +654,7 @@ const HealthCrossword: React.FC = () => {
               </div>
             </div>
 
-            {/* Main Game Area */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6">
-              {/* Crossword Grid */}
               <div className="lg:col-span-8 bg-white/95 backdrop-blur-sm rounded-2xl p-4 md:p-6 shadow-lg">
                 <h3 className="text-base md:text-lg font-bold text-gray-800 mb-3 md:mb-4 text-center">Papan Teka-Teki</h3>
                 <div className="flex justify-center mb-4">
@@ -697,7 +671,6 @@ const HealthCrossword: React.FC = () => {
                   </div>
                 )}
 
-                {/* Action Buttons */}
                 <div className="flex flex-col md:flex-row gap-2 md:gap-3 mt-4">
                   <Button 
                     onClick={getHint} 
@@ -727,7 +700,6 @@ const HealthCrossword: React.FC = () => {
                 </div>
               </div>
 
-              {/* Clues */}
               <div className="lg:col-span-4">
                 <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-4 md:p-6 shadow-lg max-h-[600px] overflow-y-auto">
                   {renderClues()}
