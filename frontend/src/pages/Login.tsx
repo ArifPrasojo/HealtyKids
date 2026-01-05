@@ -102,14 +102,9 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
               <div className="mb-8">
                 <h1 className="text-3xl font-bold text-gray-800 mb-2">Sign In</h1>
                 <p className="text-gray-600 text-sm">
-                  Welcome back to HealthyKids
+                  Welcome back to Sexophone
                 </p>
               </div>
-
-              <div className="text-center text-sm text-gray-500 mb-6">
-                or use your email password
-              </div>
-
               <form onSubmit={handleSignInSubmit} className="space-y-4 md:space-y-6">
                 {/* Email Input */}
                 <div>
