@@ -396,7 +396,7 @@ const Quiz: React.FC = () => {
       
       {/* Pause Overlay */}
       {isPaused && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center px-4">
+        <div className="fixed inset-0 bg-white bg-opacity-75 z-50 flex items-center justify-center px-4">
           <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full text-center">
             <div className="mb-6">
               <svg className="w-20 h-20 mx-auto text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
