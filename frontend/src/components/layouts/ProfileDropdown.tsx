@@ -118,33 +118,12 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
               )}
               <div className="flex-1">
                 <h3 className="font-semibold text-gray-800 text-sm">{userName}</h3>
-                <div className="flex items-center mt-1">
-                  <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                  <span className="text-xs text-green-600 font-medium">Online</span>
-                </div>
               </div>
             </div>
           </div>
 
           {/* Menu Items */}
           <div className="py-2">
-            {/* Profile Section */}
-            <div className="px-4 py-2">
-              <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                Akun
-              </div>
-              
-              <button className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors flex items-center space-x-3">
-                <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <span className="text-blue-600">👤</span>
-                </div>
-                <div>
-                  <div className="font-medium">Profil Saya</div>
-                  <div className="text-xs text-gray-500">Lihat dan edit profil</div>
-                </div>
-              </button>
-            </div>
-
             {/* Logout Section */}
             <div className="px-4 py-2 border-t border-gray-100">
               <button 
