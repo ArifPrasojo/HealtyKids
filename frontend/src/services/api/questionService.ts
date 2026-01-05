@@ -47,5 +47,14 @@ export const questionService = {
       body: JSON.stringify(payload),
     });
     return await res.json();
+  },
+
+  deleteQuestion: async (id: number): Promise<ApiResponse<any>> => {
+    const res = await fetch(`${BASE_URL}/${id}`, {
+      method: 'DELETE',
+      // Tidak memerlukan body sesuai tampilan Postman "This request does not have a body"
+    });
+    return await res.json();
   }
+
 };
