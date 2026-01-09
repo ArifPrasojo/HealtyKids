@@ -3,7 +3,7 @@ import { authRoute } from '@/modules/auth/auth.route'
 import { userAdminRoute } from '@/modules/users/users.route'
 import { materialAdminRoute, materialStudentRoute } from '@/modules/materials/material.route'
 import { quizAdminRoute, quizStudentRoute } from '@/modules/quiz/quiz.route'
-import { profileAdminRoute } from '@/modules/profile/profile.route'
+import { profileAdminRoute, profileStudentRoute } from '@/modules/profile/profile.route'
 
 const adminRoutes = new Hono()
 adminRoutes.route('/users', userAdminRoute)
@@ -17,5 +17,6 @@ authRoutes.route('/', authRoute)
 const studentRoutes = new Hono()
 studentRoutes.route('/quiz', quizStudentRoute)
 studentRoutes.route('/material', materialStudentRoute)
+studentRoutes.route('/profile', profileStudentRoute)
 
 export { adminRoutes, authRoutes, studentRoutes }

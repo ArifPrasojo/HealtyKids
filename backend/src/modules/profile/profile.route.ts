@@ -8,4 +8,8 @@ profileAdminRoute.use('*', authMiddleware)
 profileAdminRoute.get('/', authorize(['teacher']), controller.getProfileAdmin)
 profileAdminRoute.put('/', authorize(['teacher']), controller.updateProfileAdmin)
 
-export { profileAdminRoute }
+const profileStudentRoute = new Hono()
+profileStudentRoute.use('*', authMiddleware)
+profileStudentRoute.get('/', authorize(['student']), controller.getProfileStudent)
+
+export { profileAdminRoute, profileStudentRoute }

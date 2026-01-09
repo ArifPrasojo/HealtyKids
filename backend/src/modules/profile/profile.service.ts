@@ -63,3 +63,14 @@ export const updateProfileAdmin = async (user: any, data: updateProfileInput) =>
 
     return result
 }
+
+// SERVICE STUDENT
+export const getProfileStudent = async (user: any) => {
+    const { sub } = user
+    const studentData = await getDataStudent(sub)
+
+    return {
+        name: studentData.name,
+        username: studentData.username
+    }
+}
