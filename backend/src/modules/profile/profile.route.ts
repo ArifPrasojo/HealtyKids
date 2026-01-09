@@ -11,5 +11,6 @@ profileAdminRoute.put('/', authorize(['teacher']), controller.updateProfileAdmin
 const profileStudentRoute = new Hono()
 profileStudentRoute.use('*', authMiddleware)
 profileStudentRoute.get('/', authorize(['student']), controller.getProfileStudent)
+profileStudentRoute.put('/', authorize(['student']), controller.updateProfileStudent)
 
 export { profileAdminRoute, profileStudentRoute }

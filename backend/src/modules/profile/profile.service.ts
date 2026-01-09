@@ -74,3 +74,47 @@ export const getProfileStudent = async (user: any) => {
         username: studentData.username
     }
 }
+
+export const updateProfileStudent = async (user: any, data: updateProfileInput) => {
+    const { sub } = user
+    const studentData = await getDataStudent(sub)
+    const { name, username, password } = data
+
+    const [existingUsername] = await db
+        .select()
+        .from(users)
+        .where(
+            and(
+                eq(users.username, username),
+                ne(users.id, studentData.id)
+            )
+        )
+
+    if (existingUsername) {
+        throw new HttpError(409, 'Username sudah digunakan')
+    }
+
+    const profileUpdateData: Partial<updateProfileInput> = {
+        name,
+        username
+    }
+
+    if (password && password.trim() !== '') {
+        const hashedPassword = await hash(password, 10)
+        profileUpdateData.password = hashedPassword
+    }
+
+    const [result] = await db
+        .update(users)
+        .set({
+            ...profileUpdateData,
+            updatedAt: new Date(Date.now())
+        })
+        .where(eq(users.id, studentData.id))
+        .returning({
+            name: users.name,
+            username: users.username
+        })
+
+    return result
+}
