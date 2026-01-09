@@ -273,6 +273,7 @@ export const updateSubMaterialVideo = async (materialId: number, subMaterialId: 
         .from(subMaterial)
         .where(
             and(
+                eq(subMaterial.materialId, existingMaterial.id),
                 eq(subMaterial.id, subMaterialId),
                 eq(subMaterial.isDelete, false)
             )
@@ -286,7 +287,6 @@ export const updateSubMaterialVideo = async (materialId: number, subMaterialId: 
     const [result] = await db
         .update(subMaterial)
         .set({
-            materialId: existingMaterial.id,
             title: title,
             contentCategory: contentCategory,
             contentUrl: contentUrl,
@@ -319,6 +319,7 @@ export const updateSubMaterialPhoto = async (materialId: number, subMaterialId: 
         .from(subMaterial)
         .where(
             and(
+                eq(subMaterial.materialId, existingMaterial.id),
                 eq(subMaterial.id, subMaterialId),
                 eq(subMaterial.isDelete, false)
             )
@@ -345,12 +346,27 @@ export const updateSubMaterialPhoto = async (materialId: number, subMaterialId: 
     return result
 }
 
-export const deleteSubMaterial = async (subMaterialId: number) => {
+export const deleteSubMaterial = async (materialId: number, subMaterialId: number) => {
+    const [existingMaterial] = await db
+        .select()
+        .from(materials)
+        .where(
+            and(
+                eq(materials.id, materialId),
+                eq(materials.isDelete, false)
+            )
+        )
+
+    if (existingMaterial == null) {
+        throw new HttpError(404, "Materi tidak ditemukan")
+    }
+
     const [existingSubMaterial] = await db
         .select()
         .from(subMaterial)
         .where(
             and(
+                eq(subMaterial.materialId, existingMaterial.id),
                 eq(subMaterial.id, subMaterialId),
                 eq(subMaterial.isDelete, false)
             )

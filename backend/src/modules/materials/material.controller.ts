@@ -186,8 +186,9 @@ export const updateSubMaterial = async (c: Context) => {
 
 export const deleteSubMaterial = async (c: Context) => {
     try {
+        const materialId = Number(c.req.param('id'))
         const subMaterialId = Number(c.req.param('id-sub'))
-        const result = await service.deleteSubMaterial(subMaterialId)
+        const result = await service.deleteSubMaterial(materialId, subMaterialId)
         return c.json(response.successResponse(result))
     } catch (err: any) {
         if (err instanceof ZodError) {
