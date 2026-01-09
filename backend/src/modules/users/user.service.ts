@@ -1,7 +1,7 @@
 import z from "zod";
 import { db } from "@/db"
 import { users } from "@/db/schema"
-import { eq, and, ne, sql } from 'drizzle-orm'
+import { eq, and, ne } from 'drizzle-orm'
 import { HttpError } from '@/utils/httpError'
 import { hash } from 'bcryptjs'
 import { createUserSchema, updateUserSchema } from '@/modules/users/users.validator'
