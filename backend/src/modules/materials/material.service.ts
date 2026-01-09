@@ -108,14 +108,26 @@ export const deleteMaterial = async (materialId: number) => {
         throw new HttpError(404, "Materi tidak ditemukan")
     }
 
-    await db
-        .update(materials)
-        .set({
-            isDelete: true,
-            updatedAt: new Date(Date.now())
-        })
-        .where(eq(materials.id, existingMaterial.id))
-        .returning()
+    const result = await db.transaction(async (tx) => {
+        const [materialData] = await tx
+            .update(materials)
+            .set({
+                isDelete: true,
+                updatedAt: new Date(Date.now())
+            })
+            .where(eq(materials.id, existingMaterial.id))
+            .returning()
+
+        const subMaterialData = await tx
+            .update(subMaterial)
+            .set({
+                isDelete: true,
+                updatedAt: new Date(Date.now())
+            })
+            .where(eq(subMaterial.materialId, materialData.id))
+
+        return materialData
+    })
 
     return
 }
