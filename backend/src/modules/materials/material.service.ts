@@ -425,3 +425,46 @@ export const getAllSubMaterialStudent = async (user: any, materialId: number) =>
 
     return subMaterialData
 }
+
+export const postProgresSubMaterialStudent = async (user: any, materialId: number, subMaterialId: number) => {
+    const { sub } = user
+    const studentData = await getDataStudent(sub)
+    const [existingSubMaterial] = await db
+        .select()
+        .from(subMaterial)
+        .where(
+            and(
+                eq(subMaterial.materialId, materialId),
+                eq(subMaterial.id, subMaterialId),
+                eq(subMaterial.isDelete, false)
+            )
+        )
+
+    if (existingSubMaterial == null) {
+        throw new HttpError(404, "Sub Materi tidak ditemukan")
+    }
+
+    const [existingProgresses] = await db
+        .select()
+        .from(progresses)
+        .where(
+            and(
+                eq(progresses.studentId, studentData.id),
+                eq(progresses.subMaterialId, existingSubMaterial.id)
+            )
+        )
+
+    if (existingProgresses != null) {
+        throw new HttpError(500, "Sub Materi sudah pernah dibaca")
+    }
+
+    const [result] = await db
+        .insert(progresses)
+        .values({
+            studentId: studentData.id,
+            subMaterialId: existingSubMaterial.id,
+        })
+        .returning()
+
+    return result
+}
