@@ -10,6 +10,7 @@ import {
     quizStudentPostSchema
 } from "@/modules/quiz/quiz.validator";
 
+// CONTROLLER ADMIN/TEACHER
 export const getQuiz = async (c: Context) => {
     try {
         const result = await service.getQuiz()
@@ -162,6 +163,23 @@ export const updateQuestionAnswer = async (c: Context) => {
         const data = updateAnswerQuestionSchema.parse(body)
         const questionId = Number(c.req.param('id'))
         const result = await service.updateQuestionAnswer(questionId, data)
+        return c.json(response.successResponse(result))
+    } catch (err: any) {
+        if (err instanceof ZodError) {
+            return c.json({
+                success: false,
+                message: "Validasi gagal",
+                errors: err.flatten().fieldErrors
+            }, 400)
+        }
+        const status = err.status ?? 500
+        return c.json(response.errorResponse(err), status)
+    }
+}
+
+export const getQuizAttempt = async (c: Context) => {
+    try {
+        const result = await service.getQuizAttempt()
         return c.json(response.successResponse(result))
     } catch (err: any) {
         if (err instanceof ZodError) {

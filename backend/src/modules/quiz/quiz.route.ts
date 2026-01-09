@@ -13,6 +13,7 @@ quizAdminRoute.put('/questions/:id{[0-9]+}', controller.updateQuestion)
 quizAdminRoute.delete('/questions/:id{[0-9]+}', controller.deleteQuestion)
 quizAdminRoute.get('/questions/:id{[0-9]+}/answer', controller.getAllAnswer)
 quizAdminRoute.put('/questions/:id{[0-9]+}/answer', controller.updateQuestionAnswer)
+quizAdminRoute.get('/result', controller.getQuizAttempt)
 
 const quizStudentRoute = new Hono()
 quizStudentRoute.use('*', authMiddleware)

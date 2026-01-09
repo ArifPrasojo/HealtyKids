@@ -1,6 +1,6 @@
 import z from "zod";
 import { db } from "@/db"
-import { quiz, quizQuestion, questionAnswer, quizAttempt, quizAttemptAnswer } from "@/db/schema"
+import { quiz, quizQuestion, questionAnswer, quizAttempt, quizAttemptAnswer, users } from "@/db/schema"
 import { eq, and, ne, sql, inArray } from 'drizzle-orm'
 import { HttpError } from "@/utils/httpError";
 import {
@@ -257,6 +257,21 @@ export const updateQuestionAnswer = async (questionId: number, data: updateQuest
         return resultUpdate
     })
 
+    return result
+}
+
+export const getQuizAttempt = async () => {
+    const result = await db
+        .select({
+            studentName: users.name,
+            quizName: quiz.title,
+            score: quizAttempt.score,
+            finishedAt: quizAttempt.finishedAt
+        })
+        .from(quizAttempt)
+        .leftJoin(users, eq(quizAttempt.studentId, users.id))
+        .leftJoin(quiz, eq(quizAttempt.quizId, quiz.id))
+    
     return result
 }
 
