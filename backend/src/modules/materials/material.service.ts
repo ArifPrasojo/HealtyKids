@@ -1,7 +1,7 @@
 import z from "zod";
 import { db } from "@/db";
 import { materials, progresses, subMaterial } from "@/db/schema";
-import { eq, and, ne, sql } from 'drizzle-orm';
+import { eq, and, sql } from 'drizzle-orm';
 import { HttpError } from "@/utils/httpError";
 import { saveFileBase64 } from "@/utils/fileUpload";
 import {
@@ -12,7 +12,7 @@ import {
     updateSubMaterialVideoSchema,
     updateSubMaterialPhotoSchema
 } from '@/modules/materials/material.validator';
-import { getDataAdmin, getDataStudent } from '@/utils/userData';
+import { getDataStudent } from '@/utils/userData';
 
 type createMaterialInput = z.infer<typeof createMaterialSchema>
 type updateMaterialInput = z.infer<typeof updateMaterialSchema>
@@ -21,7 +21,7 @@ type createSubMaterialPhotoInput = z.infer<typeof createSubMaterialPhotoSchema>
 type updateSubMaterialVideoInput = z.infer<typeof updateSubMaterialVideoSchema>
 type updateSubMaterialPhotoInput = z.infer<typeof updateSubMaterialPhotoSchema>
 
-// SERVICE ADMIN
+// SERVICE ADMIN/TEACHER
 export const getAllMaterial = async () => {
     const result = await db
         .select()
@@ -108,7 +108,7 @@ export const deleteMaterial = async (materialId: number) => {
         throw new HttpError(404, "Materi tidak ditemukan")
     }
 
-    const [result] = await db
+    await db
         .update(materials)
         .set({
             isDelete: true,
@@ -227,7 +227,6 @@ export const createSubMaterialPhoto = async (materialId: number, data: createSub
 
     const { title, contentCategory, contentUrl, content } = data
     const urlContent = await saveFileBase64(contentUrl, "material-photos")
-
     const [result] = await db
         .insert(subMaterial)
         .values({
@@ -319,7 +318,6 @@ export const updateSubMaterialPhoto = async (materialId: number, subMaterialId: 
 
     const { title, contentCategory, contentUrl, content } = data
     const urlContent = await saveFileBase64(contentUrl, "material-photos")
-
     const [result] = await db
         .update(subMaterial)
         .set({
@@ -350,7 +348,7 @@ export const deleteSubMaterial = async (subMaterialId: number) => {
         throw new HttpError(404, "Sub Materi tidak ditemukan")
     }
 
-    const [result] = await db
+    await db
         .update(subMaterial)
         .set({
             isDelete: true,
@@ -390,15 +388,12 @@ export const getAllMaterialStudent = async (user: any) => {
         .where(eq(materials.isDelete, false))
         .groupBy(materials.id)
 
-    return {
-        materials: materialData
-    }
+    return { materials: materialData }
 }
 
 export const getAllSubMaterialStudent = async (user: any, materialId: number) => {
     const { sub } = user
     const studentData = await getDataStudent(sub)
-
     const subMaterialData = await db
         .select({
             id: subMaterial.id,
