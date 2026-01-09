@@ -19,9 +19,7 @@ export const quizAttempt = pgTable("quiz_attempt", {
             onUpdate: "cascade"
         }),
     score: integer("score"),
-    isFinished: boolean("is_finished").notNull().default(false),
-    startedAt: timestamp("started_at").notNull().defaultNow(),
-    finishedAt: timestamp("finished_at")
+    finishedAt: timestamp("finished_at").notNull().defaultNow()
 });
 
 export const quizAttemptRelation = relations(quizAttempt, ({ one, many }) => ({

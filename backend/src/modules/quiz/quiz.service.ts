@@ -1,16 +1,25 @@
 import z from "zod";
 import { db } from "@/db"
-import { quiz, quizQuestion, questionAnswer } from "@/db/schema"
-import { eq, and, ne, sql } from 'drizzle-orm'
+import { quiz, quizQuestion, questionAnswer, quizAttempt, quizAttemptAnswer } from "@/db/schema"
+import { eq, and, ne, sql, inArray } from 'drizzle-orm'
 import { HttpError } from "@/utils/httpError";
-import { updateQuizSchema, createQuestionSchema, updateQuestionSchema, updateAnswerQuestionSchema } from "@/modules/quiz/quiz.validator";
+import {
+    updateQuizSchema,
+    createQuestionSchema,
+    updateQuestionSchema,
+    updateAnswerQuestionSchema,
+    quizStudentPostSchema
+} from "@/modules/quiz/quiz.validator";
 import { saveFileBase64 } from "@/utils/fileUpload";
+import { getDataAdmin, getDataStudent } from '@/utils/userData'
 
 type updateQuizInput = z.infer<typeof updateQuizSchema>
 type createQuestionInput = z.infer<typeof createQuestionSchema>
 type updateQuestionInput = z.infer<typeof updateQuestionSchema>
 type updateQuestionAnswerInput = z.infer<typeof updateAnswerQuestionSchema>
+type quizStudentPostInput = z.infer<typeof quizStudentPostSchema>
 
+// SERVICE ADMIN
 export const getQuiz = async () => {
     const [result] = await db
         .select()
@@ -285,6 +294,80 @@ export const getQuizStudent = async () => {
     if (result.isActive == false) {
         throw new HttpError(404, "Quiz Belum Dimulai")
     }
+
+    return result
+}
+
+export const quizStudentPost = async (user: any, data: quizStudentPostInput) => {
+    const { sub } = user
+
+    const studentData = await getDataStudent(sub)
+    const quizData = await getQuiz()
+
+    const result = db.transaction(async (tx) => {
+        const [attempt] = await tx
+            .insert(quizAttempt)
+            .values({
+                quizId: quizData.id,
+                studentId: studentData.id
+            })
+            .returning()
+
+        const answerIds = data.result.map(r => r.answerId).filter((id): id is number => typeof id === "number")
+        const answers = answerIds.length
+            ? await tx
+                .select({
+                    id: questionAnswer.id,
+                    isCorrect: questionAnswer.isCorrect
+                })
+                .from(questionAnswer)
+                .where(inArray(questionAnswer.id, answerIds))
+            : []
+
+        const answerMap = new Map(
+            answers.map(a => [a.id, a.isCorrect])
+        )
+
+        const attemptAnswers = data.result.map(item => {
+            if (typeof item.answerId === "number") {
+                const isCorrect = answerMap.get(item.answerId) === true
+
+                return {
+                    attemptId: attempt.id,
+                    questionId: item.questionId,
+                    selectedAnswerId: item.answerId,
+                    isCorrect
+                }
+            }
+
+            return {
+                attemptId: attempt.id,
+                questionId: item.questionId,
+                selectedAnswerId: null,
+                isCorrect: false
+            }
+        })
+
+        const savedAnswers = await tx
+            .insert(quizAttemptAnswer)
+            .values(attemptAnswers)
+            .returning()
+
+        const totalQuestions = attemptAnswers.length
+        const correctCount = attemptAnswers.filter(a => a.isCorrect).length
+        const score = totalQuestions === 0 ? 0 : Math.floor((correctCount / totalQuestions) * 100)
+        const [finalAttempt] = await tx
+            .update(quizAttempt)
+            .set({ score })
+            .where(eq(quizAttempt.id, attempt.id))
+            .returning({
+                id: quizAttempt.id,
+                score: quizAttempt.score,
+                finishedAt: quizAttempt.finishedAt
+            })
+
+        return finalAttempt
+    })
 
     return result
 }
