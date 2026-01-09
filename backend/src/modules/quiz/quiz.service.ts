@@ -11,7 +11,8 @@ import {
     quizStudentPostSchema
 } from "@/modules/quiz/quiz.validator";
 import { saveFileBase64 } from "@/utils/fileUpload";
-import { getDataStudent } from '@/utils/userData'
+import { getDataStudent } from '@/utils/userData';
+import { checkProgres } from '@/utils/progresChecker'
 
 type updateQuizInput = z.infer<typeof updateQuizSchema>
 type createQuestionInput = z.infer<typeof createQuestionSchema>
@@ -275,7 +276,12 @@ export const getQuizAttempt = async () => {
 }
 
 // SERVICE STUDENT
-export const getQuizStudent = async () => {
+export const getQuizStudent = async (user: any) => {
+    const { sub } = user
+    const studentData = await getDataStudent(sub)
+
+    await checkProgres(studentData.id)
+
     const [result] = await db.query.quiz.findMany({
         columns: {
             duration: true,

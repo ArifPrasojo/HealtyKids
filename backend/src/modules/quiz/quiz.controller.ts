@@ -197,7 +197,8 @@ export const getQuizAttempt = async (c: Context) => {
 // CONTROLLER STUDENT
 export const getQuizStudent = async (c: Context) => {
     try {
-        const result = await service.getQuizStudent()
+        const user = c.get("user")
+        const result = await service.getQuizStudent(user)
         return c.json(response.successResponse(result))
     } catch (err: any) {
         if (err instanceof ZodError) {
