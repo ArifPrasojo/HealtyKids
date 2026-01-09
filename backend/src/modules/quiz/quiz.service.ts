@@ -1,7 +1,7 @@
 import z from "zod";
 import { db } from "@/db"
 import { quiz, quizQuestion, questionAnswer, quizAttempt, quizAttemptAnswer, users } from "@/db/schema"
-import { eq, and, ne, sql, inArray } from 'drizzle-orm'
+import { eq, and, inArray } from 'drizzle-orm'
 import { HttpError } from "@/utils/httpError";
 import {
     updateQuizSchema,
@@ -11,7 +11,7 @@ import {
     quizStudentPostSchema
 } from "@/modules/quiz/quiz.validator";
 import { saveFileBase64 } from "@/utils/fileUpload";
-import { getDataAdmin, getDataStudent } from '@/utils/userData'
+import { getDataStudent } from '@/utils/userData'
 
 type updateQuizInput = z.infer<typeof updateQuizSchema>
 type createQuestionInput = z.infer<typeof createQuestionSchema>
@@ -19,7 +19,7 @@ type updateQuestionInput = z.infer<typeof updateQuestionSchema>
 type updateQuestionAnswerInput = z.infer<typeof updateAnswerQuestionSchema>
 type quizStudentPostInput = z.infer<typeof quizStudentPostSchema>
 
-// SERVICE ADMIN
+// SERVICE ADMIN/TEACHER
 export const getQuiz = async () => {
     const [result] = await db
         .select()
@@ -33,7 +33,6 @@ export const getQuiz = async () => {
 export const updateQuiz = async (data: updateQuizInput) => {
     const { duration, title, description, isActive } = data
     const existingQuiz = await getQuiz()
-
     const [result] = await db
         .update(quiz)
         .set({
