@@ -1,6 +1,6 @@
 import z from "zod";
 import { db } from "@/db";
-import { materials, subMaterial } from "@/db/schema";
+import { materials, progresses, subMaterial } from "@/db/schema";
 import { eq, and, ne, sql } from 'drizzle-orm';
 import { HttpError } from "@/utils/httpError";
 import { saveFileBase64 } from "@/utils/fileUpload";
@@ -11,7 +11,8 @@ import {
     createSubMaterialPhotoSchema,
     updateSubMaterialVideoSchema,
     updateSubMaterialPhotoSchema
-} from '@/modules/materials/material.validator'
+} from '@/modules/materials/material.validator';
+import { getDataAdmin, getDataStudent } from '@/utils/userData';
 
 type createMaterialInput = z.infer<typeof createMaterialSchema>
 type updateMaterialInput = z.infer<typeof updateMaterialSchema>
@@ -20,6 +21,7 @@ type createSubMaterialPhotoInput = z.infer<typeof createSubMaterialPhotoSchema>
 type updateSubMaterialVideoInput = z.infer<typeof updateSubMaterialVideoSchema>
 type updateSubMaterialPhotoInput = z.infer<typeof updateSubMaterialPhotoSchema>
 
+// SERVICE ADMIN
 export const getAllMaterial = async () => {
     const result = await db
         .select()
@@ -358,4 +360,37 @@ export const deleteSubMaterial = async (subMaterialId: number) => {
         .returning()
 
     return
+}
+
+// SERVICE STUDENT
+export const getAllMaterialStudent = async (user: any) => {
+    const { sub } = user
+    const studentData = await getDataStudent(sub)
+    const materialData = await db
+        .select({
+            id: materials.id,
+            title: materials.title,
+            description: materials.description,
+            totalSubMaterial: sql<number>`COUNT(DISTINCT ${subMaterial.id})`,
+            totalSubMaterialRead: sql<number>`COUNT(DISTINCT ${progresses.id})`
+        })
+        .from(materials)
+        .leftJoin(subMaterial,
+            and(
+                eq(subMaterial.materialId, materials.id),
+                eq(subMaterial.isDelete, false)
+            )
+        )
+        .leftJoin(progresses,
+            and(
+                eq(progresses.subMaterialId, subMaterial.id),
+                eq(progresses.studentId, studentData.id)
+            )
+        )
+        .where(eq(materials.isDelete, false))
+        .groupBy(materials.id)
+
+    return {
+        materials: materialData
+    }
 }

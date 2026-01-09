@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { authRoute } from '@/modules/auth/auth.route'
 import { userAdminRoute } from '@/modules/users/users.route'
-import { materialAdminRoute } from '@/modules/materials/material.route'
+import { materialAdminRoute, materialStudentRoute } from '@/modules/materials/material.route'
 import { quizAdminRoute, quizStudentRoute } from '@/modules/quiz/quiz.route'
 
 const adminRoutes = new Hono()
@@ -14,5 +14,6 @@ authRoutes.route('/', authRoute)
 
 const studentRoutes = new Hono()
 studentRoutes.route('/quiz', quizStudentRoute)
+studentRoutes.route('/material', materialStudentRoute)
 
 export { adminRoutes, authRoutes, studentRoutes }

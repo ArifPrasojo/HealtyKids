@@ -1,5 +1,7 @@
 import { Hono } from 'hono'
 import * as controller from '@/modules/materials/material.controller'
+import { authMiddleware } from '@/middlewares/auth.middleware';
+import { authorize } from '@/middlewares/authorize.middleware';
 
 const materialAdminRoute = new Hono()
 materialAdminRoute.get('/', controller.getAllMaterial)
@@ -7,10 +9,14 @@ materialAdminRoute.get('/:id{[0-9]}', controller.getMaterialById)
 materialAdminRoute.post('/', controller.createMaterial)
 materialAdminRoute.put('/:id{[0-9]+}', controller.updateMaterial)
 materialAdminRoute.delete('/:id{[0-9]+}', controller.deleteMaterial)
-
 materialAdminRoute.get('/:id{[0-9]+}/sub-material', controller.getAllSubMaterial)
 materialAdminRoute.get('/:id{[0-9]+}/sub-material/:id-sub{[0-9]+}', controller.getSubMaterialById)
 materialAdminRoute.post('/:id{[0-9]+}/sub-material', controller.createSubMaterial)
 materialAdminRoute.put('/:id{[0-9]+}/sub-material/:id-sub{[0-9]+}', controller.updateSubMaterial)
 materialAdminRoute.delete('/:id{[0-9]+}/sub-material/:id-sub{[0-9]+}', controller.deleteSubMaterial)
-export { materialAdminRoute }
+
+const materialStudentRoute = new Hono()
+materialStudentRoute.use('*', authMiddleware)
+materialStudentRoute.get('/', authorize(['student']), controller.getAllMaterialStudent)
+
+export { materialAdminRoute, materialStudentRoute }
