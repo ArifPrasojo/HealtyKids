@@ -394,3 +394,34 @@ export const getAllMaterialStudent = async (user: any) => {
         materials: materialData
     }
 }
+
+export const getAllSubMaterialStudent = async (user: any, materialId: number) => {
+    const { sub } = user
+    const studentData = await getDataStudent(sub)
+
+    const subMaterialData = await db
+        .select({
+            id: subMaterial.id,
+            title: subMaterial.title,
+            contentCategory: subMaterial.contentCategory,
+            contentUrl: subMaterial.contentUrl,
+            content: subMaterial.content,
+            isDone: sql<boolean>`CASE WHEN ${progresses.id} IS NOT NULL THEN true ELSE false END`
+        })
+        .from(subMaterial)
+        .leftJoin(progresses,
+            and(
+                eq(progresses.subMaterialId, subMaterial.id),
+                eq(progresses.studentId, studentData.id)
+            )
+        )
+        .where(
+            and(
+                eq(subMaterial.materialId, materialId),
+                eq(subMaterial.isDelete, false)
+            )
+        )
+        .orderBy(subMaterial.id)
+
+    return subMaterialData
+}

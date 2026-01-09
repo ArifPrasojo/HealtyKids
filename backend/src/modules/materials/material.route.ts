@@ -18,5 +18,6 @@ materialAdminRoute.delete('/:id{[0-9]+}/sub-material/:id-sub{[0-9]+}', controlle
 const materialStudentRoute = new Hono()
 materialStudentRoute.use('*', authMiddleware)
 materialStudentRoute.get('/', authorize(['student']), controller.getAllMaterialStudent)
+materialStudentRoute.get('/:id{[0-9]+}', authorize(['student']), controller.getAllSubMaterialStudent)
 
 export { materialAdminRoute, materialStudentRoute }
