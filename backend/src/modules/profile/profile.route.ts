@@ -6,5 +6,6 @@ import { authorize } from '@/middlewares/authorize.middleware';
 const profileAdminRoute = new Hono()
 profileAdminRoute.use('*', authMiddleware)
 profileAdminRoute.get('/', authorize(['teacher']), controller.getProfileAdmin)
+profileAdminRoute.put('/', authorize(['teacher']), controller.updateProfileAdmin)
 
 export { profileAdminRoute }
