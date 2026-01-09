@@ -271,7 +271,7 @@ export const getQuizAttempt = async () => {
         .from(quizAttempt)
         .leftJoin(users, eq(quizAttempt.studentId, users.id))
         .leftJoin(quiz, eq(quizAttempt.quizId, quiz.id))
-    
+
     return result
 }
 
@@ -315,10 +315,8 @@ export const getQuizStudent = async () => {
 
 export const quizStudentPost = async (user: any, data: quizStudentPostInput) => {
     const { sub } = user
-
     const studentData = await getDataStudent(sub)
     const quizData = await getQuiz()
-
     const result = db.transaction(async (tx) => {
         const [attempt] = await tx
             .insert(quizAttempt)
@@ -383,6 +381,23 @@ export const quizStudentPost = async (user: any, data: quizStudentPostInput) => 
 
         return finalAttempt
     })
+
+    return result
+}
+
+export const getQuizAttemptStudent = async (user: any) => {
+    const { sub } = user
+    const studentData = await getDataStudent(sub)
+    const result = await db
+        .select({
+            quizName: quiz.title,
+            quizDescription: quiz.description,
+            score: quizAttempt.score,
+            finishedAt: quizAttempt.finishedAt
+        })
+        .from(quizAttempt)
+        .leftJoin(quiz, eq(quizAttempt.quizId, quiz.id))
+        .where(eq(quizAttempt.studentId, studentData.id))
 
     return result
 }

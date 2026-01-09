@@ -18,5 +18,7 @@ quizAdminRoute.get('/result', controller.getQuizAttempt)
 const quizStudentRoute = new Hono()
 quizStudentRoute.use('*', authMiddleware)
 quizStudentRoute.get('/', authorize(['student']), controller.getQuizStudent)
-quizStudentRoute.post('/', controller.quizStudentPost)
+quizStudentRoute.post('/', authorize(['student']), controller.quizStudentPost)
+quizStudentRoute.get('/result', authorize(['student']), controller.getQuizAttemptStudent)
+
 export { quizAdminRoute, quizStudentRoute }
