@@ -11,6 +11,7 @@ import {
 } from '@/modules/materials/material.validator'
 import { ZodError } from "zod"
 
+// CONTROLLER ADMIN
 export const getAllMaterial = async (c: Context) => {
     try {
         const result = await service.getAllMaterial()
@@ -185,8 +186,67 @@ export const updateSubMaterial = async (c: Context) => {
 
 export const deleteSubMaterial = async (c: Context) => {
     try {
+        const materialId = Number(c.req.param('id'))
         const subMaterialId = Number(c.req.param('id-sub'))
-        const result = await service.deleteSubMaterial(subMaterialId)
+        const result = await service.deleteSubMaterial(materialId, subMaterialId)
+        return c.json(response.successResponse(result))
+    } catch (err: any) {
+        if (err instanceof ZodError) {
+            return c.json({
+                success: false,
+                message: "Validasi gagal",
+                errors: err.flatten().fieldErrors
+            }, 400)
+        }
+        const status = err.status ?? 500
+        return c.json(response.errorResponse(err), status)
+    }
+}
+
+// CONTROLLER STUDENT
+export const getAllMaterialStudent = async (c: Context) => {
+    try {
+        const user = c.get('user')
+        const result = await service.getAllMaterialStudent(user)
+        return c.json(response.successResponse(result))
+    } catch (err: any) {
+        if (err instanceof ZodError) {
+            return c.json({
+                success: false,
+                message: "Validasi gagal",
+                errors: err.flatten().fieldErrors
+            }, 400)
+        }
+        const status = err.status ?? 500
+        return c.json(response.errorResponse(err), status)
+    }
+}
+
+export const getAllSubMaterialStudent = async (c: Context) => {
+    try {
+        const user = c.get('user')
+        const materialId = Number(c.req.param('id'))
+        const result = await service.getAllSubMaterialStudent(user, materialId)
+        return c.json(response.successResponse(result))
+    } catch (err: any) {
+        if (err instanceof ZodError) {
+            return c.json({
+                success: false,
+                message: "Validasi gagal",
+                errors: err.flatten().fieldErrors
+            }, 400)
+        }
+        const status = err.status ?? 500
+        return c.json(response.errorResponse(err), status)
+    }
+}
+
+export const postProgresStudent = async (c: Context) => {
+    try {
+        const user = c.get('user')
+        const materialId = Number(c.req.param('id'))
+        const subMaterialId = Number(c.req.param('id-sub'))
+        const result = await service.postProgresSubMaterialStudent(user, materialId, subMaterialId)
         return c.json(response.successResponse(result))
     } catch (err: any) {
         if (err instanceof ZodError) {

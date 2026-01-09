@@ -1,5 +1,6 @@
 import { z } from 'zod'
 
+// VALIDATOR ADMIN
 export const updateQuizSchema = z.object({
     duration: z.number().min(1, "Minimal durasi 1 (menit)"),
     title: z.string().nonempty("Title Harus Diisi").max(255, "Maksimal 255 karakter"),
@@ -27,4 +28,14 @@ const answerQuestionItem = z.object({
 
 export const updateAnswerQuestionSchema = z.object({
     answer: z.array(answerQuestionItem).min(5, "Jawaban harus ada 5").max(5, "Jawaban harus ada 5")
+})
+
+// VALIDATOR STUDENDT
+export const quizStudentPostItem = z.object({
+    questionId: z.number().int().positive(),
+    answerId: z.number().int().positive().optional(),
+})
+
+export const quizStudentPostSchema = z.object({
+    result: z.array(quizStudentPostItem).min(1),
 })
