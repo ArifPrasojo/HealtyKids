@@ -1,3 +1,5 @@
+// src/pages/admin/ManageQuiz.tsx
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -13,16 +15,20 @@ import {
 
 // Service Imports
 import { quizService } from '../../services/api/quizService';
-import type { QuizData } from '../../services/api/quizService';
+// Pastikan path import type sesuai dengan struktur project Anda
+import type { QuizData } from '../../services/api/quizService'; 
 import CloudBackground from '../../components/layouts/CloudBackground';
 
 const ManageQuiz: React.FC = () => {
+  // State
   const [quiz, setQuiz] = useState<QuizData | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  
   const navigate = useNavigate();
 
+  // Load Data saat component di-mount
   useEffect(() => {
     fetchQuizData();
   }, []);
@@ -31,11 +37,23 @@ const ManageQuiz: React.FC = () => {
     try {
       setLoading(true);
       const result = await quizService.getQuiz();
-      if (result.success) {
+      
+      if (result.success && result.data) {
         setQuiz(result.data);
+      } else {
+        // Jika success false tapi tidak throw error
+        setMessage({ type: 'error', text: result.message || "Gagal memuat data kuis" });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching quiz:", error);
+      // Menangkap pesan error dari Service (misal: "Sesi berakhir")
+      const errMsg = error instanceof Error ? error.message : "Gagal terhubung ke server";
+      setMessage({ type: 'error', text: errMsg });
+      
+      // Opsional: Jika sesi berakhir, redirect ke login (tergantung kebutuhan)
+      if (errMsg.includes("Sesi berakhir")) {
+        // navigate('/login'); 
+      }
     } finally {
       setLoading(false);
     }
@@ -50,14 +68,17 @@ const ManageQuiz: React.FC = () => {
 
     try {
       const result = await quizService.updateQuiz(quiz);
+      
       if (result.success) {
         setMessage({ type: 'success', text: "Pengaturan kuis berhasil diperbarui!" });
       } else {
-        setMessage({ type: 'error', text: "Gagal memperbarui kuis." });
+        setMessage({ type: 'error', text: result.message || "Gagal memperbarui kuis." });
       }
-    } catch (error) {
-      setMessage({ type: 'error', text: "Terjadi kesalahan sistem." });
+    } catch (error: any) {
       console.error(error);
+      // Menangkap pesan error spesifik dari Service
+      const errMsg = error instanceof Error ? error.message : "Terjadi kesalahan sistem.";
+      setMessage({ type: 'error', text: errMsg });
     } finally {
       setIsSubmitting(false);
     }
@@ -97,7 +118,9 @@ const ManageQuiz: React.FC = () => {
             </div>
             <button 
               onClick={() => navigate(`/admin/managequiz/${quiz?.id}/questions`)}
-              className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-6 py-3 rounded-xl font-semibold flex items-center gap-3 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+              // Disable tombol jika data quiz belum ada/loading
+              disabled={loading || !quiz}
+              className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-6 py-3 rounded-xl font-semibold flex items-center gap-3 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Settings size={22} />
               <span>Kelola Pertanyaan</span>
