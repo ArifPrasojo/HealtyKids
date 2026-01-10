@@ -1,3 +1,5 @@
+// src/pages/admin/ManageAnswers.tsx
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
@@ -8,7 +10,6 @@ import {
   Loader, 
   X, 
   Hash,
-  Check,
   Info
 } from 'lucide-react';
 
@@ -36,12 +37,20 @@ const ManageAnswers: React.FC = () => {
   const fetchAnswersData = async () => {
     try {
       setLoading(true);
+      // Menggunakan method dari class answerService yang baru
+      // questionId! aman digunakan karena sudah dicek di useEffect
       const result = await answerService.getAnswers(questionId!);
-      if (result.success) {
+      
+      if (result.success && result.data) {
         setAnswers(result.data);
       }
-    } catch (error) {
-      setStatusMessage({ type: 'error', text: "Gagal memuat data jawaban dari server." });
+    } catch (err: any) {
+      // Menangkap error spesifik dari service (termasuk 401 Unauthorized)
+      const errorMsg = err instanceof Error ? err.message : "Gagal memuat data jawaban dari server.";
+      setStatusMessage({ type: 'error', text: errorMsg });
+      
+      // Opsional: Jika ingin redirect otomatis saat sesi habis
+      // if (errorMsg.includes("Sesi berakhir")) navigate('/login');
     } finally {
       setLoading(false);
     }
@@ -54,15 +63,19 @@ const ManageAnswers: React.FC = () => {
     setStatusMessage(null);
 
     try {
+      // Mengirim data jawaban yang sudah diedit ke server
       const result = await answerService.updateAnswers(questionId, answers);
+
       if (result.success) {
         setStatusMessage({ type: 'success', text: "Semua perubahan jawaban berhasil disimpan!" });
+        // Refresh data untuk memastikan sinkronisasi
         fetchAnswersData();
       } else {
         setStatusMessage({ type: 'error', text: result.message || "Gagal memperbarui jawaban." });
       }
-    } catch (err) {
-      setStatusMessage({ type: 'error', text: "Terjadi kesalahan saat menghubungi server." });
+    } catch (err: any) {
+      const errorMsg = err instanceof Error ? err.message : "Terjadi kesalahan saat menghubungi server.";
+      setStatusMessage({ type: 'error', text: errorMsg });
     } finally {
       setIsSubmitting(false);
     }
