@@ -1,21 +1,17 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Plus, Edit, Trash2, X, Search, Loader, 
-  Video, Image as ImageIcon, ArrowLeft, UploadCloud 
+  Video, Image as ImageIcon, ArrowLeft, UploadCloud,
+  CheckCircle, AlertCircle // Import icon tambahan
 } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
 
 // Import Service
 import { subMaterialService } from '../../services/api/subMaterialService';
 import type { SubMaterialItem, SubMaterialFormData } from '../../services/api/subMaterialService';
-import CloudBackground from '../../components/layouts/CloudBackground'; // Import CloudBackground
+import CloudBackground from '../../components/layouts/CloudBackground';
 
-// --- KONFIGURASI PENTING ---
-// Ganti URL ini sesuai dengan alamat Backend Anda berjalan!
-// Jika backend jalan di port 3000, tulis 'http://localhost:3000'
-// Jika backend jalan di port 5000, tulis 'http://localhost:5000'
-const BACKEND_URL = 'http://localhost:3000'; 
-// ---------------------------
+const BACKEND_URL = import.meta.env?.VITE_API_URL;
 
 const ManageSubMaterial = () => {
   const { materialId } = useParams<{ materialId: string }>();
@@ -24,7 +20,14 @@ const ManageSubMaterial = () => {
   // --- States ---
   const [dataList, setDataList] = useState<SubMaterialItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  
+  // State Error Global (Fetch)
+  const [error, setError] = useState<string | null>(null); 
+  
+  // --- STATE ALERT BARU (Success & Action Error) ---
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+
   const [searchQuery, setSearchQuery] = useState('');
 
   // Modal States
@@ -49,10 +52,23 @@ const ManageSubMaterial = () => {
     if (materialId) fetchData();
   }, [materialId]);
 
+  // Effect untuk Auto-Dismiss Alert (3 detik)
+  useEffect(() => {
+    if (successMessage || actionError) {
+      const timer = setTimeout(() => {
+        setSuccessMessage(null);
+        setActionError(null);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [successMessage, actionError]);
+
   // --- Functions ---
   const fetchData = async () => {
     try {
       setLoading(true);
+      // Reset error fetch, tapi jangan reset actionError/successMessage agar user sempat melihatnya
+      setError(null); 
       const res = await subMaterialService.getAllSubMaterials(Number(materialId));
       if (res.success && res.data) {
         setDataList(res.data);
@@ -64,26 +80,13 @@ const ManageSubMaterial = () => {
     }
   };
 
-  // --- LOGIC PENAMPIL GAMBAR (DIPERBAIKI) ---
   const getFullImageUrl = (path: string) => {
     if (!path) return 'https://via.placeholder.com/150?text=No+Image';
-    
-    // 1. Jika URL sudah lengkap (http/https) atau Base64 (data:image), kembalikan langsung
     if (path.startsWith('http') || path.startsWith('data:')) {
       return path;
     }
-
-    // 2. Bersihkan path dari backend (misal backend kirim "uploads/..." atau "/uploads/...")
-    // Kita pastikan ada "/" di depan
     const cleanPath = path.startsWith('/') ? path : `/${path}`;
-
-    // 3. Gabungkan dengan URL Backend
     const finalUrl = `${BACKEND_URL}${cleanPath}`;
-    
-    // Debugging: Cek console browser (F12) untuk melihat link yang dihasilkan
-    // console.log("Original Path:", path);
-    // console.log("Final URL:", finalUrl);
-    
     return finalUrl;
   };
 
@@ -101,15 +104,20 @@ const ManageSubMaterial = () => {
       contentUrl: item.contentUrl, 
       content: item.content
     });
+    // Reset alert saat membuka modal
+    setSuccessMessage(null);
+    setActionError(null);
     setIsFormOpen(true);
   };
 
   const handleDeleteClick = (item: SubMaterialItem) => {
     setDeleteItem(item);
+    // Reset alert saat membuka modal
+    setSuccessMessage(null);
+    setActionError(null);
     setIsDeleteOpen(true);
   };
 
-  // Logic Upload & Convert ke Base64
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -122,20 +130,32 @@ const ManageSubMaterial = () => {
   };
 
   const handleSubmit = async () => {
-    if (!formData.title || !formData.content) return alert("Judul dan Konten wajib diisi");
-    if (!formData.contentUrl) return alert("Video URL atau Foto wajib diisi");
+    // Validasi sederhana
+    if (!formData.title || !formData.content) {
+        setActionError("Judul dan Konten wajib diisi");
+        return;
+    }
+    if (!formData.contentUrl) {
+        setActionError("Video URL atau Foto wajib diisi");
+        return;
+    }
 
     try {
       setIsSubmitting(true);
+      setActionError(null); // Reset error sebelumnya
+
       if (editingItem) {
         await subMaterialService.updateSubMaterial(Number(materialId), editingItem.id, formData);
+        setSuccessMessage("Sub materi berhasil diperbarui!");
       } else {
         await subMaterialService.createSubMaterial(Number(materialId), formData);
+        setSuccessMessage("Sub materi baru berhasil ditambahkan!");
       }
-      handleReset();
-      fetchData(); 
+      
+      handleReset(); // Tutup modal & reset form
+      fetchData();   // Refresh data
     } catch (err: any) {
-      alert(err.message);
+      setActionError(err.message || "Terjadi kesalahan saat menyimpan data.");
     } finally {
       setIsSubmitting(false);
     }
@@ -145,12 +165,17 @@ const ManageSubMaterial = () => {
     if (!deleteItem) return;
     try {
       setIsSubmitting(true);
+      setActionError(null);
+
       await subMaterialService.deleteSubMaterial(Number(materialId), deleteItem.id);
+      
+      setSuccessMessage("Sub materi berhasil dihapus.");
       setIsDeleteOpen(false);
       setDeleteItem(null);
       fetchData();
     } catch (err: any) {
-      alert(err.message);
+      setActionError(err.message || "Gagal menghapus data.");
+      setIsDeleteOpen(false); // Opsional: tutup modal meski gagal, atau biarkan terbuka
     } finally {
       setIsSubmitting(false);
     }
@@ -178,13 +203,15 @@ const ManageSubMaterial = () => {
             <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
             Kembali
           </button>
+
+          {/* Header Section */}
           <div className="flex justify-between items-end mb-8">
             <div>
               <h1 className="text-2xl font-bold text-gray-800">Sub Materi</h1>
               <p className="text-gray-500 text-sm">Kelola video dan foto untuk materi ini</p>
             </div>
             <button 
-              onClick={() => { handleReset(); setIsFormOpen(true); }}
+              onClick={() => { handleReset(); setSuccessMessage(null); setActionError(null); setIsFormOpen(true); }}
               className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-3 rounded-xl font-semibold flex items-center gap-3 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
             >
               <Plus size={22} />
@@ -192,6 +219,36 @@ const ManageSubMaterial = () => {
             </button>
           </div>
 
+          {/* --- ALERT NOTIFICATIONS --- */}
+          <div className="space-y-4 mb-6">
+            {successMessage && (
+              <div className="p-4 bg-green-50 border-l-4 border-green-500 rounded-xl flex items-start gap-3 shadow-sm animate-fade-in">
+                <CheckCircle size={24} className="text-green-600 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <h3 className="text-green-900 font-semibold text-sm">Berhasil!</h3>
+                  <p className="text-green-800 text-sm mt-1">{successMessage}</p>
+                </div>
+                <button onClick={() => setSuccessMessage(null)} className="text-green-500 hover:text-green-700 p-1 rounded-full hover:bg-green-100 transition-colors">
+                  <X size={18} />
+                </button>
+              </div>
+            )}
+
+            {actionError && (
+              <div className="p-4 bg-red-50 border-l-4 border-red-500 rounded-xl flex items-start gap-3 shadow-sm animate-fade-in">
+                <AlertCircle size={24} className="text-red-600 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <h3 className="text-red-900 font-semibold text-sm">Gagal!</h3>
+                  <p className="text-red-800 text-sm mt-1">{actionError}</p>
+                </div>
+                <button onClick={() => setActionError(null)} className="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-100 transition-colors">
+                  <X size={18} />
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Table Container */}
           <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200/50 overflow-hidden">
             <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
               <div className="relative max-w-lg">
