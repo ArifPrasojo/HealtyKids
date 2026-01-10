@@ -1,7 +1,6 @@
 // src/services/api/quizService.ts
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
-const API_URL = `${API_BASE_URL}/admin/quiz`;
 
 export interface QuizData {
   id: number;
@@ -11,33 +10,87 @@ export interface QuizData {
   isActive: boolean;
 }
 
-export interface ApiResponse<T> {
+export interface ApiResponse<T = any> {
   success: boolean;
-  data: T;
+  data?: T;
   message?: string;
 }
 
-export const quizService = {
-  // Mengambil data quiz
-  getQuiz: async (): Promise<ApiResponse<QuizData>> => {
-    const response = await fetch(API_URL);
-    if (!response.ok) throw new Error('Failed to fetch quiz');
-    return await response.json();
-  },
+class QuizService {
+  private apiUrl: string;
 
-  // Mengupdate data quiz
-  updateQuiz: async (quiz: QuizData): Promise<ApiResponse<any>> => {
-    const response = await fetch(API_URL, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        title: quiz.title,
-        description: quiz.description,
-        duration: Number(quiz.duration),
-        isActive: quiz.isActive
-      }),
-    });
-    if (!response.ok) throw new Error('Failed to update quiz');
-    return await response.json();
+  constructor() {
+    // Endpoint langsung mengarah ke /admin/quiz
+    this.apiUrl = `${API_BASE_URL}/admin/quiz`;
   }
-};
+
+  /**
+   * Helper untuk mendapatkan headers dengan Token Authentication
+   */
+  private getHeaders() {
+    const token = localStorage.getItem('token'); 
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': token ? `Bearer ${token}` : '',
+    };
+  }
+
+  /**
+   * Mengambil data quiz (Single Quiz Configuration)
+   */
+  async getQuiz(): Promise<ApiResponse<QuizData>> {
+    try {
+      const response = await fetch(this.apiUrl, {
+        method: 'GET',
+        headers: this.getHeaders(), // Inject Token
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Sesi berakhir (Unauthorized). Silakan login kembali.');
+        }
+        throw new Error(data.message || 'Gagal mengambil data quiz');
+      }
+
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * Mengupdate data quiz
+   */
+  async updateQuiz(quiz: QuizData): Promise<ApiResponse<any>> {
+    try {
+      const response = await fetch(this.apiUrl, {
+        method: 'PUT',
+        headers: this.getHeaders(), // Inject Token
+        body: JSON.stringify({
+          title: quiz.title,
+          description: quiz.description,
+          duration: Number(quiz.duration),
+          isActive: quiz.isActive
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Sesi berakhir (Unauthorized).');
+        }
+        throw new Error(data.message || 'Gagal mengupdate quiz');
+      }
+
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
+}
+
+// Export singleton instance agar mudah dipanggil di halaman
+export const quizService = new QuizService();
