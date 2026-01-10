@@ -1,16 +1,26 @@
 import z from "zod";
 import { db } from "@/db"
-import { quiz, quizQuestion, questionAnswer } from "@/db/schema"
-import { eq, and, ne, sql } from 'drizzle-orm'
+import { quiz, quizQuestion, questionAnswer, quizAttempt, quizAttemptAnswer, users } from "@/db/schema"
+import { eq, and, inArray } from 'drizzle-orm'
 import { HttpError } from "@/utils/httpError";
-import { updateQuizSchema, createQuestionSchema, updateQuestionSchema, updateAnswerQuestionSchema } from "@/modules/quiz/quiz.validator";
+import {
+    updateQuizSchema,
+    createQuestionSchema,
+    updateQuestionSchema,
+    updateAnswerQuestionSchema,
+    quizStudentPostSchema
+} from "@/modules/quiz/quiz.validator";
 import { saveFileBase64 } from "@/utils/fileUpload";
+import { getDataStudent } from '@/utils/userData';
+import { checkProgres } from '@/utils/progresChecker'
 
 type updateQuizInput = z.infer<typeof updateQuizSchema>
 type createQuestionInput = z.infer<typeof createQuestionSchema>
 type updateQuestionInput = z.infer<typeof updateQuestionSchema>
 type updateQuestionAnswerInput = z.infer<typeof updateAnswerQuestionSchema>
+type quizStudentPostInput = z.infer<typeof quizStudentPostSchema>
 
+// SERVICE ADMIN/TEACHER
 export const getQuiz = async () => {
     const [result] = await db
         .select()
@@ -24,7 +34,6 @@ export const getQuiz = async () => {
 export const updateQuiz = async (data: updateQuizInput) => {
     const { duration, title, description, isActive } = data
     const existingQuiz = await getQuiz()
-
     const [result] = await db
         .update(quiz)
         .set({
@@ -251,8 +260,28 @@ export const updateQuestionAnswer = async (questionId: number, data: updateQuest
     return result
 }
 
+export const getQuizAttempt = async () => {
+    const result = await db
+        .select({
+            studentName: users.name,
+            quizName: quiz.title,
+            score: quizAttempt.score,
+            finishedAt: quizAttempt.finishedAt
+        })
+        .from(quizAttempt)
+        .leftJoin(users, eq(quizAttempt.studentId, users.id))
+        .leftJoin(quiz, eq(quizAttempt.quizId, quiz.id))
+
+    return result
+}
+
 // SERVICE STUDENT
-export const getQuizStudent = async () => {
+export const getQuizStudent = async (user: any) => {
+    const { sub } = user
+    const studentData = await getDataStudent(sub)
+
+    await checkProgres(studentData.id)
+
     const [result] = await db.query.quiz.findMany({
         columns: {
             duration: true,
@@ -285,6 +314,95 @@ export const getQuizStudent = async () => {
     if (result.isActive == false) {
         throw new HttpError(404, "Quiz Belum Dimulai")
     }
+
+    return result
+}
+
+export const quizStudentPost = async (user: any, data: quizStudentPostInput) => {
+    const { sub } = user
+    const studentData = await getDataStudent(sub)
+    const quizData = await getQuiz()
+    const result = db.transaction(async (tx) => {
+        const [attempt] = await tx
+            .insert(quizAttempt)
+            .values({
+                quizId: quizData.id,
+                studentId: studentData.id
+            })
+            .returning()
+
+        const answerIds = data.result.map(r => r.answerId).filter((id): id is number => typeof id === "number")
+        const answers = answerIds.length
+            ? await tx
+                .select({
+                    id: questionAnswer.id,
+                    isCorrect: questionAnswer.isCorrect
+                })
+                .from(questionAnswer)
+                .where(inArray(questionAnswer.id, answerIds))
+            : []
+
+        const answerMap = new Map(
+            answers.map(a => [a.id, a.isCorrect])
+        )
+
+        const attemptAnswers = data.result.map(item => {
+            if (typeof item.answerId === "number") {
+                const isCorrect = answerMap.get(item.answerId) === true
+
+                return {
+                    attemptId: attempt.id,
+                    questionId: item.questionId,
+                    selectedAnswerId: item.answerId,
+                    isCorrect
+                }
+            }
+
+            return {
+                attemptId: attempt.id,
+                questionId: item.questionId,
+                selectedAnswerId: null,
+                isCorrect: false
+            }
+        })
+
+        const savedAnswers = await tx
+            .insert(quizAttemptAnswer)
+            .values(attemptAnswers)
+            .returning()
+
+        const totalQuestions = attemptAnswers.length
+        const correctCount = attemptAnswers.filter(a => a.isCorrect).length
+        const score = totalQuestions === 0 ? 0 : Math.floor((correctCount / totalQuestions) * 100)
+        const [finalAttempt] = await tx
+            .update(quizAttempt)
+            .set({ score })
+            .where(eq(quizAttempt.id, attempt.id))
+            .returning({
+                id: quizAttempt.id,
+                score: quizAttempt.score,
+                finishedAt: quizAttempt.finishedAt
+            })
+
+        return finalAttempt
+    })
+
+    return result
+}
+
+export const getQuizAttemptStudent = async (user: any) => {
+    const { sub } = user
+    const studentData = await getDataStudent(sub)
+    const result = await db
+        .select({
+            quizName: quiz.title,
+            quizDescription: quiz.description,
+            score: quizAttempt.score,
+            finishedAt: quizAttempt.finishedAt
+        })
+        .from(quizAttempt)
+        .leftJoin(quiz, eq(quizAttempt.quizId, quiz.id))
+        .where(eq(quizAttempt.studentId, studentData.id))
 
     return result
 }
