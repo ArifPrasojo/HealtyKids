@@ -1,8 +1,12 @@
+// src/pages/Login.tsx
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import CloudBackground from '../components/layouts/CloudBackground';
-import { Eye, EyeOff } from 'lucide-react'; 
+// Tambahkan import icon baru untuk Alert
+import { Eye, EyeOff, CheckCircle2, AlertCircle, X } from 'lucide-react'; 
+import { loginService } from '../services/api/loginService';
 
 interface LoginProps {
   onLogin?: (role: 'admin' | 'siswa') => void;
@@ -12,9 +16,6 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const navigate = useNavigate();
   const [showAbout, setShowAbout] = useState(false);
   
-  // Mengambil URL dari env variable
-  const API_BASE_URL = import.meta.env?.VITE_API_URL;
-
   const [signInData, setSignInData] = useState({
     email: '',
     password: ''
@@ -22,7 +23,19 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
+  
+  // Hapus state error string biasa, ganti dengan state object Alert
+  const [alert, setAlert] = useState<{
+    isOpen: boolean;
+    type: 'success' | 'error';
+    title: string;
+    message: string;
+  }>({
+    isOpen: false,
+    type: 'success',
+    title: '',
+    message: ''
+  });
 
   const handleSignInInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -32,90 +45,80 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     }));
   };
 
-  // --- LOGIKA UTAMA: FETCHING API ---
-const handleSignInSubmit = async (e: React.FormEvent) => {
+  // Fungsi menutup alert
+  const closeAlert = () => {
+    setAlert(prev => ({ ...prev, isOpen: false }));
+  };
+
+  // --- LOGIKA UTAMA ---
+  const handleSignInSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError('');
 
     try {
-      const payload = {
-        username: signInData.email, 
+      const data = await loginService.login({
+        username: signInData.email,
         password: signInData.password
-      };
-
-      const response = await fetch(`${API_BASE_URL}/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json' 
-        },
-        body: JSON.stringify(payload),
       });
 
-      const data = await response.json();
-
-      if (!response.ok || !data.access_token) {
-        throw new Error(data.message || 'Login gagal. Periksa username dan password.');
-      }
-
-      // ---------------------------------------------------------
-      // MULAI PERBAIKAN DI SINI
-      // ---------------------------------------------------------
-
-      // 1. Tentukan Role Aplikasi TERLEBIH DAHULU
       let appRole: 'admin' | 'siswa';
-      const apiRole = data.user?.role; // Misal: "teacher", "admin", "staff", dll
+      const apiRole = data.user?.role; 
 
-      // Logic mapping: anggap teacher atau admin sebagai 'admin' di aplikasi
       if (apiRole === 'teacher' || apiRole === 'admin') {
         appRole = 'admin';
       } else {
         appRole = 'siswa';
       }
 
-      // 2. Siapkan object user yang AKAN DISIMPAN
-      // Kita "timpa" atau pastikan field 'role' sesuai dengan logic aplikasi ('admin'/'siswa')
       const userToSave = {
-        ...data.user, // Copy semua data user asli (nama, email, dll)
-        role: appRole // PAKSA role menjadi 'admin' atau 'siswa'
+        ...data.user, 
+        role: appRole 
       };
 
-      // 3. Simpan Token & User yang SUDAH DIPERBAIKI ke LocalStorage
       localStorage.setItem('token', data.access_token);
       localStorage.setItem('user', JSON.stringify(userToSave));
 
-      // ---------------------------------------------------------
-      // AKHIR PERBAIKAN
-      // ---------------------------------------------------------
+      // --- CUSTOM ALERT SUKSES ---
+      setAlert({
+        isOpen: true,
+        type: 'success',
+        title: 'Login Berhasil!',
+        message: `Selamat datang kembali, ${data.user?.name || 'User'}`,
+      });
 
-      // 4. Eksekusi Login Berhasil
-      onLogin?.(appRole);
-      
-      // Redirect sesuai role
-      if (appRole === 'admin') {
-          navigate('/admin/dashboard'); // Atau route admin Anda
-      } else {
-          navigate('/dashboard');
-      }
+      // Beri jeda sedikit agar user bisa melihat alert sebelum pindah halaman
+      setTimeout(() => {
+        onLogin?.(appRole);
+        if (appRole === 'admin') {
+            navigate('/admin/dashboard'); 
+        } else {
+            navigate('/dashboard');
+        }
+      }, 1500);
 
-    } catch (error: any) {
+} catch (error: any) {
       console.error("Login Error:", error);
-      setError(error.message || 'Terjadi kesalahan koneksi ke server');
+
+      setAlert({
+        isOpen: true,
+        type: 'error',
+        title: 'Login Gagal',
+        // PERUBAHAN DI SINI:
+        // Kita paksa pakai teks bahasa Indonesia, abaikan pesan bahasa Inggris dari server
+        message: 'Username atau password salah. Silakan coba lagi.',
+      });
+
     } finally {
       setIsLoading(false);
     }
   };
-  // --- AKHIR LOGIKA FETCHING ---
 
   const switchToAbout = () => {
     setShowAbout(true);
-    setError('');
   };
 
   const switchToSignIn = () => {
     setShowAbout(false);
-    setError('');
   };
 
   const togglePasswordVisibility = () => {
@@ -124,6 +127,60 @@ const handleSignInSubmit = async (e: React.FormEvent) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-100 flex items-center justify-center p-4 relative">
+      
+      {/* --- CUSTOM ALERT MANUAL (MODAL) --- */}
+      {alert.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm transition-opacity duration-300">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all scale-100 animate-in fade-in zoom-in duration-200">
+            {/* Header Color Bar */}
+            <div className={`h-2 w-full ${alert.type === 'success' ? 'bg-green-500' : 'bg-red-500'}`} />
+            
+            <div className="p-6 text-center relative">
+              {/* Close Button (X) */}
+              <button 
+                onClick={closeAlert}
+                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X size={20} />
+              </button>
+
+              {/* Icon */}
+              <div className="flex justify-center mb-4">
+                <div className={`rounded-full p-3 ${alert.type === 'success' ? 'bg-green-100' : 'bg-red-100'}`}>
+                  {alert.type === 'success' ? (
+                    <CheckCircle2 size={32} className="text-green-600" />
+                  ) : (
+                    <AlertCircle size={32} className="text-red-600" />
+                  )}
+                </div>
+              </div>
+
+              {/* Text */}
+              <h3 className="text-xl font-bold text-gray-800 mb-2">
+                {alert.title}
+              </h3>
+              <p className="text-gray-600 text-sm mb-6">
+                {alert.message}
+              </p>
+
+              {/* Button */}
+              <button
+                onClick={closeAlert}
+                className={`w-full py-2.5 rounded-xl font-semibold text-white transition-all transform hover:scale-105 ${
+                  alert.type === 'success' 
+                    ? 'bg-green-600 hover:bg-green-700 shadow-green-200' 
+                    : 'bg-red-600 hover:bg-red-700 shadow-red-200'
+                } shadow-lg`}
+              >
+                {alert.type === 'success' ? 'Lanjutkan' : 'Coba Lagi'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* --- END CUSTOM ALERT --- */}
+
+
       {/* Cloud Background */}
       <CloudBackground planeCount={3} planeSize="large"/>
       
@@ -185,13 +242,6 @@ const handleSignInSubmit = async (e: React.FormEvent) => {
                     </button>
                   </div>
                 </div>
-
-                {/* Error Message */}
-                {error && (
-                  <div className="text-red-600 text-sm text-center bg-red-50 p-3 rounded-lg">
-                    {error}
-                  </div>
-                )}
 
                 {/* Submit Button */}
                 <button
@@ -270,7 +320,6 @@ const handleSignInSubmit = async (e: React.FormEvent) => {
           <div className={`absolute top-0 h-full w-1/2 bg-gradient-to-br from-green-600 via-green-700 to-green-800 transition-all duration-1000 ease-in-out ${
             showAbout ? 'left-0 rounded-r-[3rem]' : 'left-1/2 rounded-l-[3rem]'
           }`}>
-            {/* Background decoration */}
             <div className="absolute top-0 left-0 w-64 h-64 opacity-10 transform -rotate-12 -translate-x-16 -translate-y-16">
               <div className="w-full h-full bg-white rounded-full"></div>
             </div>
@@ -279,7 +328,6 @@ const handleSignInSubmit = async (e: React.FormEvent) => {
             </div>
             
             <div className="relative z-10 h-full p-12 flex flex-col justify-center text-white text-center">
-              {/* Logo */}
               <div className="mb-8 flex justify-center">
                 <div className="w-20 h-20 bg-white/20 rounded-3xl flex items-center justify-center backdrop-blur-sm border border-white/30">
                   <img 
@@ -293,18 +341,11 @@ const handleSignInSubmit = async (e: React.FormEvent) => {
                       if (fallback) fallback.style.display = 'block';
                     }}
                   />
-                  <span 
-                    className="text-3xl font-bold text-white hidden"
-                    style={{ display: 'none' }}
-                  >
-                    🌟
-                  </span>
+                  <span style={{ display: 'none' }}>🌟</span>
                 </div>
               </div>
               
-              {/* Panel Content Container */}
               <div className="relative h-48">
-                {/* Sign In Panel Content (When showing Sign In form - promote About) */}
                 <div className={`absolute inset-0 transition-all duration-1000 ease-in-out ${
                   showAbout ? 'opacity-0 pointer-events-none transform -translate-x-8' : 'opacity-100 pointer-events-auto transform translate-x-0'
                 }`}>
@@ -320,7 +361,6 @@ const handleSignInSubmit = async (e: React.FormEvent) => {
                   </button>
                 </div>
 
-                {/* About Panel Content (When showing About - promote Sign In) */}
                 <div className={`absolute inset-0 transition-all duration-1000 ease-in-out ${
                   showAbout ? 'opacity-100 pointer-events-auto transform translate-x-0' : 'opacity-0 pointer-events-none transform translate-x-8'
                 }`}>
@@ -352,7 +392,6 @@ const handleSignInSubmit = async (e: React.FormEvent) => {
             </div>
             
             <div className="relative z-10">
-              {/* Mobile Logo */}
               <div className="mb-6 flex justify-center">
                 <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm border border-white/30">
                   <img 
@@ -366,12 +405,7 @@ const handleSignInSubmit = async (e: React.FormEvent) => {
                       if (fallback) fallback.style.display = 'block';
                     }}
                   />
-                  <span 
-                    className="text-2xl font-bold text-white hidden"
-                    style={{ display: 'none' }}
-                  >
-                    🌟
-                  </span>
+                  <span style={{ display: 'none' }}>🌟</span>
                 </div>
               </div>
               
@@ -409,19 +443,10 @@ const handleSignInSubmit = async (e: React.FormEvent) => {
 
             {/* Mobile Form Content */}
             <div className="relative overflow-hidden">
-              {/* Sign In Form */}
               <div className={`transition-all duration-700 ease-in-out ${
                 !showAbout ? 'opacity-100 transform translate-x-0' : 'opacity-0 transform -translate-x-full absolute inset-0 pointer-events-none'
               }`}>
                 <form onSubmit={handleSignInSubmit} className="space-y-3">
-                  {error && (
-                    <div className="bg-red-50 border border-red-200 rounded-xl p-2.5">
-                      <div className="flex items-center">
-                        <span className="text-red-500 mr-2 text-xs">⚠️</span>
-                        <span className="text-red-700 text-xs">{error}</span>
-                      </div>
-                    </div>
-                  )}
                   
                   <div>
                     <input
@@ -488,7 +513,7 @@ const handleSignInSubmit = async (e: React.FormEvent) => {
                       </p>
                     </div>
                   </div>
-
+                  {/* ... other about items ... */}
                   <div className="flex items-start space-x-3 p-3 bg-green-50 rounded-xl">
                     <div className="flex-shrink-0 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
                       <span className="text-green-600">🎓</span>
@@ -500,35 +525,10 @@ const handleSignInSubmit = async (e: React.FormEvent) => {
                       </p>
                     </div>
                   </div>
-
-                  <div className="flex items-start space-x-3 p-3 bg-green-50 rounded-xl">
-                    <div className="flex-shrink-0 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                      <span className="text-green-600">🎯</span>
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-800 text-sm mb-1">Tujuan Kami</h3>
-                      <p className="text-xs text-gray-600">
-                        Memberikan pengetahuan yang tepat agar remaja dapat membuat keputusan bijak.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start space-x-3 p-3 bg-green-50 rounded-xl">
-                    <div className="flex-shrink-0 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                      <span className="text-green-600">🔒</span>
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-800 text-sm mb-1">Aman & Terpercaya</h3>
-                      <p className="text-xs text-gray-600">
-                        Konten berbasis sains, dikurasi ahli, dan ramah remaja.
-                      </p>
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Mobile Footer */}
             <div className="mt-8 text-center">
               <p className="text-xs text-gray-500">
                 © 2024 Sexophone. Platform pendidikan seksualitas untuk remaja Indonesia.
