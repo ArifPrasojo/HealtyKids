@@ -83,7 +83,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         isOpen: true,
         type: 'success',
         title: 'Login Berhasil!',
-        message: `Selamat datang kembali, ${data.user?.name || 'User'}`,
+        message: `Selamat datang kembali, ${data.user?.nama || "Pengguna" }`,
       });
 
       // Beri jeda sedikit agar user bisa melihat alert sebelum pindah halaman
