@@ -1,7 +1,6 @@
 // src/services/api/questionService.ts
 
 export const API_BASE_URL = import.meta.env?.VITE_API_URL;
-const BASE_URL = `${API_BASE_URL}/admin/quiz/questions`;
 
 export interface Question {
   id: number;
@@ -16,45 +15,138 @@ export interface QuestionPayload {
   photo?: string; // Base64 string
 }
 
-export interface ApiResponse<T> {
+export interface ApiResponse<T = any> {
   success: boolean;
-  data: T;
+  data?: T;
   message?: string;
 }
 
-export const questionService = {
-  // Ambil semua pertanyaan
-  getQuestions: async (): Promise<ApiResponse<Question[]>> => {
-    const res = await fetch(BASE_URL);
-    return await res.json();
-  },
+class QuestionService {
+  private baseUrl: string;
 
-  // Tambah pertanyaan baru
-  createQuestion: async (payload: QuestionPayload): Promise<ApiResponse<any>> => {
-    const res = await fetch(BASE_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    return await res.json();
-  },
-
-  // Update pertanyaan (dengan ID)
-  updateQuestion: async (id: number, payload: QuestionPayload): Promise<ApiResponse<any>> => {
-    const res = await fetch(`${BASE_URL}/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    return await res.json();
-  },
-
-  deleteQuestion: async (id: number): Promise<ApiResponse<any>> => {
-    const res = await fetch(`${BASE_URL}/${id}`, {
-      method: 'DELETE',
-      // Tidak memerlukan body sesuai tampilan Postman "This request does not have a body"
-    });
-    return await res.json();
+  constructor() {
+    this.baseUrl = `${API_BASE_URL}/admin/quiz/questions`;
   }
 
-};
+  /**
+   * Helper untuk mendapatkan headers dengan Token Authentication
+   */
+  private getHeaders() {
+    const token = localStorage.getItem('token');
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': token ? `Bearer ${token}` : '',
+    };
+  }
+
+  /**
+   * Ambil semua pertanyaan
+   */
+  async getQuestions(): Promise<ApiResponse<Question[]>> {
+    try {
+      const response = await fetch(this.baseUrl, {
+        method: 'GET',
+        headers: this.getHeaders()
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Sesi berakhir (Unauthorized). Silakan login kembali.');
+        }
+        throw new Error(data.message || 'Gagal mengambil data pertanyaan');
+      }
+
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * Tambah pertanyaan baru
+   */
+  async createQuestion(payload: QuestionPayload): Promise<ApiResponse<any>> {
+    try {
+      const response = await fetch(this.baseUrl, {
+        method: 'POST',
+        headers: this.getHeaders(),
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Sesi berakhir (Unauthorized).');
+        }
+        throw new Error(data.message || 'Gagal membuat pertanyaan');
+      }
+
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * Update pertanyaan (dengan ID)
+   */
+  async updateQuestion(id: number, payload: QuestionPayload): Promise<ApiResponse<any>> {
+    try {
+      const response = await fetch(`${this.baseUrl}/${id}`, {
+        method: 'PUT',
+        headers: this.getHeaders(),
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Sesi berakhir (Unauthorized).');
+        }
+        throw new Error(data.message || 'Gagal mengupdate pertanyaan');
+      }
+
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * Hapus pertanyaan
+   */
+  async deleteQuestion(id: number): Promise<ApiResponse<any>> {
+    try {
+      const response = await fetch(`${this.baseUrl}/${id}`, {
+        method: 'DELETE',
+        headers: this.getHeaders(),
+        // Body dihapus sesuai instruksi (GET/DELETE biasanya tidak butuh body)
+      });
+
+      // Handle jika server mengembalikan 204 No Content
+      if (response.status === 204) {
+        return { success: true, message: "Pertanyaan berhasil dihapus" };
+      }
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Sesi berakhir (Unauthorized).');
+        }
+        throw new Error(data.message || 'Gagal menghapus pertanyaan');
+      }
+
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
+}
+
+// Export singleton instance
+export const questionService = new QuestionService();

@@ -1,12 +1,12 @@
+// src/pages/admin/ManageQuestions.tsx
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { 
   Plus, Edit, Trash2, X, Search, Loader, AlertCircle, 
-  ArrowLeft, Image as ImageIcon, FileText, ChevronRight,
-  CheckCircle2 
+  ArrowLeft, Image as ImageIcon, FileText, CheckCircle2 
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-// Service Imports
 import { questionService, API_BASE_URL } from '../../services/api/questionService';
 import type { Question, QuestionPayload } from '../../services/api/questionService';
 import CloudBackground from '../../components/layouts/CloudBackground';
@@ -48,11 +48,18 @@ const ManageQuestions: React.FC = () => {
     try {
       setLoading(true);
       const result = await questionService.getQuestions();
-      if (result.success) {
+      
+      // Cek result.success dan pastikan result.data ada
+      if (result.success && result.data) {
         setQuestions(result.data);
       }
-    } catch (err) {
-      setStatusMessage({ type: 'error', text: "Gagal mengambil data soal dari server." });
+    } catch (err: any) {
+      // Menangkap error dari service (termasuk 401 Unauthorized)
+      const errorMsg = err instanceof Error ? err.message : "Gagal mengambil data soal dari server.";
+      setStatusMessage({ type: 'error', text: errorMsg });
+      
+      // Opsional: Jika sesi berakhir, bisa redirect (uncomment jika perlu)
+      // if (errorMsg.includes("Sesi berakhir")) navigate('/login');
     } finally {
       setLoading(false);
     }
@@ -79,7 +86,7 @@ const ManageQuestions: React.FC = () => {
     setFormData({
       question: q.question,
       explanation: q.explanation,
-      photo: '' 
+      photo: '' // Reset input file visual, gambar lama tetap ada di server
     });
     setFormErrors({});
     setStatusMessage(null);
@@ -110,6 +117,7 @@ const ManageQuestions: React.FC = () => {
       explanation: formData.explanation,
     };
 
+    // Hanya kirim photo jika ada perubahan (string base64)
     if (formData.photo && formData.photo.startsWith('data:image')) {
       payload.photo = formData.photo;
     }
@@ -129,8 +137,9 @@ const ManageQuestions: React.FC = () => {
       } else {
         setStatusMessage({ type: 'error', text: result.message || "Gagal menyimpan data." });
       }
-    } catch (err) {
-      setStatusMessage({ type: 'error', text: "Terjadi kesalahan sistem." });
+    } catch (err: any) {
+      const errorMsg = err instanceof Error ? err.message : "Terjadi kesalahan sistem.";
+      setStatusMessage({ type: 'error', text: errorMsg });
     } finally {
       setIsSubmitting(false);
     }
@@ -143,6 +152,7 @@ const ManageQuestions: React.FC = () => {
 
     try {
       const result = await questionService.deleteQuestion(questionToDelete.id);
+      
       if (result.success) {
         setIsDeleteModalOpen(false);
         setStatusMessage({ type: 'success', text: "Pertanyaan berhasil dihapus secara permanen!" });
@@ -150,8 +160,9 @@ const ManageQuestions: React.FC = () => {
       } else {
         setStatusMessage({ type: 'error', text: result.message || "Gagal menghapus soal." });
       }
-    } catch (err) {
-      setStatusMessage({ type: 'error', text: "Kesalahan saat menghapus data." });
+    } catch (err: any) {
+      const errorMsg = err instanceof Error ? err.message : "Kesalahan saat menghapus data.";
+      setStatusMessage({ type: 'error', text: errorMsg });
     } finally {
       setIsSubmitting(false);
     }
@@ -275,7 +286,6 @@ const ManageQuestions: React.FC = () => {
                     ))}
                   </tbody>
                 </table>
-                {/* Mobile view logic tetap sama... */}
               </div>
             )}
           </div>
