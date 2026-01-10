@@ -14,37 +14,88 @@ export interface UpdateAnswerItem {
   isCorrect: boolean;
 }
 
-export interface ApiResponse<T> {
+export interface ApiResponse<T = any> {
   success: boolean;
-  data: T;
+  data?: T;
   message?: string;
 }
 
-export const answerService = {
-  // Mengambil semua jawaban berdasarkan ID Pertanyaan
-  getAnswers: async (questionId: string | number): Promise<ApiResponse<Answer[]>> => {
-    const res = await fetch(`${API_BASE_URL}/admin/quiz/questions/${questionId}/answer`);
-    if (!res.ok) throw new Error('Gagal mengambil jawaban');
-    return await res.json();
-  },
-
-  // Memperbarui semua jawaban sekaligus (Bulk Update)
-  updateAnswers: async (questionId: string | number, answers: Answer[]): Promise<ApiResponse<any>> => {
-    const payload = {
-      answer: answers.map(ans => ({
-        answerId: ans.id,
-        answer: ans.answer,
-        isCorrect: ans.isCorrect
-      }))
+class AnswerService {
+  /**
+   * Helper untuk mendapatkan headers dengan Token Authentication
+   */
+  private getHeaders() {
+    const token = localStorage.getItem('token');
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': token ? `Bearer ${token}` : '',
     };
-
-    const res = await fetch(`${API_BASE_URL}/admin/quiz/questions/${questionId}/answer`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    
-    if (!res.ok) throw new Error('Gagal memperbarui jawaban');
-    return await res.json();
   }
-};
+
+  /**
+   * Mengambil semua jawaban berdasarkan ID Pertanyaan
+   */
+  async getAnswers(questionId: string | number): Promise<ApiResponse<Answer[]>> {
+    try {
+      const url = `${API_BASE_URL}/admin/quiz/questions/${questionId}/answer`;
+      
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: this.getHeaders(),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Sesi berakhir (Unauthorized). Silakan login kembali.');
+        }
+        throw new Error(data.message || 'Gagal mengambil jawaban');
+      }
+
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * Memperbarui semua jawaban sekaligus (Bulk Update)
+   */
+  async updateAnswers(questionId: string | number, answers: Answer[]): Promise<ApiResponse<any>> {
+    try {
+      const url = `${API_BASE_URL}/admin/quiz/questions/${questionId}/answer`;
+
+      // Transformasi data sesuai format payload backend
+      const payload = {
+        answer: answers.map(ans => ({
+          answerId: ans.id,
+          answer: ans.answer,
+          isCorrect: ans.isCorrect
+        }))
+      };
+
+      const response = await fetch(url, {
+        method: 'PUT',
+        headers: this.getHeaders(),
+        body: JSON.stringify(payload)
+      });
+      
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Sesi berakhir (Unauthorized).');
+        }
+        throw new Error(data.message || 'Gagal memperbarui jawaban');
+      }
+
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
+}
+
+// Export singleton instance
+export const answerService = new AnswerService();
