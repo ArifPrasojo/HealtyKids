@@ -1,3 +1,5 @@
+// src/services/materialService.ts
+
 const API_BASE_URL = import.meta.env?.VITE_API_URL;
 
 export interface MaterialItem {
@@ -14,15 +16,18 @@ export interface MaterialFormData {
   description: string;
 }
 
+// Tambahkan properti id opsional untuk jaga-jaga jika API mengembalikan id di root object
 export interface ApiResponse<T = any> {
   success: boolean;
   message?: string;
   data?: T;
   error?: string;
+  id?: number; 
 }
 
 /**
  * Service untuk mengelola API calls terkait material management
+ * Updated: Support Authentication Token
  */
 class MaterialService {
   private baseUrl: string;
@@ -32,17 +37,36 @@ class MaterialService {
   }
 
   /**
+   * Helper untuk mendapatkan headers dengan Token Authentication
+   */
+  private getHeaders() {
+    const token = localStorage.getItem('token'); // Pastikan key 'token' sesuai dengan saat Login
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': token ? `Bearer ${token}` : '',
+    };
+  }
+
+  /**
    * Mengambil semua data materials
    */
   async getAllMaterials(): Promise<ApiResponse<MaterialItem[]>> {
     try {
-      const response = await fetch(`${this.baseUrl}/materials`);
+      const response = await fetch(`${this.baseUrl}/materials`, {
+        method: 'GET',
+        headers: this.getHeaders(), // Inject Token
+      });
       
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error('Gagal mengambil data materi');
+        if (response.status === 401) {
+          throw new Error('Sesi berakhir (Unauthorized). Silakan login kembali.');
+        }
+        throw new Error(data.message || 'Gagal mengambil data materi');
       }
       
-      return await response.json();
+      return data;
     } catch (error) {
       throw error;
     }
@@ -53,13 +77,21 @@ class MaterialService {
    */
   async getMaterialById(materialId: number): Promise<ApiResponse<MaterialItem>> {
     try {
-      const response = await fetch(`${this.baseUrl}/materials/${materialId}`);
+      const response = await fetch(`${this.baseUrl}/materials/${materialId}`, {
+        method: 'GET',
+        headers: this.getHeaders(), // Inject Token
+      });
       
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error('Gagal mengambil data materi');
+        if (response.status === 401) {
+          throw new Error('Sesi berakhir (Unauthorized).');
+        }
+        throw new Error(data.message || 'Gagal mengambil data materi');
       }
       
-      return await response.json();
+      return data;
     } catch (error) {
       throw error;
     }
@@ -72,15 +104,16 @@ class MaterialService {
     try {
       const response = await fetch(`${this.baseUrl}/materials`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: this.getHeaders(), // Inject Token
         body: JSON.stringify(materialData)
       });
 
       const data = await response.json();
       
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Sesi berakhir (Unauthorized).');
+        }
         throw new Error(data.message || `HTTP Error: ${response.status}`);
       }
 
@@ -97,15 +130,16 @@ class MaterialService {
     try {
       const response = await fetch(`${this.baseUrl}/materials/${materialId}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: this.getHeaders(), // Inject Token
         body: JSON.stringify(materialData)
       });
 
       const data = await response.json();
       
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Sesi berakhir (Unauthorized).');
+        }
         throw new Error(data.message || `HTTP Error: ${response.status}`);
       }
 
@@ -122,14 +156,20 @@ class MaterialService {
     try {
       const response = await fetch(`${this.baseUrl}/materials/${materialId}`, {
         method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        }
+        headers: this.getHeaders(), // Inject Token
       });
+
+      // Handle jika response delete kosong (204 No Content)
+      if (response.status === 204) {
+          return { success: true, message: "Berhasil dihapus" };
+      }
 
       const data = await response.json();
       
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Sesi berakhir (Unauthorized).');
+        }
         throw new Error(data.message || `HTTP Error: ${response.status}`);
       }
       

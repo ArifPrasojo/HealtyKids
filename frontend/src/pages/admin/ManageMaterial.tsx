@@ -3,12 +3,12 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { 
   Plus, Edit, Trash2, X, Search, Loader, AlertCircle, 
-  FileText, FolderOpen, ChevronDown, ChevronUp, ArrowLeft 
+  FileText, FolderOpen, ChevronDown, ChevronUp, ArrowLeft, CheckCircle 
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { materialService } from '../../services/api/materialService';
 import type { MaterialItem, MaterialFormData } from '../../services/api/materialService';
-import CloudBackground from '../../components/layouts/CloudBackground'; // Import CloudBackground
+import CloudBackground from '../../components/layouts/CloudBackground';
 
 const ManageMaterials = () => {
   const navigate = useNavigate();
@@ -16,7 +16,10 @@ const ManageMaterials = () => {
   // --- STATE ---
   const [materialList, setMaterialList] = useState<MaterialItem[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // State Error & Success
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -36,6 +39,16 @@ const ManageMaterials = () => {
   useEffect(() => {
     fetchMaterials();
   }, []);
+
+  // Auto-hide success message
+  useEffect(() => {
+    if (successMessage) {
+      const timer = setTimeout(() => {
+        setSuccessMessage(null);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [successMessage]);
 
   const fetchMaterials = async () => {
     try {
@@ -68,6 +81,8 @@ const ManageMaterials = () => {
 
   const handleAddMaterial = () => {
     resetForm();
+    setError(null);
+    setSuccessMessage(null);
     setIsAddModalOpen(true);
   };
 
@@ -77,11 +92,15 @@ const ManageMaterials = () => {
       title: material.title,
       description: material.description
     });
+    setError(null);
+    setSuccessMessage(null);
     setIsEditModalOpen(true);
   };
 
   const handleDeleteMaterial = (material: MaterialItem) => {
     setMaterialToDelete(material);
+    setError(null);
+    setSuccessMessage(null);
     setIsDeleteModalOpen(true);
   };
 
@@ -98,11 +117,15 @@ const ManageMaterials = () => {
     try {
       setIsSubmitting(true);
       setError(null);
+      setSuccessMessage(null);
+      
       const response = await materialService.createMaterial(formData);
+      
       if (response.success) {
         setIsAddModalOpen(false);
         resetForm();
         fetchMaterials();
+        setSuccessMessage('Materi baru berhasil ditambahkan!');
       } else {
         setError(response.message || 'Gagal menambah materi');
       }
@@ -118,12 +141,16 @@ const ManageMaterials = () => {
     try {
       setIsSubmitting(true);
       setError(null);
+      setSuccessMessage(null);
+
       const response = await materialService.updateMaterial(editingMaterial.id, formData);
+      
       if (response.success) {
         setIsEditModalOpen(false);
         setEditingMaterial(null);
         resetForm();
         fetchMaterials();
+        setSuccessMessage('Data materi berhasil diperbarui!');
       } else {
         setError(response.message || 'Gagal mengubah materi');
       }
@@ -139,11 +166,15 @@ const ManageMaterials = () => {
     try {
       setIsSubmitting(true);
       setError(null);
+      setSuccessMessage(null);
+
       const response = await materialService.deleteMaterial(materialToDelete.id);
+      
       if (response.success) {
         setIsDeleteModalOpen(false);
         setMaterialToDelete(null);
         fetchMaterials();
+        setSuccessMessage('Materi berhasil dihapus.');
       } else {
         setError(response.message || 'Gagal menghapus materi');
       }
@@ -205,7 +236,21 @@ const ManageMaterials = () => {
             </div>
           </div>
 
-          {/* Error Alert */}
+          {/* --- SUCCESS ALERT --- */}
+          {successMessage && (
+            <div className="mb-8 p-5 bg-green-50 border-l-4 border-green-500 rounded-xl flex items-start gap-4 animate-fade-in shadow-sm">
+              <CheckCircle size={24} className="text-green-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <h3 className="text-green-900 text-base font-semibold">Berhasil!</h3>
+                <p className="text-green-800 text-sm mt-1">{successMessage}</p>
+              </div>
+              <button onClick={() => setSuccessMessage(null)} className="text-green-500 hover:text-green-700 p-1 rounded-full hover:bg-green-100 transition-colors">
+                <X size={20} />
+              </button>
+            </div>
+          )}
+
+          {/* --- ERROR ALERT --- */}
           {error && (
             <div className="mb-8 p-5 bg-red-50 border-l-4 border-red-500 rounded-xl flex items-start gap-4 animate-fade-in shadow-sm">
               <AlertCircle size={24} className="text-red-600 flex-shrink-0 mt-0.5" />
@@ -463,15 +508,15 @@ const ModalForm: React.FC<any> = ({ title, formData, setFormData, onSubmit, onCl
       </div>
 
       <div className="p-6 border-t border-gray-100 bg-gray-50 flex gap-4 justify-end">
-        <button
-          onClick={onClose}
+        <button 
+          onClick={onClose} 
           disabled={isSubmitting}
           className="px-6 py-3 text-base font-medium text-gray-600 hover:bg-gray-200 rounded-xl transition-colors"
         >
           Batal
         </button>
-        <button
-          onClick={onSubmit}
+        <button 
+          onClick={onSubmit} 
           disabled={isSubmitting}
           className="px-6 py-3 text-base font-medium bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:from-blue-400 disabled:to-blue-500 text-white rounded-xl transition-all shadow-lg flex items-center gap-2"
         >
@@ -487,7 +532,7 @@ const ModalDelete: React.FC<any> = ({ materialTitle, onConfirm, onClose, isSubmi
   <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-50 p-4">
     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md border border-gray-200 overflow-hidden text-center p-8">
       <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6 text-red-600">
-        <Trash2 size={32} />
+          <Trash2 size={32} />
       </div>
       
       <h3 className="text-2xl font-bold text-gray-900 mb-3">Hapus Materi?</h3>
