@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import CloudBackground from '../components/layouts/CloudBackground';
-import { Eye, EyeOff } from 'lucide-react'; // Tambahkan import ini
+import { Eye, EyeOff } from 'lucide-react'; 
 
 interface LoginProps {
   onLogin?: (role: 'admin' | 'siswa') => void;
@@ -12,10 +12,12 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const navigate = useNavigate();
   const [showAbout, setShowAbout] = useState(false);
   
+  // Mengambil URL dari env variable
+  const API_BASE_URL = import.meta.env?.VITE_API_URL;
+
   const [signInData, setSignInData] = useState({
     email: '',
     password: ''
-    // Hapus field role
   });
   
   const [isLoading, setIsLoading] = useState(false);
@@ -30,46 +32,70 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     }));
   };
 
+  // --- LOGIKA UTAMA: FETCHING API ---
   const handleSignInSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
 
     try {
-      // Simulasi login - ganti dengan API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // 1. Persiapkan Payload (Username & Password) sesuai Postman
+      // Kita kirim input 'email' sebagai field 'username' ke API
+      const payload = {
+        username: signInData.email, 
+        password: signInData.password
+      };
 
-      // Dummy authentication logic - otomatis deteksi role berdasarkan email
+      // 2. Fetch ke API Endpoint Login
+      const response = await fetch(`${API_BASE_URL}/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          // Header ini penting agar server tahu kita minta JSON
+          'Accept': 'application/json' 
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+
+      // 3. Validasi Response
+      if (!response.ok || !data.access_token) {
+        throw new Error(data.message || 'Login gagal. Periksa username dan password.');
+      }
+
+      // 4. PENYIMPANAN TOKEN (PENTING AGAR TIDAK UNAUTHORIZED)
+      // Token ini yang akan digunakan oleh Middleware untuk fitur Add User, dll.
+      localStorage.setItem('token', data.access_token);
+      
+      // Simpan data user jika perlu
+      if (data.user) {
+        localStorage.setItem('user', JSON.stringify(data.user));
+      }
+
+      // 5. Cek Role dari API dan Mapping ke Aplikasi
+      // Asumsi API mengembalikan role "teacher" atau "student"
       let role: 'admin' | 'siswa';
-      if (signInData.email.includes('admin') || signInData.email === 'admin@healthykids.com') {
+      const apiRole = data.user?.role;
+
+      if (apiRole === 'teacher' || apiRole === 'admin') {
         role = 'admin';
       } else {
         role = 'siswa';
       }
 
-      // Validasi credentials
-      const validCredentials = [
-        { email: 'admin@healthykids.com', password: 'admin123', role: 'admin' as const },
-        { email: 'siswa@healthykids.com', password: 'siswa123', role: 'siswa' as const },
-        // Tambah lebih banyak jika perlu
-      ];
-
-      const isValid = validCredentials.some(
-        cred => cred.email === signInData.email && cred.password === signInData.password
-      );
-
-      if (!isValid) {
-        throw new Error('Email atau password salah');
-      }
-
+      // 6. Eksekusi Login Berhasil
       onLogin?.(role);
       navigate('/dashboard');
+
     } catch (error: any) {
-      setError(error.message);
+      console.error("Login Error:", error);
+      setError(error.message || 'Terjadi kesalahan koneksi ke server');
     } finally {
       setIsLoading(false);
     }
   };
+  // --- AKHIR LOGIKA FETCHING ---
 
   const switchToAbout = () => {
     setShowAbout(true);
@@ -109,16 +135,16 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 {/* Email Input */}
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                    Email
+                    Email / Username
                   </label>
                   <input
-                    type="email"
+                    type="text" 
                     id="email"
                     name="email"
                     value={signInData.email}
                     onChange={handleSignInInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
-                    placeholder="Masukkan email Anda"
+                    placeholder="Masukkan username atau email"
                     required
                   />
                 </div>
@@ -148,8 +174,6 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                     </button>
                   </div>
                 </div>
-
-                {/* Hapus Role Selection */}
 
                 {/* Error Message */}
                 {error && (
@@ -391,12 +415,12 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                   <div>
                     <input
                       name="email"
-                      type="email"
+                      type="text" 
                       required
                       value={signInData.email}
                       onChange={handleSignInInputChange}
                       className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-0 focus:border-green-500 transition-all duration-200 bg-gray-50 text-sm"
-                      placeholder="Email"
+                      placeholder="Email / Username"
                     />
                   </div>
 
