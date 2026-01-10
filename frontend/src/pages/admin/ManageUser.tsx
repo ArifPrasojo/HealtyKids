@@ -314,7 +314,7 @@ const ManageUsers = () => {
                     {filteredUsers.map((user) => (
                       <tr key={user.id} className="hover:bg-blue-50/50 transition-colors">
                         <td className="px-8 py-5 font-semibold text-gray-900 text-base">{user.name}</td>
-                        <td className="px-8 py-5 text-gray-700">@{user.username}</td>
+                        <td className="px-8 py-5 text-gray-700">{user.username}</td>
                         <td className="px-8 py-5 text-right">
                           <div className="flex items-center justify-end gap-3">
                             <button onClick={() => handleEditUser(user)} className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
