@@ -33,25 +33,21 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   };
 
   // --- LOGIKA UTAMA: FETCHING API ---
-  const handleSignInSubmit = async (e: React.FormEvent) => {
+const handleSignInSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
 
     try {
-      // 1. Persiapkan Payload (Username & Password) sesuai Postman
-      // Kita kirim input 'email' sebagai field 'username' ke API
       const payload = {
         username: signInData.email, 
         password: signInData.password
       };
 
-      // 2. Fetch ke API Endpoint Login
       const response = await fetch(`${API_BASE_URL}/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          // Header ini penting agar server tahu kita minta JSON
           'Accept': 'application/json' 
         },
         body: JSON.stringify(payload),
@@ -59,34 +55,49 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
       const data = await response.json();
 
-      // 3. Validasi Response
       if (!response.ok || !data.access_token) {
         throw new Error(data.message || 'Login gagal. Periksa username dan password.');
       }
 
-      // 4. PENYIMPANAN TOKEN (PENTING AGAR TIDAK UNAUTHORIZED)
-      // Token ini yang akan digunakan oleh Middleware untuk fitur Add User, dll.
-      localStorage.setItem('token', data.access_token);
-      
-      // Simpan data user jika perlu
-      if (data.user) {
-        localStorage.setItem('user', JSON.stringify(data.user));
-      }
+      // ---------------------------------------------------------
+      // MULAI PERBAIKAN DI SINI
+      // ---------------------------------------------------------
 
-      // 5. Cek Role dari API dan Mapping ke Aplikasi
-      // Asumsi API mengembalikan role "teacher" atau "student"
-      let role: 'admin' | 'siswa';
-      const apiRole = data.user?.role;
+      // 1. Tentukan Role Aplikasi TERLEBIH DAHULU
+      let appRole: 'admin' | 'siswa';
+      const apiRole = data.user?.role; // Misal: "teacher", "admin", "staff", dll
 
+      // Logic mapping: anggap teacher atau admin sebagai 'admin' di aplikasi
       if (apiRole === 'teacher' || apiRole === 'admin') {
-        role = 'admin';
+        appRole = 'admin';
       } else {
-        role = 'siswa';
+        appRole = 'siswa';
       }
 
-      // 6. Eksekusi Login Berhasil
-      onLogin?.(role);
-      navigate('/dashboard');
+      // 2. Siapkan object user yang AKAN DISIMPAN
+      // Kita "timpa" atau pastikan field 'role' sesuai dengan logic aplikasi ('admin'/'siswa')
+      const userToSave = {
+        ...data.user, // Copy semua data user asli (nama, email, dll)
+        role: appRole // PAKSA role menjadi 'admin' atau 'siswa'
+      };
+
+      // 3. Simpan Token & User yang SUDAH DIPERBAIKI ke LocalStorage
+      localStorage.setItem('token', data.access_token);
+      localStorage.setItem('user', JSON.stringify(userToSave));
+
+      // ---------------------------------------------------------
+      // AKHIR PERBAIKAN
+      // ---------------------------------------------------------
+
+      // 4. Eksekusi Login Berhasil
+      onLogin?.(appRole);
+      
+      // Redirect sesuai role
+      if (appRole === 'admin') {
+          navigate('/admin/dashboard'); // Atau route admin Anda
+      } else {
+          navigate('/dashboard');
+      }
 
     } catch (error: any) {
       console.error("Login Error:", error);

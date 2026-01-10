@@ -2,21 +2,65 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 interface ProfileDropdownProps {
-  userName?: string;
-  userClass?: string;
-  userAvatar?: string;
   onLogout?: () => void;
+  role: 'admin' | 'siswa' | string; // Menerima role dari parent
 }
 
 const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
-  userName = "Admin User",
-  userClass = "XII IPA 1",
-  userAvatar,
-  onLogout
+  onLogout,
+  role
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  
+  const [profile, setProfile] = useState({
+    name: role === 'admin' ? 'Admin' : 'Siswa',
+    username: ''
+  });
+
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const API_BASE_URL = import.meta.env?.VITE_API_URL;
+
+  // --- FETCH DATA (Dinamis berdasarkan Role) ---
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      // Tentukan Endpoint berdasarkan Role
+      // Jika role mengandung kata 'admin', pakai endpoint admin, jika tidak pakai endpoint profil biasa
+      const endpoint = role.toLowerCase().includes('admin') 
+        ? `${API_BASE_URL}/admin/profile` 
+        : `${API_BASE_URL}/profile`;
+
+      console.log(`🔍 [ProfileDropdown] Fetching sebagai ${role} ke: ${endpoint}`);
+
+      try {
+        const response = await fetch(endpoint, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json'
+          }
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success && data.data) {
+          setProfile({
+            name: data.data.name,
+            username: data.data.username
+          });
+        } else {
+            console.warn("Gagal fetch profile:", response.status);
+        }
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+      }
+    };
+
+    fetchProfile();
+  }, [API_BASE_URL, role]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -25,74 +69,55 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
         setIsOpen(false);
       }
     };
-
     document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
-  const handleProfileClick = () => {
-    setIsOpen(!isOpen);
-  };
 
   const handleLogout = () => {
     setIsOpen(false);
-    
-    // Clear any stored authentication data
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('userData');
+    localStorage.clear(); // Hapus semua localstorage (token & user)
     sessionStorage.clear();
     
-    // Call the onLogout callback if provided
-    if (onLogout) {
-      onLogout();
-    }
+    if (onLogout) onLogout();
     
-    // Navigate to login page
     setTimeout(() => {
       navigate('/login');
     }, 100);
   };
 
+  // UI Helper variables
+  const isSiswa = !role.toLowerCase().includes('admin');
+  const badgeColor = isSiswa ? 'bg-green-50 text-green-600' : 'bg-indigo-50 text-indigo-600';
+  const badgeText = isSiswa ? 'Siswa' : 'Administrator';
+  const avatarBg = isSiswa ? 'from-green-500 to-emerald-600' : 'from-indigo-600 to-blue-600';
+
   return (
     <div className="relative" ref={dropdownRef}>
-      {/* Profile Trigger */}
+      {/* Trigger */}
       <div 
         className="flex items-center space-x-3 cursor-pointer hover:bg-gray-50 rounded-xl px-3 py-2 transition-all duration-200"
-        onClick={handleProfileClick}
+        onClick={() => setIsOpen(!isOpen)}
       >
-        <span className="text-sm text-gray-600 hidden md:block font-medium">
-          {userName}
-        </span>
+        <div className="hidden md:flex flex-col items-end">
+          <span className="text-sm text-gray-700 font-medium">
+            {profile.name}
+          </span>
+          <span className={`text-xs px-2 py-0.5 rounded-full ${badgeColor}`}>
+            {badgeText}
+          </span>
+        </div>
         
         {/* Avatar */}
         <div className="relative">
-          {userAvatar ? (
-            <img 
-              src={userAvatar} 
-              alt={userName}
-              className="w-9 h-9 rounded-full object-cover border-2 border-gray-200 hover:border-indigo-300 transition-colors"
-            />
-          ) : (
-            <div className="w-9 h-9 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center border-2 border-gray-200 hover:border-indigo-300 transition-colors">
+            <div className={`w-9 h-9 bg-gradient-to-r ${avatarBg} rounded-full flex items-center justify-center border-2 border-gray-200`}>
               <span className="text-white text-sm font-semibold">
-                {userName.split(' ').map(n => n[0]).join('').toUpperCase()}
+                {profile.name.charAt(0).toUpperCase()}
               </span>
             </div>
-          )}
-          
-          {/* Online indicator */}
-          <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
         </div>
 
-        {/* Dropdown Arrow */}
-        <svg 
-          className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} 
-          fill="none" 
-          stroke="currentColor" 
-          viewBox="0 0 24 24"
-        >
+        {/* Arrow */}
+        <svg className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </div>
@@ -100,31 +125,21 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
       {/* Dropdown Menu */}
       {isOpen && (
         <div className="absolute right-0 mt-2 w-72 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50 animate-in fade-in duration-200">
-          {/* User Info Header */}
           <div className="px-4 py-4 border-b border-gray-100">
             <div className="flex items-center space-x-3">
-              {userAvatar ? (
-                <img 
-                  src={userAvatar} 
-                  alt={userName}
-                  className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
-                />
-              ) : (
-                <div className="w-12 h-12 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center">
-                  <span className="text-white text-lg font-bold">
-                    {userName.split(' ').map(n => n[0]).join('').toUpperCase()}
-                  </span>
-                </div>
-              )}
-              <div className="flex-1">
-                <h3 className="font-semibold text-gray-800 text-sm">{userName}</h3>
+               <div className={`w-12 h-12 bg-gradient-to-r ${avatarBg} rounded-full flex items-center justify-center`}>
+                <span className="text-white text-lg font-bold">
+                  {profile.name.charAt(0).toUpperCase()}
+                </span>
+              </div>
+              <div className="flex-1 overflow-hidden">
+                <h3 className="font-semibold text-gray-800 text-sm truncate">{profile.name}</h3>
+                {profile.username && <p className="text-xs text-gray-500 truncate">@{profile.username}</p>}
               </div>
             </div>
           </div>
 
-          {/* Menu Items */}
           <div className="py-2">
-            {/* Logout Section */}
             <div className="px-4 py-2 border-t border-gray-100">
               <button 
                 onClick={handleLogout}
@@ -135,7 +150,7 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
                 </div>
                 <div>
                   <div>Keluar</div>
-                  <div className="text-xs text-red-500">Logout dari akun</div>
+                  <div className="text-xs text-red-500">Logout</div>
                 </div>
               </button>
             </div>
