@@ -17,6 +17,13 @@ export interface UserFormData {
   role: string;
 }
 
+export interface UpdateUserDTO {
+  name: string;
+  username: string;
+  role: string;
+  password?: string; // Tanda tanya (?) membuatnya opsional
+}
+
 export interface ApiResponse<T = any> {
   success: boolean;
   message?: string;
@@ -34,17 +41,40 @@ class UserService {
   }
 
   /**
+   * Helper private untuk mendapatkan headers termasuk Token Authorization
+   * Ini memastikan setiap request membawa token "kunci" akses
+   */
+  private getHeaders() {
+    const token = localStorage.getItem('token'); // Mengambil token yang disimpan di Login.tsx
+    
+    return {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'Authorization': token ? `Bearer ${token}` : ''
+    };
+  }
+
+  /**
    * Mengambil semua data users
    */
   async getAllUsers(): Promise<ApiResponse<UserItem[]>> {
     try {
-      const response = await fetch(`${this.baseUrl}/users`);
+      const response = await fetch(`${this.baseUrl}/users`, {
+        method: 'GET',
+        headers: this.getHeaders() // Menggunakan header dengan token
+      });
       
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error('Gagal mengambil data pengguna');
+        // Handle jika token expired atau invalid (401)
+        if (response.status === 401) {
+          throw new Error('Sesi berakhir. Silakan login kembali.');
+        }
+        throw new Error(data.message || 'Gagal mengambil data pengguna');
       }
       
-      return await response.json();
+      return data;
     } catch (error) {
       throw error;
     }
@@ -57,15 +87,16 @@ class UserService {
     try {
       const response = await fetch(`${this.baseUrl}/users`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: this.getHeaders(), // Menggunakan header dengan token
         body: JSON.stringify(userData)
       });
 
       const data = await response.json();
       
       if (!response.ok) {
+        if (response.status === 401) {
+            throw new Error('Unauthorized: Anda tidak memiliki akses untuk menambah user.');
+        }
         throw new Error(data.message || `HTTP Error: ${response.status}`);
       }
 
@@ -78,20 +109,30 @@ class UserService {
   /**
    * Mengupdate data user
    */
-  async updateUser(userId: number, userData: UserFormData): Promise<ApiResponse> {
+  async updateUser(userId: number, userData: UpdateUserDTO): Promise<ApiResponse> {
     try {
+      const payload: any = {
+        name: userData.name,
+        username: userData.username,
+        role: userData.role 
+      };
+
+      if (userData.password && userData.password.trim() !== "") {
+        payload.password = userData.password;
+      }
+
+      console.log("Payload Update yang dikirim:", payload);
+
       const response = await fetch(`${this.baseUrl}/users/${userId}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(userData)
+        headers: this.getHeaders(),
+        body: JSON.stringify(payload)
       });
 
       const data = await response.json();
       
       if (!response.ok) {
-        throw new Error(data.message || `HTTP Error: ${response.status}`);
+        throw new Error(data.message || `Gagal update user: ${response.status}`);
       }
 
       return data;
@@ -107,18 +148,21 @@ class UserService {
     try {
       const response = await fetch(`${this.baseUrl}/users/${userId}`, {
         method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        }
+        headers: this.getHeaders() // Menggunakan header dengan token
       });
 
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.message || `HTTP Error: ${response.status}`);
+      // Beberapa API delete kadang tidak mengembalikan body JSON jika sukses (204 No Content)
+      // Kita cek dulu content-type atau statusnya
+      let data = {};
+      if (response.status !== 204) {
+          data = await response.json();
       }
       
-      return data;
+      if (!response.ok) {
+        throw new Error((data as any).message || `HTTP Error: ${response.status}`);
+      }
+      
+      return data as ApiResponse;
     } catch (error) {
       throw error;
     }

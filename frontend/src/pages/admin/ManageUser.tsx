@@ -3,12 +3,12 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { 
   Plus, Edit, Trash2, X, Search, Loader, AlertCircle, 
-  ArrowLeft 
+  ArrowLeft, CheckCircle, AlertTriangle 
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { userService } from '../../services/api/userService';
 import type { UserItem, UserFormData } from '../../services/api/userService';
-import CloudBackground from '../../components/layouts/CloudBackground'; // Import CloudBackground
+import CloudBackground from '../../components/layouts/CloudBackground';
 
 const ManageUsers = () => {
   const navigate = useNavigate();
@@ -17,8 +17,12 @@ const ManageUsers = () => {
   const [userList, setUserList] = useState<UserItem[]>([]);
   const [loading, setLoading] = useState(true);
   
-  // State Error & Form
+  // State Error Global (Hanya untuk fetch/delete)
   const [globalError, setGlobalError] = useState<string | null>(null); 
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  // --- STATE BARU: Error Khusus Modal ---
+  const [modalError, setModalError] = useState<string | null>(null);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({}); 
 
   // Modal State
@@ -30,7 +34,7 @@ const ManageUsers = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Form Data Default (Role disembunyikan & default 'Student')
+  // Form Data Default
   const initialFormState: UserFormData = {
     name: '',
     username: '',
@@ -39,11 +43,21 @@ const ManageUsers = () => {
   };
   const [formData, setFormData] = useState<UserFormData>(initialFormState);
 
-  // --- FETCH DATA ---
+  // --- EFFECTS ---
   useEffect(() => {
     fetchUsers();
   }, []);
 
+  useEffect(() => {
+    if (successMessage) {
+      const timer = setTimeout(() => {
+        setSuccessMessage(null);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [successMessage]);
+
+  // --- API FUNCTIONS ---
   const fetchUsers = async () => {
     try {
       setLoading(true);
@@ -55,6 +69,7 @@ const ManageUsers = () => {
       }
     } catch (err) {
       console.error(err);
+      setGlobalError("Gagal memuat data pengguna.");
     } finally {
       setLoading(false);
     }
@@ -68,12 +83,12 @@ const ManageUsers = () => {
   }, [userList, searchQuery]);
 
   // --- HANDLERS ---
-
   const handleAddUser = () => {
     setEditingUser(null);
     setFormData(initialFormState);
     setFormErrors({});
     setGlobalError(null);
+    setModalError(null); // Reset Modal Error
     setIsModalOpen(true);
   };
 
@@ -82,17 +97,19 @@ const ManageUsers = () => {
     setFormData({
       name: user.name,
       username: user.username,
-      password: '',
-      role: user.role // Tetap simpan role lama di state agar tidak hilang saat update
+      password: '', 
+      role: user.role 
     });
     setFormErrors({});
     setGlobalError(null);
+    setModalError(null); // Reset Modal Error
     setIsModalOpen(true);
   };
 
   const handleDeleteUser = (user: UserItem) => {
     setUserToDelete(user);
     setIsDeleteModalOpen(true);
+    setGlobalError(null);
   };
 
   // --- VALIDASI ---
@@ -100,13 +117,11 @@ const ManageUsers = () => {
     const newErrors: Record<string, string> = {};
     let isValid = true;
 
-    // A. Validasi Nama
     if (!formData.name || formData.name.trim() === '') {
       newErrors.name = 'Nama lengkap wajib diisi';
       isValid = false;
     }
 
-    // B. Validasi Username
     if (!formData.username || formData.username.trim() === '') {
       newErrors.username = 'Username wajib diisi';
       isValid = false;
@@ -115,7 +130,6 @@ const ManageUsers = () => {
       isValid = false;
     }
 
-    // C. Validasi Password
     if (!editingUser) {
         if (!formData.password) {
             newErrors.password = 'Password wajib diisi untuk user baru';
@@ -134,16 +148,17 @@ const ManageUsers = () => {
     }
 
     setFormErrors(newErrors);
-    if (!isValid) setGlobalError(null); 
+    if (!isValid) setModalError(null); // Reset error jika validasi lokal gagal
     return isValid;
   };
 
+  // --- SUBMIT LOGIC ---
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
 
     setIsSubmitting(true);
-    setGlobalError(null);
+    setModalError(null); // Reset error modal sebelumnya
 
     try {
       let response;
@@ -157,25 +172,47 @@ const ManageUsers = () => {
         setIsModalOpen(false);
         setEditingUser(null);
         fetchUsers();
+        setSuccessMessage(editingUser ? 'Data pengguna berhasil diperbarui!' : 'Pengguna baru berhasil ditambahkan!');
       } else {
-        setGlobalError(response.message || 'Gagal menyimpan data');
+        // Lempar ke catch agar ditangkap logika error di bawah
+        throw new Error(response.message || 'Gagal menyimpan data');
       }
+
     } catch (err) {
-      setGlobalError(err instanceof Error ? err.message : 'Terjadi kesalahan sistem');
+      const rawMessage = err instanceof Error ? err.message : 'Terjadi kesalahan sistem';
+      
+      // LOGIKA DETEKSI DUPLICATE / SOFT DELETE
+      // Kita cek berbagai kemungkinan kata kunci dari Backend
+      const isDuplicate = /duplicate|exist|taken|sudah ada|terdaftar/i.test(rawMessage);
+
+      if (isDuplicate) {
+        setModalError(`Username "${formData.username}" tidak tersedia. Kemungkinan sudah digunakan oleh user aktif atau user yang dihapus (Soft Delete).`);
+      } else {
+        // Jika errornya generic "Terjadi Kesalahan" (biasanya 500/400 tanpa pesan jelas), 
+        // kita tetap tampilkan di modal error, tapi tambahkan hint jika ini create user.
+        if (rawMessage.toLowerCase().includes('terjadi kesalahan') || rawMessage.toLowerCase().includes('error')) {
+            setModalError(`Gagal menyimpan. Jika username sudah benar, kemungkinan username "${formData.username}" sudah pernah terdaftar (cek data Soft Delete).`);
+        } else {
+            setModalError(rawMessage);
+        }
+      }
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  // --- DELETE CONFIRMATION ---
   const confirmDelete = async () => {
     if (!userToDelete) return;
     setIsSubmitting(true);
+    setGlobalError(null);
     try {
       const response = await userService.deleteUser(userToDelete.id);
       if (response.success) {
         setIsDeleteModalOpen(false);
         setUserToDelete(null);
         fetchUsers();
+        setSuccessMessage('Pengguna berhasil dihapus.');
       } else {
         setGlobalError(response.message || 'Gagal menghapus');
       }
@@ -186,18 +223,8 @@ const ManageUsers = () => {
     }
   };
 
-  const getInputClass = (fieldName: string) => `
-    w-full px-4 py-2 border rounded-lg outline-none transition-all text-sm
-    ${formErrors[fieldName]
-      ? 'border-red-500 bg-red-50 focus:ring-red-200 placeholder-red-300' 
-      : 'border-gray-300 focus:ring-blue-100 focus:border-blue-500'
-    }
-  `;
-
-  // --- RENDER ---
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 overflow-hidden">
-      {/* CloudBackground sebagai background */}
       <CloudBackground 
         cloudImage="./src/assets/images/awanhijau.png"
         showCityBottom={true}
@@ -206,9 +233,9 @@ const ManageUsers = () => {
         planeCount={2}
       />
       
-      {/* Konten utama di atas background */}
       <div className="relative z-10 min-h-screen p-6">
         <div className="max-w-6xl mx-auto">
+          {/* Header & Back Button */}
           <button onClick={() => navigate(-1)} className="group flex items-center gap-2 text-gray-600 hover:text-blue-700 transition-colors mb-6 text-sm font-medium w-fit hover:bg-blue-50 px-3 py-2 rounded-lg">
             <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
             Kembali
@@ -225,7 +252,21 @@ const ManageUsers = () => {
             </button>
           </div>
 
-          {/* Global Error Fallback */}
+          {/* Alert Sukses (Global) */}
+          {successMessage && (
+            <div className="mb-8 p-5 bg-green-50 border-l-4 border-green-500 rounded-xl flex items-start gap-4 animate-fade-in shadow-sm">
+              <CheckCircle size={24} className="text-green-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <h3 className="text-green-900 text-base font-semibold">Berhasil!</h3>
+                <p className="text-green-800 text-sm mt-1">{successMessage}</p>
+              </div>
+              <button onClick={() => setSuccessMessage(null)} className="text-green-500 hover:text-green-700 p-1 rounded-full hover:bg-green-100 transition-colors">
+                <X size={20} />
+              </button>
+            </div>
+          )}
+
+          {/* Alert Error Global (Hanya untuk delete/fetch) */}
           {globalError && (
             <div className="mb-8 p-5 bg-red-50 border-l-4 border-red-500 rounded-xl flex items-start gap-4 animate-fade-in shadow-sm">
               <AlertCircle size={24} className="text-red-600 flex-shrink-0 mt-0.5" />
@@ -239,7 +280,7 @@ const ManageUsers = () => {
             </div>
           )}
 
-          {/* TABLE DATA */}
+          {/* Table Data */}
           <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200/50 overflow-hidden">
             <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
               <div className="relative max-w-lg">
@@ -261,13 +302,11 @@ const ManageUsers = () => {
                </div>
             ) : (
               <div className="overflow-x-auto">
-                {/* Desktop Table - KOLOM ROLE DIHAPUS */}
                 <table className="w-full text-left hidden md:table">
                   <thead>
                     <tr className="bg-gradient-to-r from-gray-100 to-gray-50 border-b border-gray-200 text-sm font-semibold text-gray-600 uppercase tracking-wider">
                       <th className="px-8 py-5">Nama</th>
                       <th className="px-8 py-5">Username</th>
-                      {/* Role Header dihapus */}
                       <th className="px-8 py-5 text-right">Aksi</th>
                     </tr>
                   </thead>
@@ -276,7 +315,6 @@ const ManageUsers = () => {
                       <tr key={user.id} className="hover:bg-blue-50/50 transition-colors">
                         <td className="px-8 py-5 font-semibold text-gray-900 text-base">{user.name}</td>
                         <td className="px-8 py-5 text-gray-700">@{user.username}</td>
-                        {/* Role Cell dihapus */}
                         <td className="px-8 py-5 text-right">
                           <div className="flex items-center justify-end gap-3">
                             <button onClick={() => handleEditUser(user)} className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
@@ -291,8 +329,7 @@ const ManageUsers = () => {
                     ))}
                   </tbody>
                 </table>
-
-                {/* Mobile View - BADGE ROLE DIHAPUS */}
+                {/* Mobile View */}
                 <div className="md:hidden bg-gray-50/50 p-6 space-y-6">
                    {filteredUsers.map(user => (
                       <div key={user.id} className="bg-white rounded-2xl border border-gray-200 shadow-lg overflow-hidden p-6">
@@ -321,9 +358,9 @@ const ManageUsers = () => {
         {/* --- MODAL FORM --- */}
         {isModalOpen && (
           <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-fade-in">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg border border-gray-200 overflow-hidden transform transition-all scale-100">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg border border-gray-200 overflow-hidden transform transition-all scale-100 flex flex-col max-h-[90vh]">
               
-              <div className="px-8 py-6 border-b border-gray-100 flex justify-between items-center bg-gradient-to-r from-gray-50 to-white">
+              <div className="px-8 py-6 border-b border-gray-100 flex justify-between items-center bg-gradient-to-r from-gray-50 to-white flex-shrink-0">
                 <h2 className="text-xl font-bold text-gray-900">
                   {editingUser ? "Edit Data Pengguna" : "Tambah Pengguna Baru"}
                 </h2>
@@ -332,10 +369,10 @@ const ManageUsers = () => {
                 </button>
               </div>
 
-              <div className="p-8">
+              <div className="p-8 overflow-y-auto">
                 <form id="userForm" onSubmit={handleSubmit} className="space-y-5">
                   
-                  {/* FIELD: NAMA */}
+                  {/* Field Name */}
                   <div>
                     <label className="block text-base font-semibold text-gray-800 mb-3">
                       Nama Lengkap <span className="text-red-500">*</span>
@@ -358,7 +395,7 @@ const ManageUsers = () => {
                     )}
                   </div>
 
-                  {/* FIELD: USERNAME */}
+                  {/* Field Username */}
                   <div>
                     <label className="block text-base font-semibold text-gray-800 mb-3">
                       Username <span className="text-red-500">*</span>
@@ -381,7 +418,7 @@ const ManageUsers = () => {
                     )}
                   </div>
 
-                  {/* FIELD: PASSWORD */}
+                  {/* Field Password */}
                   <div>
                     <div className="flex justify-between items-center mb-3">
                       <label className="block text-base font-semibold text-gray-800">
@@ -409,10 +446,23 @@ const ManageUsers = () => {
                     )}
                   </div>
 
+                  {/* --- MODAL ERROR ALERT (TERLETAK DI BAWAH PASSWORD) --- */}
+                  {modalError && (
+                    <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3 animate-fade-in mt-4">
+                        <AlertTriangle size={20} className="text-red-600 flex-shrink-0 mt-0.5" />
+                        <div className="flex-1">
+                            <h4 className="text-red-900 font-semibold text-sm">Gagal Menyimpan</h4>
+                            <p className="text-red-700 text-sm mt-1 leading-relaxed">
+                                {modalError}
+                            </p>
+                        </div>
+                    </div>
+                  )}
+
                 </form>
               </div>
 
-              <div className="p-6 border-t border-gray-100 bg-gray-50 flex gap-4 justify-end">
+              <div className="p-6 border-t border-gray-100 bg-gray-50 flex gap-4 justify-end flex-shrink-0">
                 <button 
                   onClick={() => setIsModalOpen(false)} 
                   type="button"
