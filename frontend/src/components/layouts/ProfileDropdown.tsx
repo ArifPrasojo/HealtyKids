@@ -1,9 +1,13 @@
+// src/components/layouts/ProfileDropdown.tsx (sesuaikan path folder Anda)
+
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+// Import Service
+import { profileService } from '../../services/api/profileService'; // Sesuaikan path import
 
 interface ProfileDropdownProps {
   onLogout?: () => void;
-  role: 'admin' | 'siswa' | string; // Menerima role dari parent
+  role: 'admin' | 'siswa' | string;
 }
 
 const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
@@ -11,57 +15,34 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
   role
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
   
+  // State Profile Default
   const [profile, setProfile] = useState({
     name: role === 'admin' ? 'Admin' : 'Siswa',
     username: ''
   });
 
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const navigate = useNavigate();
-  const API_BASE_URL = import.meta.env?.VITE_API_URL;
-
-  // --- FETCH DATA (Dinamis berdasarkan Role) ---
+  // --- LOGIKA FETCH MENGGUNAKAN SERVICE ---
   useEffect(() => {
-    const fetchProfile = async () => {
-      const token = localStorage.getItem('token');
-      if (!token) return;
-
-      // Tentukan Endpoint berdasarkan Role
-      // Jika role mengandung kata 'admin', pakai endpoint admin, jika tidak pakai endpoint profil biasa
-      const endpoint = role.toLowerCase().includes('admin') 
-        ? `${API_BASE_URL}/admin/profile` 
-        : `${API_BASE_URL}/profile`;
-
-      console.log(`🔍 [ProfileDropdown] Fetching sebagai ${role} ke: ${endpoint}`);
-
+    const loadProfile = async () => {
       try {
-        const response = await fetch(endpoint, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Accept': 'application/json'
-          }
-        });
-
-        const data = await response.json();
-
-        if (response.ok && data.success && data.data) {
-          setProfile({
-            name: data.data.name,
-            username: data.data.username
-          });
-        } else {
-            console.warn("Gagal fetch profile:", response.status);
+        const data = await profileService.getProfile(role);
+        if (data) {
+          setProfile(data);
         }
       } catch (error) {
-        console.error("Error fetching profile:", error);
+        // Error handling silent atau log saja, karena ini cuma dropdown header
+        console.error("Gagal load profile di UI");
       }
     };
 
-    fetchProfile();
-  }, [API_BASE_URL, role]);
+    loadProfile();
+  }, [role]);
 
+  // --- LOGIKA UI (Klik di luar, Logout, Tampilan) ---
+  
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -75,7 +56,7 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
 
   const handleLogout = () => {
     setIsOpen(false);
-    localStorage.clear(); // Hapus semua localstorage (token & user)
+    localStorage.clear(); 
     sessionStorage.clear();
     
     if (onLogout) onLogout();
