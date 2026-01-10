@@ -1,4 +1,5 @@
 // src/services/api/subMaterialService.ts
+
 export const API_BASE_URL = import.meta.env?.VITE_API_URL;
 
 export interface SubMaterialItem {
@@ -33,53 +34,120 @@ class SubMaterialService {
     this.baseUrl = `${API_BASE_URL}/admin`;
   }
 
-  // Helper untuk Header (tambahkan token jika perlu)
+  // Helper untuk Header dengan Token Authorization
   private getHeaders() {
     const token = localStorage.getItem('token'); 
     return {
       'Content-Type': 'application/json',
-      // 'Authorization': `Bearer ${token}` 
+      'Authorization': token ? `Bearer ${token}` : '', 
     };
   }
 
+  /**
+   * Mengambil semua sub-materi berdasarkan ID Materi Induk
+   */
   async getAllSubMaterials(materialId: number): Promise<ApiResponse<SubMaterialItem[]>> {
-    const response = await fetch(`${this.baseUrl}/materials/${materialId}/sub-material`, {
-      headers: this.getHeaders()
-    });
-    if (!response.ok) throw new Error('Gagal mengambil data');
-    return await response.json();
+    try {
+      const response = await fetch(`${this.baseUrl}/materials/${materialId}/sub-material`, {
+        method: 'GET',
+        headers: this.getHeaders()
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Sesi berakhir (Unauthorized). Silakan login kembali.');
+        }
+        throw new Error(data.message || 'Gagal mengambil data sub-materi');
+      }
+
+      return data;
+    } catch (error) {
+      throw error;
+    }
   }
 
+  /**
+   * Membuat Sub Materi Baru
+   */
   async createSubMaterial(materialId: number, data: SubMaterialFormData): Promise<ApiResponse> {
-    const response = await fetch(`${this.baseUrl}/materials/${materialId}/sub-material`, {
-      method: 'POST',
-      headers: this.getHeaders(),
-      body: JSON.stringify(data)
-    });
-    const resJson = await response.json();
-    if (!response.ok) throw new Error(resJson.message || 'Gagal menyimpan');
-    return resJson;
+    try {
+      const response = await fetch(`${this.baseUrl}/materials/${materialId}/sub-material`, {
+        method: 'POST',
+        headers: this.getHeaders(),
+        body: JSON.stringify(data)
+      });
+
+      const resJson = await response.json();
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Sesi berakhir (Unauthorized).');
+        }
+        throw new Error(resJson.message || 'Gagal menyimpan sub-materi');
+      }
+
+      return resJson;
+    } catch (error) {
+      throw error;
+    }
   }
 
+  /**
+   * Update Sub Materi
+   */
   async updateSubMaterial(materialId: number, subId: number, data: SubMaterialFormData): Promise<ApiResponse> {
-    const response = await fetch(`${this.baseUrl}/materials/${materialId}/sub-material/${subId}`, {
-      method: 'PUT',
-      headers: this.getHeaders(),
-      body: JSON.stringify(data)
-    });
-    const resJson = await response.json();
-    if (!response.ok) throw new Error(resJson.message || 'Gagal update');
-    return resJson;
+    try {
+      const response = await fetch(`${this.baseUrl}/materials/${materialId}/sub-material/${subId}`, {
+        method: 'PUT',
+        headers: this.getHeaders(),
+        body: JSON.stringify(data)
+      });
+
+      const resJson = await response.json();
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Sesi berakhir (Unauthorized).');
+        }
+        throw new Error(resJson.message || 'Gagal update sub-materi');
+      }
+
+      return resJson;
+    } catch (error) {
+      throw error;
+    }
   }
 
+  /**
+   * Hapus Sub Materi
+   */
   async deleteSubMaterial(materialId: number, subId: number): Promise<ApiResponse> {
-    const response = await fetch(`${this.baseUrl}/materials/${materialId}/sub-material/${subId}`, {
-      method: 'DELETE',
-      headers: this.getHeaders()
-    });
-    const resJson = await response.json();
-    if (!response.ok) throw new Error(resJson.message || 'Gagal hapus');
-    return resJson;
+    try {
+      const response = await fetch(`${this.baseUrl}/materials/${materialId}/sub-material/${subId}`, {
+        method: 'DELETE',
+        headers: this.getHeaders()
+      });
+
+      // Handle jika server mengembalikan 204 No Content (Sukses tapi body kosong)
+      if (response.status === 204) {
+        return { success: true, message: "Berhasil dihapus" };
+      }
+
+      const resJson = await response.json();
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Sesi berakhir (Unauthorized).');
+        }
+        throw new Error(resJson.message || 'Gagal hapus sub-materi');
+      }
+
+      return resJson;
+    } catch (error) {
+      throw error;
+    }
   }
 }
 
