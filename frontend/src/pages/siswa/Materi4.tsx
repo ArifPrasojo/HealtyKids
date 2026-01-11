@@ -318,7 +318,7 @@ const Materi4: React.FC = () => {
                       )}
 
                       {/* Render Text Content (dengan whitespace-pre-line) */}
-                      <div className="text-gray-700 leading-relaxed text-sm lg:text-base text-justify whitespace-pre-line">
+                      <div className="text-slate-700 leading-loose mb-6 text-base md:text-lg lg:text-xl font-serif tracking-wide whitespace-pre-line text-justify selection:bg-green-100 selection:text-green-800">
                         {currentModule.content}
                       </div>
 

@@ -297,21 +297,6 @@ const Materi2: React.FC = () => {
                     )}
                   </div>
 
-                  {/* Video/Image Player Area */}
-                  {/* <div className="p-5 md:p-5 bg-gray-100">
-                    <img 
-                      src="/src/assets/images/foto.png"
-                      alt="Ilustrasi Materi"
-                      className="rounded-xl mx-auto"
-                      style={{
-                        width: '100%',
-                        height: 'auto',
-                        maxHeight: '400px',
-                        objectFit: 'contain'
-                      }}
-                    />
-                  </div> */}
-
                   {/* Note/Reminder Section */}
                   <div className="p-4 lg:p-6 bg-yellow-50 border-b border-yellow-200">
                     <p className="text-center text-gray-700 font-medium text-xs lg:text-base">
@@ -319,9 +304,9 @@ const Materi2: React.FC = () => {
                     </p>
                   </div>
 
-                  {/* Description Content */}
-                  <div className="p-4 lg:p-6">
-                    <p className="text-gray-700 leading-relaxed mb-3 lg:mb-4 text-xs lg:text-base whitespace-pre-line text-justify">
+                  {/* Description Content - UPDATE DISINI */}
+                  <div className="p-4 lg:p-8">
+                    <p className="text-slate-700 leading-loose mb-6 text-base md:text-lg lg:text-xl font-serif tracking-wide whitespace-pre-line text-justify selection:bg-green-100 selection:text-green-800">
                       {currentModule.content}
                     </p>
                   </div>

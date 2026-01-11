@@ -296,9 +296,8 @@ const Materi: React.FC = () => {
                     </p>
                   </div>
 
-                  {/* DYNAMIC CONTENT RENDERING (Updated: Not Centered) */}
+                  {/* DYNAMIC CONTENT RENDERING */}
                   <div className="flex-1 p-6 lg:p-8 overflow-y-auto">
-                    {/* Hapus 'mx-auto' dan 'max-w' agar konten melebar penuh dan rata kiri */}
                     <div className="animate-in fade-in duration-500 w-full">
                       
                       {/* Render Images */}
@@ -322,12 +321,11 @@ const Materi: React.FC = () => {
                         </div>
                       )}
 
-                      {/* Render Text Content */}
+                      {/* Render Text Content - UPDATED STYLE HERE */}
                       <div className="prose prose-lg max-w-none">
                         {currentModule.content.split('\n').map((paragraph, index) => (
                           paragraph.trim() ? (
-                            // Menggunakan text-left alih-alih text-justify/center
-                            <p key={index} className="text-gray-700 leading-relaxed text-sm lg:text-base text-left mb-4">
+                            <p key={index} className="text-slate-700 leading-loose mb-6 text-base md:text-lg lg:text-xl font-serif tracking-wide whitespace-pre-line text-justify selection:bg-green-100 selection:text-green-800">
                               {paragraph}
                             </p>
                           ) : <br key={index} />

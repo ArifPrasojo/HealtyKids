@@ -352,7 +352,7 @@ const Materi3: React.FC = () => {
                     )}
 
                     {/* Render Text Content */}
-                    <div className="prose max-w-none text-gray-700 leading-relaxed text-justify text-sm lg:text-base whitespace-pre-wrap">
+                    <div className="text-slate-700 leading-loose mb-6 text-base md:text-lg lg:text-xl font-serif tracking-wide whitespace-pre-line text-justify selection:bg-green-100 selection:text-green-800   ">
                       {currentModule.content}
                     </div>
 
