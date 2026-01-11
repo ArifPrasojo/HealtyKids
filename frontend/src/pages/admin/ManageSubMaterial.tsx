@@ -16,13 +16,32 @@ import CloudBackground from '../../components/layouts/CloudBackground';
 
 const BACKEND_URL = import.meta.env?.VITE_API_URL;
 
-// --- KONFIGURASI TOOLBAR EDITOR ---
-// Anda bisa menambah/mengurangi fitur di sini
+// --- KONFIGURASI TOOLBAR EDITOR (FULL FEATURES) ---
 const quillModules = {
   toolbar: [
-    ['bold', 'italic', 'underline'],                  // Formatting teks dasar
-    [{ 'list': 'ordered'}, { 'list': 'bullet' }],     // List angka dan bullet
-    ['clean']                                         // Tombol hapus format
+    // --- BAGIAN 1: TEKS & FONT ---
+    [{ 'header': [1, 2, 3, 4, 5, 6, false] }],            // Heading
+    [{ 'font': [] }],                                     // Jenis Font
+    [{ 'size': ['small', false, 'large', 'huge'] }],      // Ukuran Font
+
+    // --- BAGIAN 2: FORMATTING DASAR ---
+    ['bold', 'italic', 'underline', 'strike'],            // Bold, Italic, Underline, Strike
+    [{ 'script': 'sub'}, { 'script': 'super' }],          // Subscript & Superscript
+    
+    // --- BAGIAN 3: WARNA ---
+    [{ 'color': [] }, { 'background': [] }],              // Warna Teks & Highlight
+
+    // --- BAGIAN 4: PARAGRAF & LIST ---
+    [{ 'list': 'ordered'}, { 'list': 'bullet' }],         // List
+    [{ 'indent': '-1'}, { 'indent': '+1' }],              // Indent
+    [{ 'align': [] }],                                    // Alignment
+
+    // --- BAGIAN 5: MEDIA & LINK ---
+    ['blockquote', 'code-block'],                         // Quote
+    ['link', 'image'],                           // Media
+
+    // --- BAGIAN 6: BERSIH-BERSIH ---
+    ['clean']                                             // Clear format
   ],
 };
 
@@ -33,14 +52,9 @@ const ManageSubMaterial = () => {
   // --- States ---
   const [dataList, setDataList] = useState<SubMaterialItem[]>([]);
   const [loading, setLoading] = useState(true);
-  
-  // State Error Global (Fetch)
   const [error, setError] = useState<string | null>(null); 
-  
-  // --- STATE ALERT ---
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
-
   const [searchQuery, setSearchQuery] = useState('');
 
   // Modal States
@@ -91,8 +105,6 @@ const ManageSubMaterial = () => {
     }
   };
 
-  // Helper: Membersihkan tag HTML untuk tampilan preview di tabel
-  // Contoh: "<p><strong>Halo</strong></p>" menjadi "Halo"
   const stripHtml = (html: string) => {
     const tmp = document.createElement("DIV");
     tmp.innerHTML = html;
@@ -101,12 +113,9 @@ const ManageSubMaterial = () => {
 
   const getFullImageUrl = (path: string) => {
     if (!path) return 'https://via.placeholder.com/150?text=No+Image';
-    if (path.startsWith('http') || path.startsWith('data:')) {
-      return path;
-    }
+    if (path.startsWith('http') || path.startsWith('data:')) return path;
     const cleanPath = path.startsWith('/') ? path : `/${path}`;
-    const finalUrl = `${BACKEND_URL}${cleanPath}`;
-    return finalUrl;
+    return `${BACKEND_URL}${cleanPath}`;
   };
 
   const handleReset = () => {
@@ -121,7 +130,7 @@ const ManageSubMaterial = () => {
       title: item.title,
       contentCategory: item.contentCategory,
       contentUrl: item.contentUrl, 
-      content: item.content // ReactQuill akan membaca string HTML ini
+      content: item.content 
     });
     setSuccessMessage(null);
     setActionError(null);
@@ -147,9 +156,6 @@ const ManageSubMaterial = () => {
   };
 
   const handleSubmit = async () => {
-    // Validasi
-    // Perhatikan: React Quill mungkin menyisakan tag kosong seperti "<p><br></p>"
-    // Kita cek apakah text content-nya ada isinya
     const plainText = stripHtml(formData.content).trim();
 
     if (!formData.title || !plainText) {
@@ -187,9 +193,7 @@ const ManageSubMaterial = () => {
     try {
       setIsSubmitting(true);
       setActionError(null);
-
       await subMaterialService.deleteSubMaterial(Number(materialId), deleteItem.id);
-      
       setSuccessMessage("Sub materi berhasil dihapus.");
       setIsDeleteOpen(false);
       setDeleteItem(null);
@@ -317,7 +321,6 @@ const ManageSubMaterial = () => {
                     {filteredList.map((item) => (
                       <tr key={item.id} className="hover:bg-blue-50/50 transition-colors">
                         <td className="px-8 py-5 font-medium text-gray-900">{item.title}</td>
-                        {/* Preview Deskripsi menggunakan stripHtml agar bersih dari tag */}
                         <td className="px-8 py-5 text-gray-500 text-sm max-w-xs truncate">
                             {stripHtml(item.content)}
                         </td>
@@ -366,7 +369,8 @@ const ManageSubMaterial = () => {
         {/* --- MODAL FORM --- */}
         {isFormOpen && (
           <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-fade-in">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg border border-gray-200 overflow-hidden transform transition-all scale-100">
+            {/* Modal Container diperlebar agar tidak terlalu sempit untuk editor besar */}
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl border border-gray-200 overflow-hidden transform transition-all scale-100">
               <div className="px-8 py-6 border-b border-gray-100 flex justify-between items-center bg-gradient-to-r from-gray-50 to-white">
                 <h3 className="font-bold text-gray-800">{editingItem ? 'Edit Sub Materi' : 'Tambah Sub Materi'}</h3>
                 <button onClick={handleReset}><X size={24} className="text-gray-400" /></button>
@@ -446,17 +450,19 @@ const ManageSubMaterial = () => {
                   )}
                 </div>
 
-                {/* --- BAGIAN EDITOR REACT QUILL --- */}
+                {/* --- BAGIAN EDITOR REACT QUILL (DIPERBESAR) --- */}
                 <div>
                   <label className="block text-base font-semibold text-gray-800 mb-3">Deskripsi</label>
-                  {/* Wrapper div untuk styling border radius agar sama dengan input lain */}
                   <div className="bg-white border border-gray-300 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500 transition-all shadow-sm">
                     <ReactQuill 
                       theme="snow"
                       value={formData.content}
                       onChange={(content) => setFormData({...formData, content: content})}
                       modules={quillModules}
-                      className="h-48 mb-12" // Memberi tinggi dan ruang untuk toolbar bawah
+                      // PERUBAHAN UTAMA DI SINI:
+                      // h-96 = Tinggi editor menjadi besar (approx 384px)
+                      // mb-16 = Memberi ruang agar toolbar bawah tidak tertutup
+                      className="h-96 mb-16" 
                     />
                   </div>
                 </div>
