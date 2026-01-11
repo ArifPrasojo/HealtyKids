@@ -2,16 +2,29 @@ import React, { useState, useEffect } from 'react';
 import { 
   Plus, Edit, Trash2, X, Search, Loader, 
   Video, Image as ImageIcon, ArrowLeft, UploadCloud,
-  CheckCircle, AlertCircle // Import icon tambahan
+  CheckCircle, AlertCircle 
 } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
 
-// Import Service
+// --- IMPORT REACT QUILL ---
+import ReactQuill from "react-quill-new";
+import "react-quill-new/dist/quill.snow.css";
+
 import { subMaterialService } from '../../services/api/subMaterialService';
 import type { SubMaterialItem, SubMaterialFormData } from '../../services/api/subMaterialService';
 import CloudBackground from '../../components/layouts/CloudBackground';
 
 const BACKEND_URL = import.meta.env?.VITE_API_URL;
+
+// --- KONFIGURASI TOOLBAR EDITOR ---
+// Anda bisa menambah/mengurangi fitur di sini
+const quillModules = {
+  toolbar: [
+    ['bold', 'italic', 'underline'],                  // Formatting teks dasar
+    [{ 'list': 'ordered'}, { 'list': 'bullet' }],     // List angka dan bullet
+    ['clean']                                         // Tombol hapus format
+  ],
+};
 
 const ManageSubMaterial = () => {
   const { materialId } = useParams<{ materialId: string }>();
@@ -24,7 +37,7 @@ const ManageSubMaterial = () => {
   // State Error Global (Fetch)
   const [error, setError] = useState<string | null>(null); 
   
-  // --- STATE ALERT BARU (Success & Action Error) ---
+  // --- STATE ALERT ---
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
@@ -52,7 +65,6 @@ const ManageSubMaterial = () => {
     if (materialId) fetchData();
   }, [materialId]);
 
-  // Effect untuk Auto-Dismiss Alert (3 detik)
   useEffect(() => {
     if (successMessage || actionError) {
       const timer = setTimeout(() => {
@@ -67,7 +79,6 @@ const ManageSubMaterial = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      // Reset error fetch, tapi jangan reset actionError/successMessage agar user sempat melihatnya
       setError(null); 
       const res = await subMaterialService.getAllSubMaterials(Number(materialId));
       if (res.success && res.data) {
@@ -78,6 +89,14 @@ const ManageSubMaterial = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Helper: Membersihkan tag HTML untuk tampilan preview di tabel
+  // Contoh: "<p><strong>Halo</strong></p>" menjadi "Halo"
+  const stripHtml = (html: string) => {
+    const tmp = document.createElement("DIV");
+    tmp.innerHTML = html;
+    return tmp.textContent || tmp.innerText || "";
   };
 
   const getFullImageUrl = (path: string) => {
@@ -102,9 +121,8 @@ const ManageSubMaterial = () => {
       title: item.title,
       contentCategory: item.contentCategory,
       contentUrl: item.contentUrl, 
-      content: item.content
+      content: item.content // ReactQuill akan membaca string HTML ini
     });
-    // Reset alert saat membuka modal
     setSuccessMessage(null);
     setActionError(null);
     setIsFormOpen(true);
@@ -112,7 +130,6 @@ const ManageSubMaterial = () => {
 
   const handleDeleteClick = (item: SubMaterialItem) => {
     setDeleteItem(item);
-    // Reset alert saat membuka modal
     setSuccessMessage(null);
     setActionError(null);
     setIsDeleteOpen(true);
@@ -130,9 +147,13 @@ const ManageSubMaterial = () => {
   };
 
   const handleSubmit = async () => {
-    // Validasi sederhana
-    if (!formData.title || !formData.content) {
-        setActionError("Judul dan Konten wajib diisi");
+    // Validasi
+    // Perhatikan: React Quill mungkin menyisakan tag kosong seperti "<p><br></p>"
+    // Kita cek apakah text content-nya ada isinya
+    const plainText = stripHtml(formData.content).trim();
+
+    if (!formData.title || !plainText) {
+        setActionError("Judul dan Deskripsi wajib diisi");
         return;
     }
     if (!formData.contentUrl) {
@@ -142,7 +163,7 @@ const ManageSubMaterial = () => {
 
     try {
       setIsSubmitting(true);
-      setActionError(null); // Reset error sebelumnya
+      setActionError(null);
 
       if (editingItem) {
         await subMaterialService.updateSubMaterial(Number(materialId), editingItem.id, formData);
@@ -152,8 +173,8 @@ const ManageSubMaterial = () => {
         setSuccessMessage("Sub materi baru berhasil ditambahkan!");
       }
       
-      handleReset(); // Tutup modal & reset form
-      fetchData();   // Refresh data
+      handleReset();
+      fetchData();
     } catch (err: any) {
       setActionError(err.message || "Terjadi kesalahan saat menyimpan data.");
     } finally {
@@ -175,7 +196,7 @@ const ManageSubMaterial = () => {
       fetchData();
     } catch (err: any) {
       setActionError(err.message || "Gagal menghapus data.");
-      setIsDeleteOpen(false); // Opsional: tutup modal meski gagal, atau biarkan terbuka
+      setIsDeleteOpen(false);
     } finally {
       setIsSubmitting(false);
     }
@@ -187,7 +208,6 @@ const ManageSubMaterial = () => {
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 overflow-hidden">
-      {/* CloudBackground sebagai background */}
       <CloudBackground 
         cloudImage="./src/assets/images/awanhijau.png"
         showCityBottom={true}
@@ -196,7 +216,6 @@ const ManageSubMaterial = () => {
         planeCount={2}
       />
       
-      {/* Konten utama di atas background */}
       <div className="relative z-10 min-h-screen p-6">
         <div className="max-w-6xl mx-auto">
           <button onClick={() => navigate('/admin/managemateri')} className="group flex items-center gap-2 text-gray-600 hover:text-blue-700 transition-colors mb-6 text-sm font-medium w-fit hover:bg-blue-50 px-3 py-2 rounded-lg">
@@ -288,9 +307,9 @@ const ManageSubMaterial = () => {
                   <thead>
                     <tr className="bg-gradient-to-r from-gray-100 to-gray-50 border-b border-gray-200 text-sm font-semibold text-gray-600 uppercase tracking-wider">
                       <th className="px-8 py-5">Judul</th>
+                      <th className="px-8 py-5">Deskripsi Singkat</th>
                       <th className="px-8 py-5">Kategori</th>
-                      <th className="px-8 py-5">Media / URL</th>
-                      <th className="px-8 py-5">Tanggal</th>
+                      <th className="px-8 py-5">Media</th>
                       <th className="px-8 py-5 text-right">Aksi</th>
                     </tr>
                   </thead>
@@ -298,6 +317,10 @@ const ManageSubMaterial = () => {
                     {filteredList.map((item) => (
                       <tr key={item.id} className="hover:bg-blue-50/50 transition-colors">
                         <td className="px-8 py-5 font-medium text-gray-900">{item.title}</td>
+                        {/* Preview Deskripsi menggunakan stripHtml agar bersih dari tag */}
+                        <td className="px-8 py-5 text-gray-500 text-sm max-w-xs truncate">
+                            {stripHtml(item.content)}
+                        </td>
                         <td className="px-8 py-5">
                           <span className={`px-3 py-1 rounded-lg text-xs font-medium ${
                             item.contentCategory === 'video' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
@@ -320,9 +343,6 @@ const ManageSubMaterial = () => {
                               }} 
                             />
                           )}
-                        </td>
-                        <td className="px-8 py-5 text-sm text-gray-500">
-                          {item.createdAt ? new Date(item.createdAt).toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'}) : '-'}
                         </td>
                         <td className="px-8 py-5 text-right">
                           <div className="flex justify-end gap-2">
@@ -352,7 +372,7 @@ const ManageSubMaterial = () => {
                 <button onClick={handleReset}><X size={24} className="text-gray-400" /></button>
               </div>
               
-              <div className="p-8 space-y-6">
+              <div className="p-8 space-y-6 max-h-[80vh] overflow-y-auto">
                 <div>
                   <label className="block text-base font-semibold text-gray-800 mb-3">Judul</label>
                   <input 
@@ -426,15 +446,21 @@ const ManageSubMaterial = () => {
                   )}
                 </div>
 
+                {/* --- BAGIAN EDITOR REACT QUILL --- */}
                 <div>
                   <label className="block text-base font-semibold text-gray-800 mb-3">Deskripsi</label>
-                  <textarea 
-                    rows={3}
-                    value={formData.content}
-                    onChange={(e) => setFormData({...formData, content: e.target.value})}
-                    className="w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-base min-h-[100px] resize-y shadow-sm"
-                  />
+                  {/* Wrapper div untuk styling border radius agar sama dengan input lain */}
+                  <div className="bg-white border border-gray-300 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500 transition-all shadow-sm">
+                    <ReactQuill 
+                      theme="snow"
+                      value={formData.content}
+                      onChange={(content) => setFormData({...formData, content: content})}
+                      modules={quillModules}
+                      className="h-48 mb-12" // Memberi tinggi dan ruang untuk toolbar bawah
+                    />
+                  </div>
                 </div>
+
               </div>
 
               <div className="p-6 border-t border-gray-100 bg-gray-50 flex gap-4 justify-end">
