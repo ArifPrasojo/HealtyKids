@@ -3,10 +3,6 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import DashboardPage from './pages/siswa/DashboardPage'
 import Dashboard from './pages/admin/Dashbboard' // Import Dashboard admin
 import Materi from './pages/siswa/Materi'
-// import Materi2 from './pages/siswa/Materi2'
-// import Materi3 from './pages/siswa/Materi3'
-// import Materi4 from './pages/siswa/Materi4'
-// import Materi5 from './pages/siswa/Materi5'
 import Quiz from './pages/siswa/Quiz'
 import Result from './pages/siswa/Result'
 import Login from './pages/Login'
@@ -164,17 +160,16 @@ function App() {
           path="/materi"
           element={
             <ProtectedRoute isAuthenticated={isAuthenticated} userRole={userRole}>
-              <MateriHome />
+              {userRole === 'siswa' ? <MateriHome /> : <Navigate to="/dashboard" replace />}
             </ProtectedRoute>
           }
         />
 
-        {/* 2. Route Detail Materi (Target saat diklik) */}
         <Route
           path="/materi/:id"
           element={
             <ProtectedRoute isAuthenticated={isAuthenticated} userRole={userRole}>
-              <Materi />
+              {userRole === 'siswa' ? <Materi /> : <Navigate to="/dashboard" replace />}
             </ProtectedRoute>
           }
         />
