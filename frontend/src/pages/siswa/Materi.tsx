@@ -1,21 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '../../components/layouts/Layout';
-
-// 1. IMPORT CSS REACT-QUILL-NEW
-// Ini wajib agar format HTML (seperti list, align, indent) terbaca dengan benar
 import 'react-quill-new/dist/quill.snow.css'; 
 
-const API_BASE_URL = import.meta.env?.VITE_API_URL || 'http://localhost:3000';
-
-interface SubMaterialAPI {
-  id: number;
-  title: string;
-  contentCategory: string; 
-  contentUrl: string;
-  content: string;
-  isDone: boolean;
-}
+// --- PERUBAHAN DI SINI: Import dari userSubMaterialService ---
+import { 
+  getSubMaterials, 
+  updateSubMaterialProgress
+} from '../../services/api/userSubMaterialService';
+import type { SubMaterialAPI } from '../../services/api/userSubMaterialService';
 
 const Materi: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -32,67 +25,39 @@ const Materi: React.FC = () => {
   // --- 1. FETCH DATA (GET) ---
   useEffect(() => {
     const fetchDetailMateri = async () => {
-      const token = localStorage.getItem('token') || localStorage.getItem('authToken') || localStorage.getItem('access_token');
-
-      if (!token) {
-        navigate('/login');
-        return;
-      }
+      if (!id) return;
 
       try {
-        const response = await fetch(`${API_BASE_URL}/material/${id}/sub-material`, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-
-        if (response.status === 401) {
+        // Menggunakan fungsi dari userSubMaterialService
+        const data = await getSubMaterials(id);
+        setSubMaterials(data);
+      } catch (err: any) {
+        console.error(err);
+        
+        if (err.message === "NO_TOKEN" || err.message === "UNAUTHORIZED") {
           localStorage.clear();
           navigate('/login');
           return;
         }
 
-        if (!response.ok) throw new Error('Gagal mengambil data materi.');
-
-        const result = await response.json();
-
-        if (result.success && Array.isArray(result.data)) {
-            setSubMaterials(result.data);
-        } else {
-            setSubMaterials(result.data?.materials || []);
-        }
-
-      } catch (err: any) {
-        console.error(err);
         setError("Terjadi kesalahan saat memuat materi.");
       } finally {
         setLoading(false);
       }
     };
 
-    if (id) {
-      fetchDetailMateri();
-    }
+    fetchDetailMateri();
   }, [id, navigate]);
 
   // --- 2. FUNGSI POST PROGRESS ---
   const markSubMaterialAsDone = async (subMaterialId: number) => {
-    const token = localStorage.getItem('token') || localStorage.getItem('authToken');
-    if (!token) return;
-
+    if (!id) return;
+    
     try {
-      const url = `${API_BASE_URL}/material/${id}/sub-material/${subMaterialId}`;
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      // Menggunakan fungsi dari userSubMaterialService
+      const isSuccess = await updateSubMaterialProgress(id, subMaterialId);
 
-      if (response.ok) {
+      if (isSuccess) {
         setSubMaterials(prev => prev.map(item => 
           item.id === subMaterialId ? { ...item, isDone: true } : item
         ));
@@ -255,7 +220,7 @@ const Materi: React.FC = () => {
               <div className={`${isSidebarOpen ? 'lg:col-span-3' : 'col-span-1'}`}>
                 <div className="bg-white rounded-2xl lg:rounded-3xl shadow-xl border border-gray-200 overflow-hidden flex flex-col h-[80vh]">
                   
-                  {/* Content Header (FIXED) */}
+                  {/* Content Header */}
                   <div className="p-4 lg:p-6 border-b border-gray-200 flex items-center justify-between shrink-0 bg-white z-10">
                     <h1 className="text-lg lg:text-2xl font-bold text-gray-800 flex-1 pr-2">{currentItem.title}</h1>
                     {!isSidebarOpen && (
@@ -266,7 +231,7 @@ const Materi: React.FC = () => {
                     )}
                   </div>
 
-                  {/* Reminder Box (FIXED) */}
+                  {/* Reminder Box */}
                   <div className="p-3 lg:p-4 bg-yellow-50 border-b border-yellow-200 shrink-0">
                     <p className="text-center text-gray-700 font-medium text-xs lg:text-sm">
                       <span className="text-yellow-600">💡</span> Info: Baca materi dengan seksama sebelum lanjut.
@@ -277,8 +242,7 @@ const Materi: React.FC = () => {
                   <div id="content-area" className="flex-1 p-6 lg:p-8 overflow-y-auto bg-gray-50/50">
                     <div className="animate-in fade-in duration-500 w-full max-w-none">
                       
-                      {/* GAMBAR UTAMA (Cover Image) */}
-                      {/* Hanya muncul jika URL valid DAN URL tersebut tidak sudah ada di dalam HTML konten */}
+                      {/* GAMBAR UTAMA */}
                       {currentItem.contentUrl && !currentItem.content.includes(currentItem.contentUrl) && (
                         <div className="mb-8 grid gap-6">
                             <div className="w-full bg-gray-100 rounded-2xl p-2 border border-gray-200 shadow-inner">
@@ -293,8 +257,6 @@ const Materi: React.FC = () => {
                       )}
 
                       {/* TEXT CONTENT - QUILL RENDERER */}
-                      {/* Menggunakan 'ql-snow' dan 'ql-editor' agar style dari React Quill bekerja */}
-                      {/* '!p-0' untuk menghapus padding default Quill yang mungkin mengganggu layout */}
                       <div className="ql-snow">
                         <div
                           className="ql-editor !p-0 !overflow-visible prose prose-lg prose-slate max-w-none 
@@ -304,8 +266,6 @@ const Materi: React.FC = () => {
                           prose-li:text-gray-700
                           prose-strong:text-gray-900 prose-strong:font-bold
                           [&_.ql-align-center]:text-center [&_.ql-align-right]:text-right [&_.ql-align-justify]:text-justify
-                          
-                          // --- TAMBAHAN KHUSUS LIST ---
                           [&_ul]:list-disc [&_ul]:pl-6 
                           [&_ol]:list-decimal [&_ol]:pl-6"
                           dangerouslySetInnerHTML={{ __html: currentItem.content || '<p class="text-gray-400 italic">Tidak ada konten teks.</p>' }}
@@ -315,7 +275,7 @@ const Materi: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Footer Navigation (FIXED) */}
+                  {/* Footer Navigation */}
                   <div className="p-4 lg:p-6 border-t border-gray-200 flex items-center justify-between gap-3 shrink-0 bg-white">
                     <button 
                       onClick={handlePreviousLesson}
