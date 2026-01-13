@@ -14,34 +14,23 @@ import { subMaterialService } from '../../services/api/subMaterialService';
 import type { SubMaterialItem, SubMaterialFormData } from '../../services/api/subMaterialService';
 import CloudBackground from '../../components/layouts/CloudBackground';
 
-const BACKEND_URL = import.meta.env?.VITE_API_URL;
+const BACKEND_URL = import.meta.env?.VITE_API_URL || 'http://localhost:3000';
 
-// --- KONFIGURASI TOOLBAR EDITOR (FULL FEATURES) ---
+// --- KONFIGURASI TOOLBAR EDITOR ---
 const quillModules = {
   toolbar: [
-    // --- BAGIAN 1: TEKS & FONT ---
-    [{ 'header': [1, 2, 3, 4, 5, 6, false] }],            // Heading
-    [{ 'font': [] }],                                     // Jenis Font
-    [{ 'size': ['small', false, 'large', 'huge'] }],      // Ukuran Font
-
-    // --- BAGIAN 2: FORMATTING DASAR ---
-    ['bold', 'italic', 'underline', 'strike'],            // Bold, Italic, Underline, Strike
-    [{ 'script': 'sub'}, { 'script': 'super' }],          // Subscript & Superscript
-    
-    // --- BAGIAN 3: WARNA ---
-    [{ 'color': [] }, { 'background': [] }],              // Warna Teks & Highlight
-
-    // --- BAGIAN 4: PARAGRAF & LIST ---
-    [{ 'list': 'ordered'}, { 'list': 'bullet' }],         // List
-    [{ 'indent': '-1'}, { 'indent': '+1' }],              // Indent
-    [{ 'align': [] }],                                    // Alignment
-
-    // --- BAGIAN 5: MEDIA & LINK ---
-    ['blockquote', 'code-block'],                         // Quote
-    ['link', 'image'],                           // Media
-
-    // --- BAGIAN 6: BERSIH-BERSIH ---
-    ['clean']                                             // Clear format
+    [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+    [{ 'font': [] }],
+    [{ 'size': ['small', false, 'large', 'huge'] }],
+    ['bold', 'italic', 'underline', 'strike'],
+    [{ 'script': 'sub'}, { 'script': 'super' }],
+    [{ 'color': [] }, { 'background': [] }],
+    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+    [{ 'indent': '-1'}, { 'indent': '+1' }],
+    [{ 'align': [] }],
+    ['blockquote', 'code-block'],
+    ['link', 'image'],
+    ['clean']
   ],
 };
 
@@ -112,10 +101,15 @@ const ManageSubMaterial = () => {
   };
 
   const getFullImageUrl = (path: string) => {
-    if (!path) return 'https://via.placeholder.com/150?text=No+Image';
+    if (!path) return 'https://placehold.co/150?text=No+Image'; // Gunakan placehold.co (lebih stabil)
     if (path.startsWith('http') || path.startsWith('data:')) return path;
+    
+    // Pastikan tidak ada double slash
     const cleanPath = path.startsWith('/') ? path : `/${path}`;
-    return `${BACKEND_URL}${cleanPath}`;
+    // Hapus trailing slash dari backend url jika ada, lalu gabung
+    const baseUrl = BACKEND_URL.endsWith('/') ? BACKEND_URL.slice(0, -1) : BACKEND_URL;
+    
+    return `${baseUrl}${cleanPath}`;
   };
 
   const handleReset = () => {
@@ -147,6 +141,12 @@ const ManageSubMaterial = () => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Validasi ukuran file (opsional, contoh max 2MB)
+      if (file.size > 2 * 1024 * 1024) {
+          setActionError("Ukuran file terlalu besar (Max 2MB)");
+          return;
+      }
+
       const reader = new FileReader();
       reader.onloadend = () => {
         setFormData(prev => ({ ...prev, contentUrl: reader.result as string }));
@@ -158,10 +158,17 @@ const ManageSubMaterial = () => {
   const handleSubmit = async () => {
     const plainText = stripHtml(formData.content).trim();
 
-    if (!formData.title || !plainText) {
-        setActionError("Judul dan Deskripsi wajib diisi");
+    if (!formData.title) {
+        setActionError("Judul wajib diisi");
         return;
     }
+    // Jika content kosong/hanya spasi HTML
+    if (!formData.content || formData.content === '<p><br></p>') {
+       // Opsional: block submit jika content kosong
+       // setActionError("Deskripsi wajib diisi");
+       // return;
+    }
+    
     if (!formData.contentUrl) {
         setActionError("Video URL atau Foto wajib diisi");
         return;
@@ -170,6 +177,14 @@ const ManageSubMaterial = () => {
     try {
       setIsSubmitting(true);
       setActionError(null);
+
+      // --- DEBUGGING LOG (Lihat di Console Browser) ---
+      // Ini akan membantu melihat apa yang dikirim ke backend penyebab error 400
+      console.log("Submitting Data:", {
+          materialId: Number(materialId),
+          subId: editingItem?.id,
+          payload: formData
+      });
 
       if (editingItem) {
         await subMaterialService.updateSubMaterial(Number(materialId), editingItem.id, formData);
@@ -182,7 +197,9 @@ const ManageSubMaterial = () => {
       handleReset();
       fetchData();
     } catch (err: any) {
-      setActionError(err.message || "Terjadi kesalahan saat menyimpan data.");
+      console.error("Submit Error:", err);
+      // Menampilkan pesan error spesifik dari backend jika ada
+      setActionError(err.message || "Terjadi kesalahan saat menyimpan data (Cek Console).");
     } finally {
       setIsSubmitting(false);
     }
@@ -341,8 +358,9 @@ const ManageSubMaterial = () => {
                               src={getFullImageUrl(item.contentUrl)} 
                               alt="Preview" 
                               className="h-12 w-20 object-cover rounded border bg-gray-200"
+                              // --- PERBAIKAN 1: Ganti placeholder ke layanan stabil ---
                               onError={(e) => {
-                                (e.currentTarget as HTMLImageElement).src = "https://via.placeholder.com/150?text=Error";
+                                (e.currentTarget as HTMLImageElement).src = "https://placehold.co/150?text=Error";
                               }} 
                             />
                           )}
@@ -369,7 +387,6 @@ const ManageSubMaterial = () => {
         {/* --- MODAL FORM --- */}
         {isFormOpen && (
           <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-fade-in">
-            {/* Modal Container diperlebar agar tidak terlalu sempit untuk editor besar */}
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl border border-gray-200 overflow-hidden transform transition-all scale-100">
               <div className="px-8 py-6 border-b border-gray-100 flex justify-between items-center bg-gradient-to-r from-gray-50 to-white">
                 <h3 className="font-bold text-gray-800">{editingItem ? 'Edit Sub Materi' : 'Tambah Sub Materi'}</h3>
@@ -420,6 +437,7 @@ const ManageSubMaterial = () => {
                       value={formData.contentUrl}
                       onChange={(e) => setFormData({...formData, contentUrl: e.target.value})}
                       className="w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-base shadow-sm"
+                      placeholder="https://www.youtube.com/..."
                     />
                   ) : (
                     <div className="border-2 border-dashed rounded-xl p-6 text-center hover:bg-gray-50 transition">
@@ -429,7 +447,9 @@ const ManageSubMaterial = () => {
                            <img 
                              src={getFullImageUrl(formData.contentUrl)} 
                              alt="Preview" 
-                             className="h-32 object-contain mx-auto" 
+                             className="h-32 object-contain mx-auto"
+                             // --- PERBAIKAN: Handler Error di Preview ---
+                             onError={(e) => { (e.currentTarget as HTMLImageElement).src = "https://placehold.co/150?text=Error"; }}
                            />
                         ) : (
                           <>
@@ -450,7 +470,7 @@ const ManageSubMaterial = () => {
                   )}
                 </div>
 
-                {/* --- BAGIAN EDITOR REACT QUILL (DIPERBESAR) --- */}
+                {/* --- BAGIAN EDITOR REACT QUILL --- */}
                 <div>
                   <label className="block text-base font-semibold text-gray-800 mb-3">Deskripsi</label>
                   <div className="bg-white border border-gray-300 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500 transition-all shadow-sm">
@@ -459,9 +479,6 @@ const ManageSubMaterial = () => {
                       value={formData.content}
                       onChange={(content) => setFormData({...formData, content: content})}
                       modules={quillModules}
-                      // PERUBAHAN UTAMA DI SINI:
-                      // h-96 = Tinggi editor menjadi besar (approx 384px)
-                      // mb-16 = Memberi ruang agar toolbar bawah tidak tertutup
                       className="h-96 mb-16" 
                     />
                   </div>
