@@ -37,6 +37,14 @@ export const loginService = {
         throw new Error(data.message || 'Login gagal. Periksa username dan password.');
       }
 
+      // --- PERBAIKAN: SIMPAN TOKEN & DATA USER KE LOCALSTORAGE ---
+      // Ini wajib dilakukan agar request berikutnya (seperti get materi) bisa membaca token ini.
+      localStorage.setItem('authToken', data.access_token);
+      localStorage.setItem('userRole', data.user.role);
+      localStorage.setItem('userData', JSON.stringify(data.user));
+      localStorage.setItem('isLoggedIn', 'true');
+      // -----------------------------------------------------------
+
       return data;
     } catch (error: any) {
       throw error; // Lempar error agar bisa ditangkap di UI

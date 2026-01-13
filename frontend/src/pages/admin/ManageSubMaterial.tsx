@@ -14,15 +14,23 @@ import { subMaterialService } from '../../services/api/subMaterialService';
 import type { SubMaterialItem, SubMaterialFormData } from '../../services/api/subMaterialService';
 import CloudBackground from '../../components/layouts/CloudBackground';
 
-const BACKEND_URL = import.meta.env?.VITE_API_URL;
+const BACKEND_URL = import.meta.env?.VITE_API_URL || 'http://localhost:3000';
 
 // --- KONFIGURASI TOOLBAR EDITOR ---
-// Anda bisa menambah/mengurangi fitur di sini
 const quillModules = {
   toolbar: [
-    ['bold', 'italic', 'underline'],                  // Formatting teks dasar
-    [{ 'list': 'ordered'}, { 'list': 'bullet' }],     // List angka dan bullet
-    ['clean']                                         // Tombol hapus format
+    [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+    [{ 'font': [] }],
+    [{ 'size': ['small', false, 'large', 'huge'] }],
+    ['bold', 'italic', 'underline', 'strike'],
+    [{ 'script': 'sub'}, { 'script': 'super' }],
+    [{ 'color': [] }, { 'background': [] }],
+    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+    [{ 'indent': '-1'}, { 'indent': '+1' }],
+    [{ 'align': [] }],
+    ['blockquote', 'code-block'],
+    ['link', 'image'],
+    ['clean']
   ],
 };
 
@@ -33,14 +41,9 @@ const ManageSubMaterial = () => {
   // --- States ---
   const [dataList, setDataList] = useState<SubMaterialItem[]>([]);
   const [loading, setLoading] = useState(true);
-  
-  // State Error Global (Fetch)
   const [error, setError] = useState<string | null>(null); 
-  
-  // --- STATE ALERT ---
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
-
   const [searchQuery, setSearchQuery] = useState('');
 
   // Modal States
@@ -91,8 +94,6 @@ const ManageSubMaterial = () => {
     }
   };
 
-  // Helper: Membersihkan tag HTML untuk tampilan preview di tabel
-  // Contoh: "<p><strong>Halo</strong></p>" menjadi "Halo"
   const stripHtml = (html: string) => {
     const tmp = document.createElement("DIV");
     tmp.innerHTML = html;
@@ -100,13 +101,15 @@ const ManageSubMaterial = () => {
   };
 
   const getFullImageUrl = (path: string) => {
-    if (!path) return 'https://via.placeholder.com/150?text=No+Image';
-    if (path.startsWith('http') || path.startsWith('data:')) {
-      return path;
-    }
+    if (!path) return 'https://placehold.co/150?text=No+Image'; // Gunakan placehold.co (lebih stabil)
+    if (path.startsWith('http') || path.startsWith('data:')) return path;
+    
+    // Pastikan tidak ada double slash
     const cleanPath = path.startsWith('/') ? path : `/${path}`;
-    const finalUrl = `${BACKEND_URL}${cleanPath}`;
-    return finalUrl;
+    // Hapus trailing slash dari backend url jika ada, lalu gabung
+    const baseUrl = BACKEND_URL.endsWith('/') ? BACKEND_URL.slice(0, -1) : BACKEND_URL;
+    
+    return `${baseUrl}${cleanPath}`;
   };
 
   const handleReset = () => {
@@ -121,7 +124,7 @@ const ManageSubMaterial = () => {
       title: item.title,
       contentCategory: item.contentCategory,
       contentUrl: item.contentUrl, 
-      content: item.content // ReactQuill akan membaca string HTML ini
+      content: item.content 
     });
     setSuccessMessage(null);
     setActionError(null);
@@ -138,6 +141,12 @@ const ManageSubMaterial = () => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Validasi ukuran file (opsional, contoh max 2MB)
+      if (file.size > 2 * 1024 * 1024) {
+          setActionError("Ukuran file terlalu besar (Max 2MB)");
+          return;
+      }
+
       const reader = new FileReader();
       reader.onloadend = () => {
         setFormData(prev => ({ ...prev, contentUrl: reader.result as string }));
@@ -147,15 +156,19 @@ const ManageSubMaterial = () => {
   };
 
   const handleSubmit = async () => {
-    // Validasi
-    // Perhatikan: React Quill mungkin menyisakan tag kosong seperti "<p><br></p>"
-    // Kita cek apakah text content-nya ada isinya
     const plainText = stripHtml(formData.content).trim();
 
-    if (!formData.title || !plainText) {
-        setActionError("Judul dan Deskripsi wajib diisi");
+    if (!formData.title) {
+        setActionError("Judul wajib diisi");
         return;
     }
+    // Jika content kosong/hanya spasi HTML
+    if (!formData.content || formData.content === '<p><br></p>') {
+       // Opsional: block submit jika content kosong
+       // setActionError("Deskripsi wajib diisi");
+       // return;
+    }
+    
     if (!formData.contentUrl) {
         setActionError("Video URL atau Foto wajib diisi");
         return;
@@ -164,6 +177,14 @@ const ManageSubMaterial = () => {
     try {
       setIsSubmitting(true);
       setActionError(null);
+
+      // --- DEBUGGING LOG (Lihat di Console Browser) ---
+      // Ini akan membantu melihat apa yang dikirim ke backend penyebab error 400
+      console.log("Submitting Data:", {
+          materialId: Number(materialId),
+          subId: editingItem?.id,
+          payload: formData
+      });
 
       if (editingItem) {
         await subMaterialService.updateSubMaterial(Number(materialId), editingItem.id, formData);
@@ -176,7 +197,9 @@ const ManageSubMaterial = () => {
       handleReset();
       fetchData();
     } catch (err: any) {
-      setActionError(err.message || "Terjadi kesalahan saat menyimpan data.");
+      console.error("Submit Error:", err);
+      // Menampilkan pesan error spesifik dari backend jika ada
+      setActionError(err.message || "Terjadi kesalahan saat menyimpan data (Cek Console).");
     } finally {
       setIsSubmitting(false);
     }
@@ -187,9 +210,7 @@ const ManageSubMaterial = () => {
     try {
       setIsSubmitting(true);
       setActionError(null);
-
       await subMaterialService.deleteSubMaterial(Number(materialId), deleteItem.id);
-      
       setSuccessMessage("Sub materi berhasil dihapus.");
       setIsDeleteOpen(false);
       setDeleteItem(null);
@@ -317,7 +338,6 @@ const ManageSubMaterial = () => {
                     {filteredList.map((item) => (
                       <tr key={item.id} className="hover:bg-blue-50/50 transition-colors">
                         <td className="px-8 py-5 font-medium text-gray-900">{item.title}</td>
-                        {/* Preview Deskripsi menggunakan stripHtml agar bersih dari tag */}
                         <td className="px-8 py-5 text-gray-500 text-sm max-w-xs truncate">
                             {stripHtml(item.content)}
                         </td>
@@ -338,8 +358,9 @@ const ManageSubMaterial = () => {
                               src={getFullImageUrl(item.contentUrl)} 
                               alt="Preview" 
                               className="h-12 w-20 object-cover rounded border bg-gray-200"
+                              // --- PERBAIKAN 1: Ganti placeholder ke layanan stabil ---
                               onError={(e) => {
-                                (e.currentTarget as HTMLImageElement).src = "https://via.placeholder.com/150?text=Error";
+                                (e.currentTarget as HTMLImageElement).src = "https://placehold.co/150?text=Error";
                               }} 
                             />
                           )}
@@ -366,7 +387,7 @@ const ManageSubMaterial = () => {
         {/* --- MODAL FORM --- */}
         {isFormOpen && (
           <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-fade-in">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg border border-gray-200 overflow-hidden transform transition-all scale-100">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl border border-gray-200 overflow-hidden transform transition-all scale-100">
               <div className="px-8 py-6 border-b border-gray-100 flex justify-between items-center bg-gradient-to-r from-gray-50 to-white">
                 <h3 className="font-bold text-gray-800">{editingItem ? 'Edit Sub Materi' : 'Tambah Sub Materi'}</h3>
                 <button onClick={handleReset}><X size={24} className="text-gray-400" /></button>
@@ -416,6 +437,7 @@ const ManageSubMaterial = () => {
                       value={formData.contentUrl}
                       onChange={(e) => setFormData({...formData, contentUrl: e.target.value})}
                       className="w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-base shadow-sm"
+                      placeholder="https://www.youtube.com/..."
                     />
                   ) : (
                     <div className="border-2 border-dashed rounded-xl p-6 text-center hover:bg-gray-50 transition">
@@ -425,7 +447,9 @@ const ManageSubMaterial = () => {
                            <img 
                              src={getFullImageUrl(formData.contentUrl)} 
                              alt="Preview" 
-                             className="h-32 object-contain mx-auto" 
+                             className="h-32 object-contain mx-auto"
+                             // --- PERBAIKAN: Handler Error di Preview ---
+                             onError={(e) => { (e.currentTarget as HTMLImageElement).src = "https://placehold.co/150?text=Error"; }}
                            />
                         ) : (
                           <>
@@ -449,14 +473,13 @@ const ManageSubMaterial = () => {
                 {/* --- BAGIAN EDITOR REACT QUILL --- */}
                 <div>
                   <label className="block text-base font-semibold text-gray-800 mb-3">Deskripsi</label>
-                  {/* Wrapper div untuk styling border radius agar sama dengan input lain */}
                   <div className="bg-white border border-gray-300 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500 transition-all shadow-sm">
                     <ReactQuill 
                       theme="snow"
                       value={formData.content}
                       onChange={(content) => setFormData({...formData, content: content})}
                       modules={quillModules}
-                      className="h-48 mb-12" // Memberi tinggi dan ruang untuk toolbar bawah
+                      className="h-96 mb-16" 
                     />
                   </div>
                 </div>

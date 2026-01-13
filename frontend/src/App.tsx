@@ -3,10 +3,10 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import DashboardPage from './pages/siswa/DashboardPage'
 import Dashboard from './pages/admin/Dashbboard' // Import Dashboard admin
 import Materi from './pages/siswa/Materi'
-import Materi2 from './pages/siswa/Materi2'
-import Materi3 from './pages/siswa/Materi3'
-import Materi4 from './pages/siswa/Materi4'
-import Materi5 from './pages/siswa/Materi5'
+// import Materi2 from './pages/siswa/Materi2'
+// import Materi3 from './pages/siswa/Materi3'
+// import Materi4 from './pages/siswa/Materi4'
+// import Materi5 from './pages/siswa/Materi5'
 import Quiz from './pages/siswa/Quiz'
 import Result from './pages/siswa/Result'
 import Login from './pages/Login'
@@ -159,47 +159,26 @@ function App() {
           } 
         />
         {/* Student Routes */}
-        <Route 
-          path="/materi" 
+
+        <Route
+          path="/materi"
           element={
-            <ProtectedRoute isAuthenticated={isAuthenticated}>
-              <Materi />
+            <ProtectedRoute isAuthenticated={isAuthenticated} userRole={userRole}>
+              <MateriHome />
             </ProtectedRoute>
-          } 
+          }
         />
 
-        <Route 
-          path="/materi2" 
+        {/* 2. Route Detail Materi (Target saat diklik) */}
+        <Route
+          path="/materi/:id"
           element={
-            <ProtectedRoute isAuthenticated={isAuthenticated}>
-              <Materi2 />
+            <ProtectedRoute isAuthenticated={isAuthenticated} userRole={userRole}>
+              <Materi />
             </ProtectedRoute>
-          } 
+          }
         />
-        <Route 
-          path="/materi3" 
-          element={
-            <ProtectedRoute isAuthenticated={isAuthenticated}>
-              <Materi3 />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/materi4" 
-          element={
-            <ProtectedRoute isAuthenticated={isAuthenticated}>
-              <Materi4 />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/materi5" 
-          element={
-            <ProtectedRoute isAuthenticated={isAuthenticated}>
-              <Materi5 />
-            </ProtectedRoute>
-          } 
-        />
+        
         <Route 
           path="/quiz" 
           element={
@@ -244,16 +223,6 @@ function App() {
             </ProtectedRoute>
           } 
         />
-
-        <Route 
-          path="/materihome" 
-          element={
-            <ProtectedRoute isAuthenticated={isAuthenticated}>
-              <MateriHome onLogout={handleLogout} />
-            </ProtectedRoute>
-          } 
-        />
-
         <Route 
           path="/gamehome" 
           element={

@@ -24,7 +24,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
       textColor: 'text-blue-700',
       iconBg: 'bg-gradient-to-br from-blue-400 to-blue-600',
       accentColor: 'bg-blue-500',
-      route: '/materiHome'
+      route: '/materi'
     },
     {
       title: 'QUIZ',

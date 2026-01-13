@@ -1,126 +1,166 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '../../components/layouts/Layout';
 
-// ID Materi Utama untuk penyimpanan progress
-const MATERI_ID = 1;
+// 1. IMPORT CSS REACT-QUILL-NEW
+// Ini wajib agar format HTML (seperti list, align, indent) terbaca dengan benar
+import 'react-quill-new/dist/quill.snow.css'; 
 
-interface ModuleItem {
+const API_BASE_URL = import.meta.env?.VITE_API_URL || 'http://localhost:3000';
+
+interface SubMaterialAPI {
   id: number;
   title: string;
-  duration: string;
-  completed: boolean;
-  emoji: string;
-  description: string;
-  content: string; // Isi materi text dengan format \n untuk baris baru
-  images: string[]; // Array URL gambar
+  contentCategory: string; 
+  contentUrl: string;
+  content: string;
+  isDone: boolean;
 }
 
 const Materi: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [currentVideo, setCurrentVideo] = useState(0);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [isPlaying, setIsPlaying] = useState(false);
-  
-  // State UI
+
+  const [subMaterials, setSubMaterials] = useState<SubMaterialAPI[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
-  // --- INTEGRASI PROGRESS (LocalStorage) ---
-  const [completedVideos, setCompletedVideos] = useState<number[]>(() => {
-    try {
-      const saved = localStorage.getItem('materi_progress');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        return parsed[MATERI_ID] || [];
+  // --- 1. FETCH DATA (GET) ---
+  useEffect(() => {
+    const fetchDetailMateri = async () => {
+      const token = localStorage.getItem('token') || localStorage.getItem('authToken') || localStorage.getItem('access_token');
+
+      if (!token) {
+        navigate('/login');
+        return;
       }
-    } catch (e) {
-      console.error("Gagal membaca progress", e);
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/material/${id}/sub-material`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.status === 401) {
+          localStorage.clear();
+          navigate('/login');
+          return;
+        }
+
+        if (!response.ok) throw new Error('Gagal mengambil data materi.');
+
+        const result = await response.json();
+
+        if (result.success && Array.isArray(result.data)) {
+            setSubMaterials(result.data);
+        } else {
+            setSubMaterials(result.data?.materials || []);
+        }
+
+      } catch (err: any) {
+        console.error(err);
+        setError("Terjadi kesalahan saat memuat materi.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchDetailMateri();
     }
-    return [];
-  });
+  }, [id, navigate]);
 
-  // --- DATA KONTEN ---
-  const sections: { id: number; items: ModuleItem[]; icon: string }[] = [
-    {
-      id: 1,
-      icon: '⭕',
-      items: [
-        { 
-          id: 1, 
-          title: 'Definisi Remaja', 
-          duration: '5 min', 
-          completed: false, 
-          emoji: '📘', 
-          description: 'Pengertian masa remaja',
-          images: [],
-          content: `Remaja adalah masa peralihan atau masa transisi dari anak menuju masa dewasa. Ini adalah fase di mana individu mengalami pertumbuhan dan perkembangan fisik maupun mental yang sangat pesat.\n\nSecara psikologis, masa remaja ditandai dengan:\n\n🔸 Pengembangan Proses Berpikir: Mulai mengembangkan proses berpikir operasional formal dan berpikir abstrak.\n\n🔸 Pengambilan Keputusan: Belajar membayangkan dan mempertimbangkan konsekuensi dari tindakannya.\n\n🔸 Pembentukan Diri: Munculnya rasa identitas diri yang kuat.\n\n🔸 Aspek Sosial: Meningkatnya keterlibatan sosial dan interaksi dengan teman sebaya.\n\n🔸 Kesadaran Seksual: Mulai adanya kesadaran akan seksualitasnya.`
-        },
-        { 
-          id: 2, 
-          title: 'Definisi Pubertas', 
-          duration: '5 min', 
-          completed: false, 
-          emoji: '📜', 
-          description: 'Pengertian pubertas',
-          images: [],
-          content: `Pubertas adalah tahapan dalam perkembangan yang dialami anak-anak, di mana mereka mengalami perubahan dari makhluk aseksual menjadi makhluk seksual.\n\nPada tahap ini, remaja mengalami proses kematangan seksual secara pesat. Tubuh mulai memproduksi hormon-hormon seksual yang memicu perubahan fisik dan emosional, yang ditandai dengan munculnya berbagai tanda pubertas (sekunder dan primer).`
-        },
-        { 
-          id: 3, 
-          title: 'Tanda Pubertas', 
-          duration: '5 min', 
-          completed: false, 
-          emoji: '🖼️', 
-          description: 'Ilustrasi tanda pubertas',
-          images: ['/src/assets/images/foto.png'], 
-          content: `Berikut adalah ilustrasi mengenai tanda-tanda pubertas yang terjadi pada remaja.\n\nPerubahan ini meliputi perubahan fisik yang terlihat (sekunder) maupun kematangan organ reproduksi (primer).`
-        },
-      ]
-    },
-  ];
+  // --- 2. FUNGSI POST PROGRESS ---
+  const markSubMaterialAsDone = async (subMaterialId: number) => {
+    const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+    if (!token) return;
 
-  const flatModules: ModuleItem[] = sections.flatMap(s => s.items);
-  const currentModule = flatModules[currentVideo];
+    try {
+      const url = `${API_BASE_URL}/material/${id}/sub-material/${subMaterialId}`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
 
-  // Simpan Progress
-  const saveProgress = (videoIndex: number) => {
-    if (!completedVideos.includes(videoIndex)) {
-      const newCompleted = [...completedVideos, videoIndex];
-      setCompletedVideos(newCompleted);
-
-      const saved = localStorage.getItem('materi_progress');
-      const parsed = saved ? JSON.parse(saved) : {};
-      
-      parsed[MATERI_ID] = newCompleted;
-      localStorage.setItem('materi_progress', JSON.stringify(parsed));
+      if (response.ok) {
+        setSubMaterials(prev => prev.map(item => 
+          item.id === subMaterialId ? { ...item, isDone: true } : item
+        ));
+      } 
+    } catch (err) {
+      console.error("Error posting progress:", err);
     }
   };
 
-  // Navigasi Next
-  const handleNextLesson = () => {
-    saveProgress(currentVideo);
-    if (currentVideo < flatModules.length - 1) {
-      setCurrentVideo(currentVideo + 1);
-      setIsPlaying(false);
+  const currentItem = subMaterials[currentIndex] || { 
+      id: 0, title: '', content: '', contentUrl: '', contentCategory: '', isDone: false
+  };
+
+  // --- 3. NAVIGASI NEXT ---
+  const handleNextLesson = async () => {
+    if (currentItem.id !== 0 && !currentItem.isDone) {
+       await markSubMaterialAsDone(currentItem.id);
+    }
+
+    if (currentIndex < subMaterials.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+      const contentArea = document.getElementById('content-area');
+      if(contentArea) contentArea.scrollTop = 0;
     } else {
       setShowConfirmModal(true);
     }
   };
 
-  // Navigasi Back
+  // --- 4. NAVIGASI FINISH ---
+  const handleFinishCourse = async () => {
+    if (currentItem.id !== 0 && !currentItem.isDone) {
+        await markSubMaterialAsDone(currentItem.id);
+    }
+    setShowConfirmModal(false);
+    navigate('/materi');
+  };
+
   const handlePreviousLesson = () => {
-    if (currentVideo > 0) {
-      setCurrentVideo(currentVideo - 1);
-      setIsPlaying(false);
+    if (currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
+      const contentArea = document.getElementById('content-area');
+      if(contentArea) contentArea.scrollTop = 0;
     }
   };
+
+  if (loading) {
+    return (
+        <Layout>
+            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-green-500"></div>
+            </div>
+        </Layout>
+    );
+  }
+
+  if (error) {
+      return (
+          <Layout>
+              <div className="min-h-screen flex items-center justify-center text-red-500 font-bold">{error}</div>
+          </Layout>
+      );
+  }
 
   return (
     <Layout hideLogoMobile={true}>
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
         
-        {/* --- MODAL KONFIRMASI --- */}
+        {/* MODAL KONFIRMASI */}
         {showConfirmModal && (
           <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4">
             <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 lg:p-8 transform transition-all animate-in fade-in zoom-in duration-300">
@@ -130,26 +170,13 @@ const Materi: React.FC = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <h3 className="text-xl lg:text-2xl font-bold text-gray-800 mb-3">
-                  Selamat! 🎉
-                </h3>
-                <p className="text-base lg:text-lg text-gray-600 mb-6">
-                  Anda telah mempelajari Masa Remaja dan Pubertas
-                </p>
+                <h3 className="text-xl lg:text-2xl font-bold text-gray-800 mb-3">Selamat! 🎉</h3>
+                <p className="text-base lg:text-lg text-gray-600 mb-6">Anda telah menyelesaikan bab materi ini.</p>
                 <div className="flex flex-col sm:flex-row gap-3">
-                  <button
-                    onClick={() => setShowConfirmModal(false)}
-                    className="flex-1 px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-full font-bold transition-all"
-                  >
+                  <button onClick={() => setShowConfirmModal(false)} className="flex-1 px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-full font-bold transition-all">
                     Ulangi
                   </button>
-                  <button
-                    onClick={() => {
-                      saveProgress(currentVideo); 
-                      navigate('/materihome');
-                    }}
-                    className="flex-1 px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-full font-bold transition-all shadow-lg hover:shadow-xl hover:-translate-y-1"
-                  >
+                  <button onClick={handleFinishCourse} className="flex-1 px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-full font-bold transition-all shadow-lg hover:shadow-xl hover:-translate-y-1">
                     Selesai
                   </button>
                 </div>
@@ -159,12 +186,9 @@ const Materi: React.FC = () => {
         )}
 
         <div className="w-full px-4 md:px-6 py-4 md:py-8">
-          {/* Hamburger Button (Mobile) */}
+          {/* Hamburger (Mobile) */}
           {!isSidebarOpen && (
-            <button
-              onClick={() => setIsSidebarOpen(true)}
-              className="fixed top-4 left-4 z-50 lg:hidden bg-white p-3 rounded-full shadow-xl border border-gray-200 hover:bg-gray-50 transition-all"
-            >
+            <button onClick={() => setIsSidebarOpen(true)} className="fixed top-4 left-4 z-50 lg:hidden bg-white p-3 rounded-full shadow-xl border border-gray-200 hover:bg-gray-50 transition-all">
               <svg className="w-6 h-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
@@ -174,94 +198,52 @@ const Materi: React.FC = () => {
           <div className="w-full">
             <div className={`grid ${isSidebarOpen ? 'lg:grid-cols-4' : 'grid-cols-1'} gap-4 md:gap-6 transition-all duration-300`}>
               
-              {/* --- LEFT SIDEBAR (Daftar Menu) --- */}
+              {/* LEFT SIDEBAR */}
               {isSidebarOpen && (
                 <div className="lg:col-span-1 fixed lg:relative inset-0 lg:inset-auto z-50 lg:z-auto bg-black/50 lg:bg-transparent" onClick={(e) => {
-                  if (e.target === e.currentTarget && window.innerWidth < 1024) {
-                    setIsSidebarOpen(false);
-                  }
+                  if (e.target === e.currentTarget && window.innerWidth < 1024) setIsSidebarOpen(false);
                 }}>
-                  <div className="absolute lg:relative left-0 lg:left-auto top-0 bottom-0 w-80 lg:w-auto bg-green-50 lg:bg-green-50 rounded-r-3xl lg:rounded-3xl shadow-2xl lg:shadow-xl border border-green-200 overflow-hidden lg:sticky lg:top-6">
+                  <div className="absolute lg:relative left-0 lg:left-auto top-0 bottom-0 w-80 lg:w-auto bg-green-50 rounded-r-3xl lg:rounded-3xl shadow-2xl lg:shadow-xl border border-green-200 overflow-hidden lg:sticky lg:top-6">
                     <div className="bg-gradient-to-r from-green-600 to-emerald-600 p-4 flex items-center justify-between">
                       <h2 className="text-white font-bold text-base lg:text-lg">Daftar Materi</h2>
-                      <button
-                        onClick={() => setIsSidebarOpen(false)}
-                        className="text-white hover:bg-white/20 rounded-full p-1 transition-colors lg:hidden"
-                      >
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
+                      <button onClick={() => setIsSidebarOpen(false)} className="text-white hover:bg-white/20 rounded-full p-1 lg:hidden">
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                       </button>
                     </div>
 
                     <div className="p-3 max-h-[calc(100vh-200px)] overflow-y-auto">
                       <div className="space-y-3">
-                        {sections.map(section => (
-                          <div key={section.id}>
-                            <div className="bg-white px-3 py-3 rounded-2xl border border-green-200">
-                              <div className="space-y-2">
-                                {section.items.map((item) => {
-                                  const flatIndex = flatModules.findIndex(m => m.id === item.id);
-                                  const active = flatIndex === currentVideo;
-                                  const done = item.completed || completedVideos.includes(flatIndex);
-                                  return (
-                                    <div
-                                      key={item.id}
-                                      onClick={() => { 
-                                        setCurrentVideo(flatIndex); 
-                                        setIsPlaying(false);
-                                        if (window.innerWidth < 1024) setIsSidebarOpen(false);
-                                      }}
-                                      className={`flex items-center space-x-3 lg:space-x-4 p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-300 ${
-                                        active 
-                                          ? 'bg-gradient-to-r from-green-100 to-emerald-100 border-2 border-green-300 shadow-md' 
-                                          : 'hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 border-2 border-transparent hover:border-green-200'
-                                      }`}
-                                    >
-                                      <div className={`w-6 h-6 lg:w-7 lg:h-7 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
-                                        done 
-                                          ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-md' 
-                                          : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
-                                      }`}>
-                                        {done ? (
-                                          <svg className="w-4 h-4 lg:w-5 lg:h-5" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                          </svg>
-                                        ) : (
-                                          <span className="text-xs lg:text-sm">{item.emoji}</span>
-                                        )}
-                                      </div>
-                                      <div className="flex-1 min-w-0">
-                                        <div className={`text-sm lg:text-base font-semibold truncate transition-colors ${
-                                          active ? 'text-green-700' : 'text-gray-700'
-                                        }`}>
-                                          {item.title}
-                                        </div>
-                                        <div className="text-xs lg:text-sm text-gray-500 mt-1 truncate">
-                                          {item.description}
-                                        </div>
-                                      </div>
+                          <div className="bg-white px-3 py-3 rounded-2xl border border-green-200">
+                            <div className="space-y-2">
+                              {subMaterials.map((item, index) => {
+                                const active = index === currentIndex;
+                                const done = item.isDone; 
+                                return (
+                                  <div
+                                    key={item.id}
+                                    onClick={() => { setCurrentIndex(index); if (window.innerWidth < 1024) setIsSidebarOpen(false); }}
+                                    className={`flex items-center space-x-3 lg:space-x-4 p-3 lg:p-4 rounded-xl cursor-pointer transition-all duration-300 ${active ? 'bg-gradient-to-r from-green-100 to-emerald-100 border-2 border-green-300 shadow-md' : 'hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 border-2 border-transparent hover:border-green-200'}`}
+                                  >
+                                    <div className={`w-6 h-6 lg:w-7 lg:h-7 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-300 ${done ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-md' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'}`}>
+                                      {done ? <svg className="w-4 h-4 lg:w-5 lg:h-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg> : <span className="text-xs lg:text-sm">{index + 1}</span>}
                                     </div>
-                                  );
-                                })}
-                              </div>
+                                    <div className="flex-1 min-w-0">
+                                      <div className={`text-sm lg:text-base font-semibold truncate transition-colors ${active ? 'text-green-700' : 'text-gray-700'}`}>{item.title}</div>
+                                      <div className="text-xs lg:text-sm text-gray-500 mt-1 truncate uppercase">{item.contentCategory}</div>
+                                    </div>
+                                  </div>
+                                );
+                              })}
                             </div>
                           </div>
-                        ))}
                       </div>
 
-                      <div className="mt-6 p-4 lg:p-5 bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl border-2 border-green-200 hover:bg-gradient-to-r hover:from-green-100 hover:to-emerald-100 transition-all duration-300 cursor-pointer group shadow-sm" onClick={() => navigate('/materihome')}>
+                      <div className="mt-6 p-4 lg:p-5 bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl border-2 border-green-200 hover:bg-gradient-to-r hover:from-green-100 hover:to-emerald-100 cursor-pointer group shadow-sm" onClick={() => navigate('/materi')}>
                         <div className="flex items-center space-x-3 lg:space-x-4">
                           <div className="w-10 h-10 lg:w-12 lg:h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-md">
-                            <svg className="w-5 h-5 lg:w-6 lg:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                            </svg>
+                            <svg className="w-5 h-5 lg:w-6 lg:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
                           </div>
-                          <div>
-                            <div className="text-sm lg:text-base font-bold text-gray-800 group-hover:text-green-700 transition-colors">
-                              Kembali ke Home
-                            </div>
-                          </div>
+                          <div><div className="text-sm lg:text-base font-bold text-gray-800 group-hover:text-green-700 transition-colors">Kembali ke Daftar</div></div>
                         </div>
                       </div>
                     </div>
@@ -269,95 +251,85 @@ const Materi: React.FC = () => {
                 </div>
               )}
 
-              {/* --- RIGHT CONTENT AREA (Konten Dinamis) --- */}
+              {/* RIGHT CONTENT AREA */}
               <div className={`${isSidebarOpen ? 'lg:col-span-3' : 'col-span-1'}`}>
-                <div className="bg-white rounded-2xl lg:rounded-3xl shadow-xl border border-gray-200 overflow-hidden flex flex-col min-h-[500px]">
+                <div className="bg-white rounded-2xl lg:rounded-3xl shadow-xl border border-gray-200 overflow-hidden flex flex-col h-[80vh]">
                   
-                  {/* Content Header */}
+                  {/* Content Header (FIXED) */}
                   <div className="p-4 lg:p-6 border-b border-gray-200 flex items-center justify-between shrink-0 bg-white z-10">
-                    <h1 className="text-lg lg:text-2xl font-bold text-gray-800 flex-1 pr-2">{currentModule.title}</h1>
+                    <h1 className="text-lg lg:text-2xl font-bold text-gray-800 flex-1 pr-2">{currentItem.title}</h1>
                     {!isSidebarOpen && (
-                      <button
-                        onClick={() => setIsSidebarOpen(true)}
-                        className="hidden lg:flex bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-4 py-2 rounded-full font-bold transition-all shadow-lg items-center space-x-2"
-                      >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                        </svg>
+                      <button onClick={() => setIsSidebarOpen(true)} className="hidden lg:flex bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-4 py-2 rounded-full font-bold transition-all shadow-lg items-center space-x-2">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
                         <span>Menu</span>
                       </button>
                     )}
                   </div>
 
-                  {/* Reminder Box */}
+                  {/* Reminder Box (FIXED) */}
                   <div className="p-3 lg:p-4 bg-yellow-50 border-b border-yellow-200 shrink-0">
                     <p className="text-center text-gray-700 font-medium text-xs lg:text-sm">
-                      <span className="text-yellow-600">💡</span> Info: Pelajari setiap bagian sebelum menekan tombol Lanjut.
+                      <span className="text-yellow-600">💡</span> Info: Baca materi dengan seksama sebelum lanjut.
                     </p>
                   </div>
 
-                  {/* DYNAMIC CONTENT RENDERING */}
-                  <div className="flex-1 p-6 lg:p-8 overflow-y-auto">
-                    <div className="animate-in fade-in duration-500 w-full">
+                  {/* CONTENT (SCROLLABLE) */}
+                  <div id="content-area" className="flex-1 p-6 lg:p-8 overflow-y-auto bg-gray-50/50">
+                    <div className="animate-in fade-in duration-500 w-full max-w-none">
                       
-                      {/* Render Images */}
-                      {currentModule.images && currentModule.images.length > 0 && (
+                      {/* GAMBAR UTAMA (Cover Image) */}
+                      {/* Hanya muncul jika URL valid DAN URL tersebut tidak sudah ada di dalam HTML konten */}
+                      {currentItem.contentUrl && !currentItem.content.includes(currentItem.contentUrl) && (
                         <div className="mb-8 grid gap-6">
-                           {currentModule.images.map((imgSrc, index) => (
-                             <div key={index} className="w-full bg-gray-100 rounded-2xl p-2 border border-gray-200 shadow-inner">
+                            <div className="w-full bg-gray-100 rounded-2xl p-2 border border-gray-200 shadow-inner">
                                <img 
-                                 src={imgSrc}
-                                 alt={`Ilustrasi ${currentModule.title} ${index + 1}`}
-                                 className="rounded-xl mx-auto shadow-sm hover:scale-[1.02] transition-transform duration-500"
-                                 style={{
-                                   maxWidth: '100%',
-                                   height: 'auto',
-                                   maxHeight: '400px',
-                                   objectFit: 'contain'
-                                 }}
+                                 src={currentItem.contentUrl}
+                                 alt={currentItem.title}
+                                 className="rounded-xl mx-auto shadow-sm hover:scale-[1.02] transition-transform duration-500 object-contain max-h-[400px] w-full"
+                                 onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                                />
-                             </div>
-                           ))}
+                            </div>
                         </div>
                       )}
 
-                      {/* Render Text Content - UPDATED STYLE HERE */}
-                      <div className="prose prose-lg max-w-none">
-                        {currentModule.content.split('\n').map((paragraph, index) => (
-                          paragraph.trim() ? (
-                            <p key={index} className="text-slate-700 leading-loose mb-6 text-base md:text-lg lg:text-xl font-serif tracking-wide whitespace-pre-line text-justify selection:bg-green-100 selection:text-green-800">
-                              {paragraph}
-                            </p>
-                          ) : <br key={index} />
-                        ))}
+                      {/* TEXT CONTENT - QUILL RENDERER */}
+                      {/* Menggunakan 'ql-snow' dan 'ql-editor' agar style dari React Quill bekerja */}
+                      {/* '!p-0' untuk menghapus padding default Quill yang mungkin mengganggu layout */}
+                      <div className="ql-snow">
+                        <div
+                          className="ql-editor !p-0 !overflow-visible prose prose-lg prose-slate max-w-none 
+                          prose-headings:text-gray-800 
+                          prose-p:text-gray-700 prose-p:leading-loose
+                          prose-img:rounded-xl prose-img:shadow-md prose-img:mx-auto prose-img:max-h-[500px]
+                          prose-li:text-gray-700
+                          prose-strong:text-gray-900 prose-strong:font-bold
+                          [&_.ql-align-center]:text-center [&_.ql-align-right]:text-right [&_.ql-align-justify]:text-justify
+                          
+                          // --- TAMBAHAN KHUSUS LIST ---
+                          [&_ul]:list-disc [&_ul]:pl-6 
+                          [&_ol]:list-decimal [&_ol]:pl-6"
+                          dangerouslySetInnerHTML={{ __html: currentItem.content || '<p class="text-gray-400 italic">Tidak ada konten teks.</p>' }}
+                        />
                       </div>
 
                     </div>
                   </div>
 
-                  {/* Footer Navigation */}
-                  <div className="p-4 lg:p-6 border-t border-gray-200 flex items-center justify-between gap-3 shrink-0 bg-gray-50">
+                  {/* Footer Navigation (FIXED) */}
+                  <div className="p-4 lg:p-6 border-t border-gray-200 flex items-center justify-between gap-3 shrink-0 bg-white">
                     <button 
                       onClick={handlePreviousLesson}
-                      disabled={currentVideo === 0}
+                      disabled={currentIndex === 0}
                       className="disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 transition-transform"
                     >
-                      <img 
-                        src="/src/assets/icons/kembali.svg" 
-                        alt="Kembali" 
-                        className="h-12 lg:h-14 w-auto"
-                      />
+                      <img src="/src/assets/icons/kembali.svg" alt="Kembali" className="h-12 lg:h-14 w-auto" onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.parentElement!.innerText = "⬅ Kembali"; }} />
                     </button>
 
                     <button 
                       onClick={handleNextLesson}
                       className="hover:scale-105 transition-transform"
                     >
-                      <img 
-                        src="/src/assets/icons/lanjut.svg" 
-                        alt="Lanjut" 
-                        className="h-12 lg:h-14 w-auto"
-                      />
+                      <img src="/src/assets/icons/lanjut.svg" alt="Lanjut" className="h-12 lg:h-14 w-auto" onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.parentElement!.innerText = "Lanjut ➡"; }} />
                     </button>
                   </div>
                 </div>
