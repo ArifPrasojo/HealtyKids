@@ -1,7 +1,6 @@
 // src/services/api/userSubMaterialService.ts
 
-const API_BASE_URL = import.meta.env?.VITE_API_URL || 'http://localhost:3000';
-
+export const API_BASE_URL = import.meta.env?.VITE_API_URL;
 export interface SubMaterialAPI {
   id: number;
   title: string;

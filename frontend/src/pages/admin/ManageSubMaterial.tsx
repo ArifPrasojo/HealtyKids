@@ -69,14 +69,12 @@ const ManageSubMaterial = () => {
   }, [materialId]);
 
   useEffect(() => {
-    // Auto hide success message only
     if (successMessage) {
       const timer = setTimeout(() => {
         setSuccessMessage(null);
       }, 3000);
       return () => clearTimeout(timer);
     }
-    // Note: Action Error tidak di-auto hide agar user sempat membacanya di dalam modal
   }, [successMessage]);
 
   // --- Functions ---
@@ -115,7 +113,7 @@ const ManageSubMaterial = () => {
     setFormData({ title: '', contentCategory: 'video', contentUrl: '', content: '' });
     setEditingItem(null);
     setIsFormOpen(false);
-    setActionError(null); // Reset error saat modal ditutup
+    setActionError(null);
   };
 
   const handleEdit = (item: SubMaterialItem) => {
@@ -145,7 +143,6 @@ const ManageSubMaterial = () => {
           setActionError("Ukuran file terlalu besar (Max 2MB)");
           return;
       }
-      // Reset error jika file valid
       setActionError(null);
 
       const reader = new FileReader();
@@ -157,7 +154,6 @@ const ManageSubMaterial = () => {
   };
 
   const handleSubmit = async () => {
-    // Validasi Manual
     if (!formData.title) {
         setActionError("Judul wajib diisi");
         return;
@@ -180,12 +176,10 @@ const ManageSubMaterial = () => {
         setSuccessMessage("Sub materi baru berhasil ditambahkan!");
       }
       
-      // Jika sukses, baru tutup modal
       handleReset();
       fetchData();
     } catch (err: any) {
       console.error("Submit Error:", err);
-      // Error akan tetap di state dan ditampilkan di dalam modal
       setActionError(err.message || "Terjadi kesalahan saat menyimpan data.");
     } finally {
       setIsSubmitting(false);
@@ -203,7 +197,6 @@ const ManageSubMaterial = () => {
       setDeleteItem(null);
       fetchData();
     } catch (err: any) {
-      // Untuk delete, error ditampilkan di main page atau modal delete (sesuai implementasi UI)
       setActionError(err.message || "Gagal menghapus data.");
       setIsDeleteOpen(false);
     } finally {
@@ -247,7 +240,7 @@ const ManageSubMaterial = () => {
             </button>
           </div>
 
-          {/* --- ALERT NOTIFICATIONS (Main Page - Hanya Success & Delete Error) --- */}
+          {/* --- ALERT NOTIFICATIONS --- */}
           <div className="space-y-4 mb-6">
             {successMessage && (
               <div className="p-4 bg-green-50 border-l-4 border-green-500 rounded-xl flex items-start gap-3 shadow-sm animate-fade-in">
@@ -262,7 +255,6 @@ const ManageSubMaterial = () => {
               </div>
             )}
             
-            {/* Error di luar modal hanya muncul jika modal TIDAK terbuka (misal error delete) */}
             {actionError && !isFormOpen && (
               <div className="p-4 bg-red-50 border-l-4 border-red-500 rounded-xl flex items-start gap-3 shadow-sm animate-fade-in">
                 <AlertCircle size={24} className="text-red-600 flex-shrink-0 mt-0.5" />
@@ -395,7 +387,7 @@ const ManageSubMaterial = () => {
                         </div>
                       </div>
                       <div className="text-gray-500 text-sm mb-4 line-clamp-2">
-                         {stripHtml(item.content) || "Tidak ada deskripsi."}
+                          {stripHtml(item.content) || "Tidak ada deskripsi."}
                       </div>
                       <div className="pt-3 border-t border-gray-50">
                           {item.contentCategory === 'video' ? (
@@ -439,15 +431,13 @@ const ManageSubMaterial = () => {
               </div>
               
               <div className="p-6 space-y-6 overflow-y-auto">
-                
-                {/* --- MODIFIKASI: ACTION ERROR DISPLAY DI DALAM FORM (DI ATAS INPUT JUDUL) --- */}
                 {actionError && (
                   <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-start gap-3 animate-fade-in shadow-sm">
-                     <AlertCircle size={20} className="mt-0.5 shrink-0" />
-                     <div>
-                       <p className="font-semibold text-sm">Gagal Menyimpan</p>
-                       <p className="text-sm mt-0.5">{actionError}</p>
-                     </div>
+                      <AlertCircle size={20} className="mt-0.5 shrink-0" />
+                      <div>
+                        <p className="font-semibold text-sm">Gagal Menyimpan</p>
+                        <p className="text-sm mt-0.5">{actionError}</p>
+                      </div>
                   </div>
                 )}
 
@@ -528,13 +518,20 @@ const ManageSubMaterial = () => {
 
                 <div>
                   <label className="block text-base font-semibold text-gray-800 mb-3">Deskripsi</label>
-                  <div className="bg-white border border-gray-300 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500 transition-all shadow-sm">
-                    <ReactQuill 
+
+                  {/* --- PERBAIKAN: Menambahkan Scrollbar Internal --- */}
+                  <div className="bg-white rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500/20 transition-all shadow-sm
+                    [&_.ql-toolbar]:border-b-gray-200 
+                    [&_.ql-container]:h-[300px] 
+                    [&_.ql-editor]:h-full 
+                    [&_.ql-editor]:overflow-y-auto">
+
+                    <ReactQuill
                       theme="snow"
                       value={formData.content}
-                      onChange={(content) => setFormData({...formData, content: content})}
+                      onChange={(content) => setFormData({ ...formData, content: content })}
                       modules={quillModules}
-                      className="h-64 mb-12 md:mb-10" 
+                      className="mb-0"
                     />
                   </div>
                 </div>
