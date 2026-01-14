@@ -14,6 +14,8 @@ app.use('*', cors({
   credentials: true,
 }))
 
+app.use('/uploads/*', serveStatic({ root: './src/storage'}))
+
 app.get('/health', (c) => c.text('✅ Backend is running!'));
 app.route('/', authRoutes)
 app.route('/', studentRoutes)
