@@ -156,6 +156,7 @@ export const getAllSubMateri = async (materialId: number) => {
                 eq(subMaterial.isDelete, false)
             )
         )
+        .orderBy(subMaterial.id)
 
     return result
 }
