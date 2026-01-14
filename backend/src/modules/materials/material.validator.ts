@@ -34,6 +34,6 @@ export const updateSubMaterialVideoSchema = z.object({
 export const updateSubMaterialPhotoSchema = z.object({
     title: z.string().nonempty("Title Harus Diisi").max(255, "Maksimal 255 karakter"),
     contentCategory: z.literal('photo'),
-    contentUrl: z.string().regex(/^data:(image\/(png|jpeg|jpg));base64,/),
+    contentUrl: z.string().regex(/^data:(image\/(png|jpeg|jpg));base64,/).optional(),
     content: z.string().nonempty("Konten Harus Diisi")
 })
