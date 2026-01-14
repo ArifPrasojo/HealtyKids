@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Plus, Edit, Trash2, X, Search, Loader, 
   Video, Image as ImageIcon, ArrowLeft, UploadCloud,
-  CheckCircle, AlertCircle 
+  CheckCircle, AlertCircle, ExternalLink 
 } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
 
@@ -69,14 +69,13 @@ const ManageSubMaterial = () => {
   }, [materialId]);
 
   useEffect(() => {
-    if (successMessage || actionError) {
+    if (successMessage) {
       const timer = setTimeout(() => {
         setSuccessMessage(null);
-        setActionError(null);
       }, 3000);
       return () => clearTimeout(timer);
     }
-  }, [successMessage, actionError]);
+  }, [successMessage]);
 
   // --- Functions ---
   const fetchData = async () => {
@@ -101,12 +100,10 @@ const ManageSubMaterial = () => {
   };
 
   const getFullImageUrl = (path: string) => {
-    if (!path) return 'https://placehold.co/150?text=No+Image'; // Gunakan placehold.co (lebih stabil)
+    if (!path) return 'https://placehold.co/150?text=No+Image'; 
     if (path.startsWith('http') || path.startsWith('data:')) return path;
     
-    // Pastikan tidak ada double slash
     const cleanPath = path.startsWith('/') ? path : `/${path}`;
-    // Hapus trailing slash dari backend url jika ada, lalu gabung
     const baseUrl = BACKEND_URL.endsWith('/') ? BACKEND_URL.slice(0, -1) : BACKEND_URL;
     
     return `${baseUrl}${cleanPath}`;
@@ -116,6 +113,7 @@ const ManageSubMaterial = () => {
     setFormData({ title: '', contentCategory: 'video', contentUrl: '', content: '' });
     setEditingItem(null);
     setIsFormOpen(false);
+    setActionError(null);
   };
 
   const handleEdit = (item: SubMaterialItem) => {
@@ -141,11 +139,11 @@ const ManageSubMaterial = () => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Validasi ukuran file (opsional, contoh max 2MB)
       if (file.size > 2 * 1024 * 1024) {
           setActionError("Ukuran file terlalu besar (Max 2MB)");
           return;
       }
+      setActionError(null);
 
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -156,17 +154,9 @@ const ManageSubMaterial = () => {
   };
 
   const handleSubmit = async () => {
-    const plainText = stripHtml(formData.content).trim();
-
     if (!formData.title) {
         setActionError("Judul wajib diisi");
         return;
-    }
-    // Jika content kosong/hanya spasi HTML
-    if (!formData.content || formData.content === '<p><br></p>') {
-       // Opsional: block submit jika content kosong
-       // setActionError("Deskripsi wajib diisi");
-       // return;
     }
     
     if (!formData.contentUrl) {
@@ -177,14 +167,6 @@ const ManageSubMaterial = () => {
     try {
       setIsSubmitting(true);
       setActionError(null);
-
-      // --- DEBUGGING LOG (Lihat di Console Browser) ---
-      // Ini akan membantu melihat apa yang dikirim ke backend penyebab error 400
-      console.log("Submitting Data:", {
-          materialId: Number(materialId),
-          subId: editingItem?.id,
-          payload: formData
-      });
 
       if (editingItem) {
         await subMaterialService.updateSubMaterial(Number(materialId), editingItem.id, formData);
@@ -198,8 +180,7 @@ const ManageSubMaterial = () => {
       fetchData();
     } catch (err: any) {
       console.error("Submit Error:", err);
-      // Menampilkan pesan error spesifik dari backend jika ada
-      setActionError(err.message || "Terjadi kesalahan saat menyimpan data (Cek Console).");
+      setActionError(err.message || "Terjadi kesalahan saat menyimpan data.");
     } finally {
       setIsSubmitting(false);
     }
@@ -237,7 +218,7 @@ const ManageSubMaterial = () => {
         planeCount={2}
       />
       
-      <div className="relative z-10 min-h-screen p-6">
+      <div className="relative z-10 min-h-screen p-4 md:p-6">
         <div className="max-w-6xl mx-auto">
           <button onClick={() => navigate('/admin/managemateri')} className="group flex items-center gap-2 text-gray-600 hover:text-blue-700 transition-colors mb-6 text-sm font-medium w-fit hover:bg-blue-50 px-3 py-2 rounded-lg">
             <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
@@ -245,14 +226,14 @@ const ManageSubMaterial = () => {
           </button>
 
           {/* Header Section */}
-          <div className="flex justify-between items-end mb-8">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
             <div>
               <h1 className="text-2xl font-bold text-gray-800">Sub Materi</h1>
               <p className="text-gray-500 text-sm">Kelola video dan foto untuk materi ini</p>
             </div>
             <button 
               onClick={() => { handleReset(); setSuccessMessage(null); setActionError(null); setIsFormOpen(true); }}
-              className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-3 rounded-xl font-semibold flex items-center gap-3 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+              className="w-full md:w-auto bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-3 rounded-xl font-semibold flex items-center justify-center gap-3 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
             >
               <Plus size={22} />
               Tambah
@@ -273,8 +254,8 @@ const ManageSubMaterial = () => {
                 </button>
               </div>
             )}
-
-            {actionError && (
+            
+            {actionError && !isFormOpen && (
               <div className="p-4 bg-red-50 border-l-4 border-red-500 rounded-xl flex items-start gap-3 shadow-sm animate-fade-in">
                 <AlertCircle size={24} className="text-red-600 flex-shrink-0 mt-0.5" />
                 <div className="flex-1">
@@ -288,10 +269,11 @@ const ManageSubMaterial = () => {
             )}
           </div>
 
-          {/* Table Container */}
+          {/* Main Content Area */}
           <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200/50 overflow-hidden">
-            <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
-              <div className="relative max-w-lg">
+            {/* Search Bar */}
+            <div className="p-4 md:p-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+              <div className="relative max-w-lg w-full">
                 <Search className="absolute left-4 top-3.5 text-gray-400" size={20} />
                 <input 
                   type="text"
@@ -323,63 +305,118 @@ const ManageSubMaterial = () => {
                 </p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="bg-gradient-to-r from-gray-100 to-gray-50 border-b border-gray-200 text-sm font-semibold text-gray-600 uppercase tracking-wider">
-                      <th className="px-8 py-5">Judul</th>
-                      <th className="px-8 py-5">Deskripsi Singkat</th>
-                      <th className="px-8 py-5">Kategori</th>
-                      <th className="px-8 py-5">Media</th>
-                      <th className="px-8 py-5 text-right">Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {filteredList.map((item) => (
-                      <tr key={item.id} className="hover:bg-blue-50/50 transition-colors">
-                        <td className="px-8 py-5 font-medium text-gray-900">{item.title}</td>
-                        <td className="px-8 py-5 text-gray-500 text-sm max-w-xs truncate">
-                            {stripHtml(item.content)}
-                        </td>
-                        <td className="px-8 py-5">
-                          <span className={`px-3 py-1 rounded-lg text-xs font-medium ${
-                            item.contentCategory === 'video' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
-                          }`}>
-                            {item.contentCategory === 'video' ? 'Video' : 'Foto'}
-                          </span>
-                        </td>
-                        <td className="px-8 py-5">
-                          {item.contentCategory === 'video' ? (
-                            <a href={item.contentUrl} target="_blank" rel="noreferrer" className="text-blue-600 underline hover:text-blue-800 transition-colors">
-                              Link Video
-                            </a>
-                          ) : (
-                            <img 
-                              src={getFullImageUrl(item.contentUrl)} 
-                              alt="Preview" 
-                              className="h-12 w-20 object-cover rounded border bg-gray-200"
-                              // --- PERBAIKAN 1: Ganti placeholder ke layanan stabil ---
-                              onError={(e) => {
-                                (e.currentTarget as HTMLImageElement).src = "https://placehold.co/150?text=Error";
-                              }} 
-                            />
-                          )}
-                        </td>
-                        <td className="px-8 py-5 text-right">
-                          <div className="flex justify-end gap-2">
-                            <button onClick={() => handleEdit(item)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-                              <Edit size={18} />
-                            </button>
-                            <button onClick={() => handleDeleteClick(item)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                              <Trash2 size={18} />
-                            </button>
-                          </div>
-                        </td>
+              <>
+                {/* === TAMPILAN DESKTOP (TABLE) === */}
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-gradient-to-r from-gray-100 to-gray-50 border-b border-gray-200 text-sm font-semibold text-gray-600 uppercase tracking-wider">
+                        <th className="px-8 py-5">Judul</th>
+                        <th className="px-8 py-5">Deskripsi Singkat</th>
+                        <th className="px-8 py-5">Kategori</th>
+                        <th className="px-8 py-5">Media</th>
+                        <th className="px-8 py-5 text-right">Aksi</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {filteredList.map((item) => (
+                        <tr key={item.id} className="hover:bg-blue-50/50 transition-colors">
+                          <td className="px-8 py-5 font-medium text-gray-900">{item.title}</td>
+                          <td className="px-8 py-5 text-gray-500 text-sm max-w-xs truncate">
+                              {stripHtml(item.content)}
+                          </td>
+                          <td className="px-8 py-5">
+                            <span className={`px-3 py-1 rounded-lg text-xs font-medium ${
+                              item.contentCategory === 'video' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
+                            }`}>
+                              {item.contentCategory === 'video' ? 'Video' : 'Foto'}
+                            </span>
+                          </td>
+                          <td className="px-8 py-5">
+                            {item.contentCategory === 'video' ? (
+                              <a href={item.contentUrl} target="_blank" rel="noreferrer" className="text-blue-600 underline hover:text-blue-800 transition-colors">
+                                Link Video
+                              </a>
+                            ) : (
+                              <img 
+                                src={getFullImageUrl(item.contentUrl)} 
+                                alt="Preview" 
+                                className="h-12 w-20 object-cover rounded border bg-gray-200"
+                                onError={(e) => {
+                                  (e.currentTarget as HTMLImageElement).src = "https://placehold.co/150?text=Error";
+                                }} 
+                              />
+                            )}
+                          </td>
+                          <td className="px-8 py-5 text-right">
+                            <div className="flex justify-end gap-2">
+                              <button onClick={() => handleEdit(item)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                                <Edit size={18} />
+                              </button>
+                              <button onClick={() => handleDeleteClick(item)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                                <Trash2 size={18} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* === TAMPILAN MOBILE (CARDS) === */}
+                <div className="md:hidden p-4 space-y-4">
+                  {filteredList.map((item) => (
+                    <div key={item.id} className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="flex-1 pr-2">
+                            <h3 className="font-bold text-gray-900 text-lg line-clamp-2 leading-tight">{item.title}</h3>
+                            <span className={`inline-block mt-2 px-2.5 py-1 rounded-md text-xs font-semibold ${
+                              item.contentCategory === 'video' ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-blue-50 text-blue-600 border border-blue-100'
+                            }`}>
+                              {item.contentCategory === 'video' ? 'Video' : 'Foto'}
+                            </span>
+                        </div>
+                        <div className="flex gap-1 shrink-0">
+                          <button onClick={() => handleEdit(item)} className="p-2 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors">
+                            <Edit size={18} />
+                          </button>
+                          <button onClick={() => handleDeleteClick(item)} className="p-2 text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors">
+                            <Trash2 size={18} />
+                          </button>
+                        </div>
+                      </div>
+                      <div className="text-gray-500 text-sm mb-4 line-clamp-2">
+                          {stripHtml(item.content) || "Tidak ada deskripsi."}
+                      </div>
+                      <div className="pt-3 border-t border-gray-50">
+                          {item.contentCategory === 'video' ? (
+                             <a 
+                                href={item.contentUrl} 
+                                target="_blank" 
+                                rel="noreferrer" 
+                                className="flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-800 bg-blue-50/50 p-2 rounded-lg"
+                             >
+                               <ExternalLink size={16} />
+                               Buka Link Video
+                             </a>
+                          ) : (
+                             <div className="w-full h-40 bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
+                               <img 
+                                 src={getFullImageUrl(item.contentUrl)} 
+                                 alt={item.title}
+                                 className="w-full h-full object-cover"
+                                 onError={(e) => {
+                                   (e.currentTarget as HTMLImageElement).src = "https://placehold.co/300x200?text=Error+Loading";
+                                 }}
+                               />
+                             </div>
+                          )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
             )}
           </div>
         </div>
@@ -387,13 +424,23 @@ const ManageSubMaterial = () => {
         {/* --- MODAL FORM --- */}
         {isFormOpen && (
           <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-fade-in">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl border border-gray-200 overflow-hidden transform transition-all scale-100">
-              <div className="px-8 py-6 border-b border-gray-100 flex justify-between items-center bg-gradient-to-r from-gray-50 to-white">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl border border-gray-200 overflow-hidden transform transition-all scale-100 flex flex-col max-h-[90vh]">
+              <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gradient-to-r from-gray-50 to-white shrink-0">
                 <h3 className="font-bold text-gray-800">{editingItem ? 'Edit Sub Materi' : 'Tambah Sub Materi'}</h3>
                 <button onClick={handleReset}><X size={24} className="text-gray-400" /></button>
               </div>
               
-              <div className="p-8 space-y-6 max-h-[80vh] overflow-y-auto">
+              <div className="p-6 space-y-6 overflow-y-auto">
+                {actionError && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-start gap-3 animate-fade-in shadow-sm">
+                      <AlertCircle size={20} className="mt-0.5 shrink-0" />
+                      <div>
+                        <p className="font-semibold text-sm">Gagal Menyimpan</p>
+                        <p className="text-sm mt-0.5">{actionError}</p>
+                      </div>
+                  </div>
+                )}
+
                 <div>
                   <label className="block text-base font-semibold text-gray-800 mb-3">Judul</label>
                   <input 
@@ -448,7 +495,6 @@ const ManageSubMaterial = () => {
                              src={getFullImageUrl(formData.contentUrl)} 
                              alt="Preview" 
                              className="h-32 object-contain mx-auto"
-                             // --- PERBAIKAN: Handler Error di Preview ---
                              onError={(e) => { (e.currentTarget as HTMLImageElement).src = "https://placehold.co/150?text=Error"; }}
                            />
                         ) : (
@@ -470,23 +516,29 @@ const ManageSubMaterial = () => {
                   )}
                 </div>
 
-                {/* --- BAGIAN EDITOR REACT QUILL --- */}
                 <div>
                   <label className="block text-base font-semibold text-gray-800 mb-3">Deskripsi</label>
-                  <div className="bg-white border border-gray-300 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500 transition-all shadow-sm">
-                    <ReactQuill 
+
+                  {/* --- PERBAIKAN: Menambahkan Scrollbar Internal --- */}
+                  <div className="bg-white rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500/20 transition-all shadow-sm
+                    [&_.ql-toolbar]:border-b-gray-200 
+                    [&_.ql-container]:h-[300px] 
+                    [&_.ql-editor]:h-full 
+                    [&_.ql-editor]:overflow-y-auto">
+
+                    <ReactQuill
                       theme="snow"
                       value={formData.content}
-                      onChange={(content) => setFormData({...formData, content: content})}
+                      onChange={(content) => setFormData({ ...formData, content: content })}
                       modules={quillModules}
-                      className="h-96 mb-16" 
+                      className="mb-0"
                     />
                   </div>
                 </div>
 
               </div>
 
-              <div className="p-6 border-t border-gray-100 bg-gray-50 flex gap-4 justify-end">
+              <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex gap-4 justify-end shrink-0">
                 <button onClick={handleReset} className="px-6 py-3 text-base font-medium text-gray-600 hover:bg-gray-200 rounded-xl transition-colors">
                   Batal
                 </button>
