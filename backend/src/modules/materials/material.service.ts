@@ -156,6 +156,7 @@ export const getAllSubMateri = async (materialId: number) => {
                 eq(subMaterial.isDelete, false)
             )
         )
+        .orderBy(subMaterial.id)
 
     return result
 }
@@ -330,14 +331,21 @@ export const updateSubMaterialPhoto = async (materialId: number, subMaterialId: 
     }
 
     const { title, contentCategory, contentUrl, content } = data
-    const urlContent = await saveFileBase64(contentUrl, "material-photos")
+    const subMaterialUpdateData: Partial<updateSubMaterialPhotoInput> = {
+        title,
+        contentCategory,
+        content
+    }
+
+    if (contentUrl && contentUrl.trim() !== '') {
+        const urlContent = await saveFileBase64(contentUrl, "material-photos")
+        subMaterialUpdateData.contentUrl = urlContent
+    }
+
     const [result] = await db
         .update(subMaterial)
         .set({
-            title: title,
-            contentCategory: contentCategory,
-            contentUrl: urlContent,
-            content: content,
+            ...subMaterialUpdateData,
             updatedAt: new Date(Date.now())
         })
         .where(eq(subMaterial.id, existingSubMaterial.id))
