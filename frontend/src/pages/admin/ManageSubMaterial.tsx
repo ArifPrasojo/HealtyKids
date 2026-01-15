@@ -14,7 +14,7 @@ import { subMaterialService } from '../../services/api/subMaterialService';
 import type { SubMaterialItem, SubMaterialFormData } from '../../services/api/subMaterialService';
 import CloudBackground from '../../components/layouts/CloudBackground';
 
-const BACKEND_URL = import.meta.env?.VITE_API_URL || 'http://localhost:3000';
+const BACKEND_URL = import.meta.env?.VITE_API_URL;
 
 // --- KONFIGURASI TOOLBAR EDITOR ---
 const quillModules = {
