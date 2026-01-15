@@ -153,13 +153,18 @@ const ManageSubMaterial = () => {
     }
   };
 
-  const handleSubmit = async () => {
+const handleSubmit = async () => {
     if (!formData.title) {
         setActionError("Judul wajib diisi");
         return;
     }
     
-    if (!formData.contentUrl) {
+    // Validasi URL/Foto hanya jika BUKAN mode edit atau jika user mengganti foto
+    // Jika edit mode dan fotonya masih sama dengan yang lama, kita skip validasi ini
+    const isEditingPhoto = editingItem && formData.contentCategory === 'photo';
+    const isPhotoUnchanged = isEditingPhoto && formData.contentUrl === editingItem?.contentUrl;
+
+    if (!formData.contentUrl && !isPhotoUnchanged) {
         setActionError("Video URL atau Foto wajib diisi");
         return;
     }
@@ -168,10 +173,39 @@ const ManageSubMaterial = () => {
       setIsSubmitting(true);
       setActionError(null);
 
+      // --- PERBAIKAN LOGIKA PAYLOAD ---
+      // Siapkan payload dasar
+      const payload: Partial<SubMaterialFormData> = {
+        title: formData.title,
+        contentCategory: formData.contentCategory,
+        content: formData.content
+      };
+
       if (editingItem) {
-        await subMaterialService.updateSubMaterial(Number(materialId), editingItem.id, formData);
+        // === MODE UPDATE ===
+        
+        // Logika: Hanya kirim contentUrl jika:
+        // 1. Kategori adalah 'video' (karena video berupa text url biasa)
+        // 2. ATAU Kategori 'photo' TAPI url-nya berbeda dengan data lama (artinya user upload baru)
+        
+        if (formData.contentCategory === 'video') {
+            payload.contentUrl = formData.contentUrl;
+        } else {
+            // Kategori Photo
+            if (formData.contentUrl !== editingItem.contentUrl) {
+                // User upload foto baru (Base64 string berbeda dengan path lama)
+                payload.contentUrl = formData.contentUrl;
+            } else {
+                // User TIDAK ganti foto, JANGAN kirim property contentUrl
+                // Biarkan payload.contentUrl undefined agar tidak terkirim ke JSON
+            }
+        }
+
+        await subMaterialService.updateSubMaterial(Number(materialId), editingItem.id, payload);
         setSuccessMessage("Sub materi berhasil diperbarui!");
       } else {
+        // === MODE CREATE ===
+        // Selalu kirim full data termasuk contentUrl
         await subMaterialService.createSubMaterial(Number(materialId), formData);
         setSuccessMessage("Sub materi baru berhasil ditambahkan!");
       }
