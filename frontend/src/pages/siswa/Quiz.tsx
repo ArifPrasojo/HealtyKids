@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
 import CloudBackground from '../../components/layouts/CloudBackground';
-import { userQuizService } from '../../services/api/userQuizService'; // <--- IMPORT SERVICE
+import { userQuizService } from '../../services/api/userQuizService';
 
 // Base URL API (Hanya disimpan untuk keperluan FILE_BASE_URL gambar)
 const API_BASE_URL = import.meta.env.VITE_API_URL;
@@ -36,6 +36,9 @@ const Quiz: React.FC = () => {
   const [isPaused, setIsPaused] = useState(false);
   const [pauseTimeRemaining, setPauseTimeRemaining] = useState(300);
 
+  // --- STATE BARU: Konfirmasi Mulai ---
+  const [showStartConfirmation, setShowStartConfirmation] = useState(false);
+
   // State untuk Modal Error
   const [errorModal, setErrorModal] = useState<{ show: boolean; message: string }>({
     show: false,
@@ -62,6 +65,7 @@ const Quiz: React.FC = () => {
           return;
         }
 
+        // Handle jika materi belum selesai (403)
         if (response.status === 403) {
           const errorData = await response.json();
           setErrorModal({
@@ -70,6 +74,16 @@ const Quiz: React.FC = () => {
           });
           setIsLoading(false); 
           return;
+        }
+
+        // Handle jika Quiz Dinonaktifkan/Tidak Ditemukan (404)
+        if (response.status === 404) {
+            setErrorModal({
+              show: true,
+              message: "Quiz sedang dinonaktifkan, hubungi admin untuk mengaktifkan"
+            });
+            setIsLoading(false);
+            return;
         }
 
         if (!response.ok) throw new Error("Gagal mengambil data quiz");
@@ -102,6 +116,9 @@ const Quiz: React.FC = () => {
           const durationInSeconds = apiData.duration ? apiData.duration * 60 : 1200;
           setTotalDuration(durationInSeconds);
           setTimeLeft(durationInSeconds);
+
+          // --- LOGIC TAMBAHAN: Tampilkan Konfirmasi setelah data siap ---
+          setShowStartConfirmation(true);
         }
       } catch (error) {
         console.error("Error fetching quiz:", error);
@@ -115,15 +132,16 @@ const Quiz: React.FC = () => {
     fetchQuizData();
   }, [navigate]);
 
-  // --- TIMER LOGIC ---
+  // --- TIMER LOGIC (MODIFIED) ---
+  // Timer tidak jalan jika showStartConfirmation masih true
   useEffect(() => {
-    if (timeLeft > 0 && !isPaused && !isLoading && !errorModal.show && !isSubmitting) {
+    if (timeLeft > 0 && !isPaused && !isLoading && !errorModal.show && !isSubmitting && !showStartConfirmation) {
       const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
       return () => clearTimeout(timer);
-    } else if (timeLeft === 0 && !isLoading && questions.length > 0 && !errorModal.show && !isSubmitting) {
+    } else if (timeLeft === 0 && !isLoading && questions.length > 0 && !errorModal.show && !isSubmitting && !showStartConfirmation) {
       handleSubmitQuiz();
     }
-  }, [timeLeft, isPaused, isLoading, questions, errorModal.show, isSubmitting]);
+  }, [timeLeft, isPaused, isLoading, questions, errorModal.show, isSubmitting, showStartConfirmation]);
 
   // --- PAUSE LOGIC ---
   useEffect(() => {
@@ -151,6 +169,11 @@ const Quiz: React.FC = () => {
   const handlePause = () => { if (pauseTimeRemaining > 0) setIsPaused(true); };
   const handleResume = () => { setIsPaused(false); };
   
+  // Fungsi untuk memulai Quiz (setelah konfirmasi)
+  const handleStartQuiz = () => {
+    setShowStartConfirmation(false);
+  };
+
   const handleAnswerSelect = (answerIndex: number) => {
     const newAnswers = [...selectedAnswers];
     newAnswers[currentQuestion] = answerIndex;
@@ -165,7 +188,7 @@ const Quiz: React.FC = () => {
     if (currentQuestion > 0) setCurrentQuestion(currentQuestion - 1);
   };
 
-  // --- FUNGSI SUBMIT (UPDATED) ---
+  // --- FUNGSI SUBMIT ---
   const handleSubmitQuiz = async () => {
     setIsSubmitting(true);
     
@@ -180,7 +203,7 @@ const Quiz: React.FC = () => {
             questionId: q.id,
             answerId: answerId
         };
-    }).filter(item => item.answerId !== null) as { questionId: number; answerId: number }[]; // Type assertion
+    }).filter(item => item.answerId !== null) as { questionId: number; answerId: number }[];
 
     const payload = {
         result: formattedResult
@@ -190,9 +213,7 @@ const Quiz: React.FC = () => {
       const token = localStorage.getItem('token');
       
       if (token) {
-         // MENGGUNAKAN SERVICE
          const response = await userQuizService.submitQuizResult(token, payload);
-         
          const responseJson = await response.json();
    
          if (!response.ok) {
@@ -249,10 +270,10 @@ const Quiz: React.FC = () => {
     <div className="min-h-screen py-4 md:py-8 px-4 md:px-6 relative">
       <CloudBackground />
       
-      {/* ... (MODAL ERROR DAN PAUSE TIDAK DIUBAH) ... */}
+      {/* --- MODAL ERROR --- */}
       {errorModal.show && (
         <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center px-4">
-          <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full text-center border-2 border-red-100 animate-in fade-in duration-300">
+          <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full text-center border-2 border-red-100">
             <div className="mb-6 bg-red-50 w-20 h-20 mx-auto rounded-full flex items-center justify-center">
               <svg className="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -272,10 +293,42 @@ const Quiz: React.FC = () => {
         </div>
       )}
 
+      {/* --- MODAL KONFIRMASI MULAI (BARU) --- */}
+      {showStartConfirmation && !errorModal.show && (
+        <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center px-4 animate-in fade-in duration-300">
+          <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full text-center border-2 border-blue-100">
+            <div className="mb-6 bg-blue-50 w-20 h-20 mx-auto rounded-full flex items-center justify-center">
+              <svg className="w-10 h-10 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">Persiapan Quiz</h2>
+            <p className="text-gray-600 mb-8 leading-relaxed">
+              Apakah anda sudah memahami semua materi sebelum mengerjakan?
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Button
+                variant="secondary"
+                onClick={() => navigate('/dashboard')}
+                className="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 py-3 rounded-full font-bold"
+              >
+                Kembali
+              </Button>
+              <Button
+                onClick={handleStartQuiz}
+                className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-3 rounded-full font-bold shadow-lg"
+              >
+                Ya, Mulai Quiz
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* --- MODAL PAUSE --- */}
       {isPaused && (
         <div className="fixed inset-0 bg-white bg-opacity-75 z-50 flex items-center justify-center px-4">
           <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full text-center">
-            {/* ... Content Pause tetap sama ... */}
             <div className="mb-6">
               <svg className="w-20 h-20 mx-auto text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
@@ -299,11 +352,11 @@ const Quiz: React.FC = () => {
         </div>
       )}
 
-      {/* Konten Utama Quiz */}
-      {!errorModal.show && questions.length > 0 && (
+      {/* Konten Utama Quiz (Hanya tampil jika tidak ada error & sudah konfirmasi mulai) */}
+      {!errorModal.show && !showStartConfirmation && questions.length > 0 && (
       <div className="max-w-4xl mx-auto relative z-10">
         
-        {/* ... Header Card (Progress Bar dll) TETAP SAMA ... */}
+        {/* Header Card */}
         <div className="bg-white rounded-2xl md:rounded-3xl shadow-lg p-4 md:p-6 mb-4 md:mb-6">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
             {/* Quiz Progress */}
@@ -347,12 +400,10 @@ const Quiz: React.FC = () => {
 
             {/* Question Navigation */}
             <div className="md:ml-8">
-              {/* ... Bagian Navigasi Soal (Nomor 1-10 dll) TETAP SAMA ... */}
                <h3 className="text-xs md:text-sm font-bold text-gray-700 mb-2 text-center md:text-left">
                 Question Navigation
               </h3>
               <div className="space-y-3">
-                {/* Grid soal 1-10 */}
                 <div className="overflow-x-auto max-w-full pb-2 md:pb-0">
                   <div className="grid grid-cols-5 sm:grid-cols-5 md:grid-cols-10 gap-2 md:gap-3 justify-items-center min-w-max md:min-w-0 mx-auto">
                     {questions.slice(0, 10).map((_, index) => (
@@ -374,7 +425,6 @@ const Quiz: React.FC = () => {
                   </div>
                 </div>
                 
-                {/* Dropdown untuk soal 11+ */}
                 {questions.length > 10 && (
                   <details className="group flex flex-col-reverse">
                     <summary className="cursor-pointer list-none flex items-center justify-center space-x-2 bg-gray-100 hover:bg-gray-200 px-3 md:px-4 py-2 rounded-lg transition-colors w-full">
@@ -433,7 +483,7 @@ const Quiz: React.FC = () => {
           </div>
 
           <div className="mb-6 md:mb-8">
-            {/* --- 3. UI RENDER GAMBAR --- */}
+            {/* UI RENDER GAMBAR */}
             {currentQuiz?.photo && (
                 <div className="mb-4 flex justify-center bg-gray-50 rounded-lg p-2 border border-gray-100">
                     <img 
@@ -441,7 +491,7 @@ const Quiz: React.FC = () => {
                         alt="Question Visual"
                         className="rounded-lg object-contain max-h-64 md:max-h-80 w-auto"
                         onError={(e) => {
-                            (e.target as HTMLImageElement).style.display = 'none'; // Sembunyikan jika gambar error/tidak ketemu
+                            (e.target as HTMLImageElement).style.display = 'none';
                         }}
                     />
                 </div>
@@ -494,7 +544,6 @@ const Quiz: React.FC = () => {
           </div>
 
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0 gap-3">
-             {/* ... Tombol Navigasi (Prev, Pause, Next/Submit) TETAP SAMA ... */}
              <Button
               variant="secondary"
               size="lg"
