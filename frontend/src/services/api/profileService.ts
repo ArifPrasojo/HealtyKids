@@ -7,8 +7,25 @@ export interface ProfileData {
   username: string;
 }
 
+// Interface untuk Siswa (Response dari /quiz/result)
+export interface QuizResultData {
+  quizName: string;
+  quizDescription: string;
+  score: number;
+  finishedAt: string;
+}
+
+// Interface untuk Admin (Response dari /admin/quiz/result)
+// Sesuai gambar Postman: ada studentName, tidak ada quizDescription
+export interface AdminQuizResultData {
+  studentName: string;
+  quizName: string;
+  score: number;
+  finishedAt: string;
+}
+
 export const profileService = {
-  // --- EXISTING GET FUNCTION ---
+  // --- GET PROFILE (Existing) ---
   getProfile: async (role: string): Promise<ProfileData | null> => {
     try {
       const token = localStorage.getItem('token');
@@ -17,8 +34,6 @@ export const profileService = {
       const endpoint = role.toLowerCase().includes('admin') 
         ? `${API_BASE_URL}/admin/profile` 
         : `${API_BASE_URL}/profile`;
-
-      console.log(`🔍 [Service] Fetching profile sebagai ${role}`);
 
       const response = await fetch(endpoint, {
         method: 'GET',
@@ -36,7 +51,6 @@ export const profileService = {
           username: data.data.username
         };
       } else {
-        console.warn("Service: Gagal mengambil data profile", response.status);
         return null;
       }
     } catch (error) {
@@ -45,44 +59,78 @@ export const profileService = {
     }
   },
 
-  // --- NEW UPDATE FUNCTION (Berdasarkan Postman) ---
+  // --- UPDATE PROFILE (Existing) ---
   updateProfile: async (role: string, profileData: ProfileData): Promise<ProfileData | null> => {
     try {
       const token = localStorage.getItem('token');
       if (!token) throw new Error("No token found");
 
-      // Logika endpoint sama dengan getProfile (Admin vs User)
       const endpoint = role.toLowerCase().includes('admin') 
         ? `${API_BASE_URL}/admin/profile` 
         : `${API_BASE_URL}/profile`;
 
-      console.log(`📝 [Service] Updating profile sebagai ${role}`, profileData);
-
       const response = await fetch(endpoint, {
-        method: 'PUT', // Sesuai gambar Postman
+        method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Accept': 'application/json',
-          'Content-Type': 'application/json' // Wajib ada saat mengirim Body JSON
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(profileData)
       });
 
       const data = await response.json();
 
-      // Cek response sesuai struktur di Postman: { success: true, message: "...", data: {...} }
       if (response.ok && data.success && data.data) {
         return {
           name: data.data.name,
           username: data.data.username
         };
       } else {
-        console.warn("Service: Gagal update profile", data.message || response.status);
         throw new Error(data.message || "Gagal mengupdate profil");
       }
     } catch (error) {
       console.error("Service Error (Update):", error);
       throw error;
+    }
+  },
+
+  // --- GET QUIZ HISTORY (Updated for Admin & Siswa) ---
+  getQuizHistory: async (role: string): Promise<(QuizResultData | AdminQuizResultData)[]> => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return [];
+
+      const isAdmin = role.toLowerCase().includes('admin');
+
+      // Tentukan endpoint berdasarkan Role
+      // Admin: /admin/quiz/result
+      // Siswa: /quiz/result
+      const endpoint = isAdmin 
+        ? `${API_BASE_URL}/admin/quiz/result` 
+        : `${API_BASE_URL}/quiz/result`;
+
+      console.log(`fetching quiz history for ${role} at ${endpoint}`);
+
+      const response = await fetch(endpoint, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        }
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.data) {
+        return data.data;
+      } else {
+        console.warn("Gagal mengambil history quiz");
+        return [];
+      }
+    } catch (error) {
+      console.error("Service Error (Quiz History):", error);
+      return [];
     }
   }
 };
