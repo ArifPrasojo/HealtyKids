@@ -153,27 +153,20 @@ const ManageSubMaterial = () => {
     }
   };
 
-const handleSubmit = async () => {
+  const handleSubmit = async () => {
     if (!formData.title) {
         setActionError("Judul wajib diisi");
         return;
     }
     
-    // Validasi URL/Foto hanya jika BUKAN mode edit atau jika user mengganti foto
-    // Jika edit mode dan fotonya masih sama dengan yang lama, kita skip validasi ini
-    const isEditingPhoto = editingItem && formData.contentCategory === 'photo';
-    const isPhotoUnchanged = isEditingPhoto && formData.contentUrl === editingItem?.contentUrl;
-
-    if (!formData.contentUrl && !isPhotoUnchanged) {
-        setActionError("Video URL atau Foto wajib diisi");
-        return;
-    }
+    // --- MODIFIKASI: VALIDASI VIDEO/FOTO DIHAPUS ---
+    // Kode validasi sebelumnya yang mewajibkan contentUrl telah dihapus di sini
+    // agar Video URL atau Upload Foto menjadi opsional.
 
     try {
       setIsSubmitting(true);
       setActionError(null);
 
-      // --- PERBAIKAN LOGIKA PAYLOAD ---
       // Siapkan payload dasar
       const payload: Partial<SubMaterialFormData> = {
         title: formData.title,
@@ -184,11 +177,8 @@ const handleSubmit = async () => {
       if (editingItem) {
         // === MODE UPDATE ===
         
-        // Logika: Hanya kirim contentUrl jika:
-        // 1. Kategori adalah 'video' (karena video berupa text url biasa)
-        // 2. ATAU Kategori 'photo' TAPI url-nya berbeda dengan data lama (artinya user upload baru)
-        
         if (formData.contentCategory === 'video') {
+            // Kirim link video (bisa string kosong jika user mengosongkan)
             payload.contentUrl = formData.contentUrl;
         } else {
             // Kategori Photo
@@ -197,7 +187,6 @@ const handleSubmit = async () => {
                 payload.contentUrl = formData.contentUrl;
             } else {
                 // User TIDAK ganti foto, JANGAN kirim property contentUrl
-                // Biarkan payload.contentUrl undefined agar tidak terkirim ke JSON
             }
         }
 
@@ -205,7 +194,7 @@ const handleSubmit = async () => {
         setSuccessMessage("Sub materi berhasil diperbarui!");
       } else {
         // === MODE CREATE ===
-        // Selalu kirim full data termasuk contentUrl
+        // Kirim full data. Jika contentUrl kosong, backend akan menerima string kosong.
         await subMaterialService.createSubMaterial(Number(materialId), formData);
         setSuccessMessage("Sub materi baru berhasil ditambahkan!");
       }
@@ -367,7 +356,10 @@ const handleSubmit = async () => {
                             </span>
                           </td>
                           <td className="px-8 py-5">
-                            {item.contentCategory === 'video' ? (
+                            {/* Cek apakah contentUrl ada sebelum render */}
+                            {!item.contentUrl ? (
+                                <span className="text-gray-400 text-xs italic">Tidak ada media</span>
+                            ) : item.contentCategory === 'video' ? (
                               <a href={item.contentUrl} target="_blank" rel="noreferrer" className="text-blue-600 underline hover:text-blue-800 transition-colors">
                                 Link Video
                               </a>
@@ -424,12 +416,15 @@ const handleSubmit = async () => {
                           {stripHtml(item.content) || "Tidak ada deskripsi."}
                       </div>
                       <div className="pt-3 border-t border-gray-50">
-                          {item.contentCategory === 'video' ? (
+                          {/* Cek apakah contentUrl ada sebelum render */}
+                          {!item.contentUrl ? (
+                             <span className="text-gray-400 text-xs italic">Tidak ada media</span>
+                          ) : item.contentCategory === 'video' ? (
                              <a 
-                                href={item.contentUrl} 
-                                target="_blank" 
-                                rel="noreferrer" 
-                                className="flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-800 bg-blue-50/50 p-2 rounded-lg"
+                               href={item.contentUrl} 
+                               target="_blank" 
+                               rel="noreferrer" 
+                               className="flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-800 bg-blue-50/50 p-2 rounded-lg"
                              >
                                <ExternalLink size={16} />
                                Buka Link Video
@@ -509,7 +504,7 @@ const handleSubmit = async () => {
 
                 <div>
                   <label className="block text-base font-semibold text-gray-800 mb-3">
-                    {formData.contentCategory === 'video' ? 'Link Video Youtube' : 'Upload Foto'}
+                    {formData.contentCategory === 'video' ? 'Link Video Youtube (Opsional)' : 'Upload Foto (Opsional)'}
                   </label>
                   
                   {formData.contentCategory === 'video' ? (
@@ -553,7 +548,6 @@ const handleSubmit = async () => {
                 <div>
                   <label className="block text-base font-semibold text-gray-800 mb-3">Deskripsi</label>
 
-                  {/* --- PERBAIKAN: Menambahkan Scrollbar Internal --- */}
                   <div className="bg-white rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500/20 transition-all shadow-sm
                     [&_.ql-toolbar]:border-b-gray-200 
                     [&_.ql-container]:h-[300px] 
