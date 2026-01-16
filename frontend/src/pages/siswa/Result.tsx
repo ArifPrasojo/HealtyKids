@@ -2,14 +2,22 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
 
+// Interface disesuaikan dengan data yang disimpan dari Quiz.tsx
+interface QuestionData {
+  id: number;
+  question: string;
+  options: string[];
+  correctAnswer: number; // Index jawaban benar
+}
+
 interface QuizResult {
-  score: number;
+  score: number; // Nilai skala 0-100
   totalQuestions: number;
   correctAnswers: number;
   incorrectAnswers: number;
   timeTaken: number;
-  selectedAnswers: number[];
-  questions: any[];
+  selectedAnswers: number[]; // Array index jawaban user
+  questions: QuestionData[];
 }
 
 const Result: React.FC = () => {
@@ -19,7 +27,12 @@ const Result: React.FC = () => {
   useEffect(() => {
     const results = localStorage.getItem('quizResults');
     if (results) {
-      setQuizResults(JSON.parse(results));
+      try {
+        setQuizResults(JSON.parse(results));
+      } catch (error) {
+        console.error("Gagal memparsing hasil quiz", error);
+        navigate('/dashboard');
+      }
     } else {
       navigate('/dashboard');
     }
@@ -30,13 +43,15 @@ const Result: React.FC = () => {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center p-4">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading results...</p>
+          <p className="text-gray-600">Memuat hasil...</p>
         </div>
       </div>
     );
   }
 
   const handleBackToDashboard = () => {
+    // Hapus hasil dari local storage agar tidak bisa diakses lagi via back button nanti (opsional)
+    localStorage.removeItem('quizResults'); 
     navigate('/dashboard');
   };
 
@@ -47,19 +62,21 @@ const Result: React.FC = () => {
   };
 
   const getScoreStroke = (score: number) => {
-    if (score >= 80) return '#10b981';
-    if (score >= 60) return '#f59e0b';
-    return '#ef4444';
+    if (score >= 80) return '#10b981'; // green-500
+    if (score >= 60) return '#f59e0b'; // yellow-500
+    return '#ef4444'; // red-500
   };
 
+  // --- LOGIKA LINGKARAN SKOR ---
+  const scorePercentage = quizResults.score; 
+
   // Responsive circle size
-  const circleSize = window.innerWidth < 640 ? 120 : 160; // 120px mobile, 160px desktop
-  const radius = circleSize / 2 - 10; // Adjust for stroke width
+  const circleSize = window.innerWidth < 640 ? 120 : 160; 
+  const radius = circleSize / 2 - 10; 
   const circumference = 2 * Math.PI * radius;
   const strokeDasharray = circumference;
-  const strokeDashoffset = circumference - ((quizResults.score / quizResults.totalQuestions) * 100 / 100) * circumference;
+  const strokeDashoffset = circumference - (scorePercentage / 100) * circumference;
 
-  // Format time from seconds to mm:ss
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -68,10 +85,11 @@ const Result: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center p-4 md:p-6">
-      <div className="max-w-6xl w-full"> {/* Ubah max-w agar muat dua card */}
+      <div className="max-w-6xl w-full"> 
         <div className="flex flex-col lg:flex-row gap-6 md:gap-8">
-          {/* Main Results Card */}
-          <div className="bg-white rounded-2xl md:rounded-3xl shadow-xl p-4 md:p-8 flex-1">
+          
+          {/* --- KARTU UTAMA (SKOR & STATISTIK) --- */}
+          <div className="bg-white rounded-2xl md:rounded-3xl shadow-xl p-4 md:p-8 flex-1 h-fit">
             {/* Header with Success Icon */}
             <div className="text-center mb-6 md:mb-8">
               <div className="w-12 h-12 md:w-16 md:h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4">
@@ -81,8 +99,8 @@ const Result: React.FC = () => {
                   </svg>
                 </div>
               </div>
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-2">Quiz Completed!</h1>
-              <p className="text-sm md:text-base text-gray-600">Congratulations on completing the quiz</p>
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-2">Quiz Selesai!</h1>
+              <p className="text-sm md:text-base text-gray-600">Selamat, Anda telah menyelesaikan quiz ini.</p>
             </div>
 
             {/* Score Circle using SVG */}
@@ -103,7 +121,7 @@ const Result: React.FC = () => {
                     cx={circleSize / 2}
                     cy={circleSize / 2}
                     r={radius}
-                    stroke={getScoreStroke((quizResults.score / quizResults.totalQuestions) * 100)}
+                    stroke={getScoreStroke(scorePercentage)}
                     strokeWidth="8"
                     fill="transparent"
                     strokeDasharray={strokeDasharray}
@@ -114,13 +132,20 @@ const Result: React.FC = () => {
                 </svg>
                 {/* Score Text */}
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <span className={`text-2xl md:text-4xl font-bold ${getScoreColor((quizResults.score / quizResults.totalQuestions) * 100)}`}>
-                    {Math.round((quizResults.score / quizResults.totalQuestions) * 100)}%
+                  <span className={`text-2xl md:text-4xl font-bold ${getScoreColor(scorePercentage)}`}>
+                    {Math.round(scorePercentage)}
                   </span>
                 </div>
               </div>
-              <h2 className="text-lg md:text-2xl font-bold text-gray-800 mb-2">Excellent Work!</h2>
-              <p className="text-xs md:text-sm text-gray-600">You've done a great job answering most of the questions!</p>
+              
+              <h2 className="text-lg md:text-2xl font-bold text-gray-800 mb-2">
+                {scorePercentage >= 80 ? "Luar Biasa!" : scorePercentage >= 60 ? "Cukup Bagus!" : "Tetap Semangat!"}
+              </h2>
+              <p className="text-xs md:text-sm text-gray-600">
+                {scorePercentage >= 60 
+                  ? "Kamu telah memahami materi dengan baik." 
+                  : "Jangan menyerah, coba pelajari materi lagi."}
+              </p>
             </div>
 
             {/* Statistics Grid */}
@@ -129,7 +154,7 @@ const Result: React.FC = () => {
               <div className="text-center p-3 md:p-4 bg-green-50 rounded-xl md:rounded-2xl border border-green-200">
                 <div className="flex items-center justify-center mb-2 md:mb-3">
                   <div className="w-3 h-3 md:w-4 md:h-4 bg-green-500 rounded-full mr-2"></div>
-                  <span className="text-xs md:text-sm font-semibold text-gray-700">Correct Answers</span>
+                  <span className="text-xs md:text-sm font-semibold text-gray-700">Benar</span>
                 </div>
                 <div className="text-2xl md:text-3xl font-bold text-green-600">{quizResults.correctAnswers}</div>
                 <div className="text-xs md:text-sm text-gray-500">/{quizResults.totalQuestions}</div>
@@ -139,7 +164,7 @@ const Result: React.FC = () => {
               <div className="text-center p-3 md:p-4 bg-red-50 rounded-xl md:rounded-2xl border border-red-200">
                 <div className="flex items-center justify-center mb-2 md:mb-3">
                   <div className="w-3 h-3 md:w-4 md:h-4 bg-red-500 rounded-full mr-2"></div>
-                  <span className="text-xs md:text-sm font-semibold text-gray-700">Incorrect Answers</span>
+                  <span className="text-xs md:text-sm font-semibold text-gray-700">Salah</span>
                 </div>
                 <div className="text-2xl md:text-3xl font-bold text-red-600">{quizResults.incorrectAnswers}</div>
                 <div className="text-xs md:text-sm text-gray-500">/{quizResults.totalQuestions}</div>
@@ -149,12 +174,12 @@ const Result: React.FC = () => {
               <div className="text-center p-3 md:p-4 bg-blue-50 rounded-xl md:rounded-2xl border border-blue-200 sm:col-span-2 lg:col-span-1">
                 <div className="flex items-center justify-center mb-2 md:mb-3">
                   <div className="w-3 h-3 md:w-4 md:h-4 bg-blue-500 rounded-full mr-2"></div>
-                  <span className="text-xs md:text-sm font-semibold text-gray-700">Time Taken</span>
+                  <span className="text-xs md:text-sm font-semibold text-gray-700">Waktu</span>
                 </div>
                 <div className="text-2xl md:text-3xl font-bold text-blue-600">
                   {formatTime(quizResults.timeTaken)}
                 </div>
-                <div className="text-xs md:text-sm text-gray-500">minutes</div>
+                <div className="text-xs md:text-sm text-gray-500">menit</div>
               </div>
             </div>
 
@@ -164,39 +189,55 @@ const Result: React.FC = () => {
                 variant="primary"
                 size="lg"
                 onClick={handleBackToDashboard}
-                className="bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 transform hover:scale-105 transition-all duration-200 shadow-lg px-6 md:px-8 py-2 md:py-3 text-sm md:text-base"
+                className="bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 transform hover:scale-105 transition-all duration-200 shadow-lg px-6 md:px-8 py-2 md:py-3 text-sm md:text-base w-full sm:w-auto"
               >
-                Back to Dashboard
+                Kembali ke Dashboard
               </Button>
             </div>
           </div>
 
-          {/* Review Answers Card */}
-          <div className="bg-white rounded-2xl md:rounded-3xl shadow-xl p-4 md:p-8 flex-1">
-            <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-4">Review Jawaban</h3>
-            <div className="space-y-4 max-h-96 md:max-h-[600px] lg:max-h-[700px] overflow-y-auto">
+          {/* --- KARTU REVIEW JAWABAN --- */}
+          {/* PERUBAHAN DISINI: Mengganti md:h-auto menjadi md:h-[800px] agar ada limit tinggi */}
+          <div className="bg-white rounded-2xl md:rounded-3xl shadow-xl p-4 md:p-8 flex-1 flex flex-col h-[600px] md:h-[800px]">
+            <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-4 sticky top-0 bg-white z-10 pb-2 border-b border-gray-100">Review Jawaban</h3>
+            <div className="space-y-4 overflow-y-auto pr-2 flex-1 custom-scrollbar">
               {quizResults.questions.map((question, index) => {
-                const selectedAnswer = quizResults.selectedAnswers[index];
-                const isCorrect = selectedAnswer === question.correctAnswer;
-                const selectedOption = question.options[selectedAnswer];
-                const correctOption = question.options[question.correctAnswer];
+                const selectedAnswerIndex = quizResults.selectedAnswers[index];
+                
+                // Cek apakah jawaban user benar (bandingkan index)
+                const isCorrect = selectedAnswerIndex === question.correctAnswer;
+                
+                // Ambil teks opsi, handle jika user tidak menjawab (-1)
+                const selectedText = selectedAnswerIndex !== -1 && question.options 
+                  ? question.options[selectedAnswerIndex] 
+                  : "Tidak dijawab";
+                  
+                const correctText = question.options 
+                  ? question.options[question.correctAnswer] 
+                  : "Loading...";
 
                 return (
-                  <div key={index} className={`p-4 rounded-xl border-2 ${isCorrect ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`}>
+                  <div key={index} className={`p-4 rounded-xl border-2 transition-all hover:shadow-md ${isCorrect ? 'border-green-200 bg-green-50/50' : 'border-red-200 bg-red-50/50'}`}>
                     <div className="flex items-start space-x-3">
-                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-sm font-bold ${isCorrect ? 'bg-green-500' : 'bg-red-500'}`}>
+                      <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold ${isCorrect ? 'bg-green-500' : 'bg-red-500'}`}>
                         {index + 1}
                       </div>
-                      <div className="flex-1">
-                        <p className="text-sm md:text-base font-medium text-gray-800 mb-2">{question.question}</p>
-                        <div className="space-y-1">
-                          <p className={`text-sm ${isCorrect ? 'text-green-700' : 'text-red-700'}`}>
-                            <strong>Jawaban Anda:</strong> {selectedAnswer !== -1 ? selectedOption : 'Tidak dijawab'}
-                          </p>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm md:text-base font-medium text-gray-800 mb-3 leading-relaxed">
+                          {question.question}
+                        </p>
+                        
+                        <div className="space-y-2">
+                          <div className={`p-2 rounded-lg text-sm ${isCorrect ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                            <span className="font-semibold block text-xs uppercase opacity-70 mb-1">Jawaban Kamu:</span>
+                            {selectedText}
+                          </div>
+                          
                           {!isCorrect && (
-                            <p className="text-sm text-green-700">
-                              <strong>Jawaban Benar:</strong> {correctOption}
-                            </p>
+                             <div className="p-2 rounded-lg text-sm bg-blue-50 text-blue-800 border border-blue-100">
+                               <span className="font-semibold block text-xs uppercase opacity-70 mb-1">Jawaban Benar:</span>
+                               {correctText}
+                             </div>
                           )}
                         </div>
                       </div>
@@ -206,6 +247,7 @@ const Result: React.FC = () => {
               })}
             </div>
           </div>
+
         </div>
       </div>
     </div>

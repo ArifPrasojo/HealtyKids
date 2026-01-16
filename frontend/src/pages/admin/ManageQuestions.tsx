@@ -18,9 +18,10 @@ const ManageQuestions: React.FC = () => {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   
-  // State untuk Notifikasi (Sukses/Gagal)
+  // State Notifikasi Global (Sukses/Gagal Server)
   const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   
+  // State Validasi Form (Error Input Kosong)
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   
   // Modal State
@@ -48,18 +49,12 @@ const ManageQuestions: React.FC = () => {
     try {
       setLoading(true);
       const result = await questionService.getQuestions();
-      
-      // Cek result.success dan pastikan result.data ada
       if (result.success && result.data) {
         setQuestions(result.data);
       }
     } catch (err: any) {
-      // Menangkap error dari service (termasuk 401 Unauthorized)
       const errorMsg = err instanceof Error ? err.message : "Gagal mengambil data soal dari server.";
       setStatusMessage({ type: 'error', text: errorMsg });
-      
-      // Opsional: Jika sesi berakhir, bisa redirect (uncomment jika perlu)
-      // if (errorMsg.includes("Sesi berakhir")) navigate('/login');
     } finally {
       setLoading(false);
     }
@@ -77,7 +72,7 @@ const ManageQuestions: React.FC = () => {
     setEditingQuestion(null);
     setFormData({ question: '', explanation: '', photo: '' });
     setFormErrors({});
-    setStatusMessage(null); // Reset pesan saat buka modal baru
+    setStatusMessage(null);
     setIsModalOpen(true);
   };
 
@@ -86,7 +81,7 @@ const ManageQuestions: React.FC = () => {
     setFormData({
       question: q.question,
       explanation: q.explanation,
-      photo: '' // Reset input file visual, gambar lama tetap ada di server
+      photo: ''
     });
     setFormErrors({});
     setStatusMessage(null);
@@ -103,21 +98,37 @@ const ManageQuestions: React.FC = () => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault(); // Mencegah reload browser
+
+    // --- LOGIKA VALIDASI BARU ---
+    const errors: Record<string, string> = {};
+    
+    // Cek Pertanyaan
     if (!formData.question.trim()) {
-        setFormErrors({ question: "Teks pertanyaan wajib diisi" });
-        return;
+        errors.question = "Teks pertanyaan wajib diisi.";
+    }
+    
+    // Cek Penjelasan (Sekarang Wajib)
+    if (!formData.explanation.trim()) {
+        errors.explanation = "Penjelasan wajib diisi.";
     }
 
+    // Jika ada error, set state error dan STOP proses
+    if (Object.keys(errors).length > 0) {
+        setFormErrors(errors);
+        return; 
+    }
+
+    // --- PROSES SIMPAN KE SERVER ---
     setIsSubmitting(true);
     setStatusMessage(null);
+    setFormErrors({}); // Bersihkan error jika lolos validasi
 
     const payload: QuestionPayload = {
       question: formData.question,
       explanation: formData.explanation,
     };
 
-    // Hanya kirim photo jika ada perubahan (string base64)
     if (formData.photo && formData.photo.startsWith('data:image')) {
       payload.photo = formData.photo;
     }
@@ -197,8 +208,8 @@ const ManageQuestions: React.FC = () => {
             </button>
           </div>
 
-          {/* --- NOTIFIKASI BERHASIL / GAGAL --- */}
-          {statusMessage && (
+          {/* --- NOTIFIKASI GLOBAL (Sukses/Gagal Server) --- */}
+          {statusMessage && !isModalOpen && (
             <div className={`mb-8 p-5 border-l-4 rounded-xl flex items-start gap-4 animate-fade-in shadow-sm ${
               statusMessage.type === 'success' 
                 ? 'bg-green-50 border-green-500 text-green-800' 
@@ -309,23 +320,55 @@ const ManageQuestions: React.FC = () => {
                   <label className="block text-base font-semibold text-gray-800 mb-2 flex items-center gap-2">
                     <FileText size={18} className="text-blue-500" /> Teks Pertanyaan
                   </label>
+
+                  {/* --- ALERT ERROR VALIDASI (Muncul jika ada error Question ATAU Explanation) --- */}
+                  {(formErrors.question || formErrors.explanation) && (
+                    <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl flex flex-col gap-1 text-red-700 animate-pulse shadow-sm">
+                      <div className="flex items-center gap-2 font-bold">
+                         <AlertCircle size={18} />
+                         <span>Harap lengkapi data:</span>
+                      </div>
+                      <ul className="list-disc list-inside text-sm ml-6">
+                         {formErrors.question && <li>{formErrors.question}</li>}
+                         {formErrors.explanation && <li>{formErrors.explanation}</li>}
+                      </ul>
+                    </div>
+                  )}
+                  {/* ---------------------------------------------------------------------------- */}
+
+                  {/* NOTE: Attribute 'required' DIHAPUS agar custom alert di atas bisa muncul */}
                   <textarea
-                    required
                     value={formData.question}
-                    onChange={(e) => setFormData({ ...formData, question: e.target.value })}
+                    onChange={(e) => {
+                         setFormData({ ...formData, question: e.target.value });
+                         if(formErrors.question) {
+                           const newErrors = {...formErrors};
+                           delete newErrors.question;
+                           setFormErrors(newErrors);
+                         }
+                    }}
                     className={`w-full px-4 py-3 border rounded-xl outline-none transition-all min-h-[100px] ${
-                      formErrors.question ? 'border-red-500 bg-red-50' : 'border-gray-300 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500'
+                      formErrors.question ? 'border-red-500 bg-red-50/10' : 'border-gray-300 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500'
                     }`}
                     placeholder="Tuliskan pertanyaan..."
                   />
                 </div>
 
                 <div>
-                  <label className="block text-base font-semibold text-gray-800 mb-2">Penjelasan (Opsional)</label>
+                  <label className="block text-base font-semibold text-gray-800 mb-2">Penjelasan</label>
                   <textarea
                     value={formData.explanation}
-                    onChange={(e) => setFormData({ ...formData, explanation: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 min-h-[80px]"
+                    onChange={(e) => {
+                        setFormData({ ...formData, explanation: e.target.value });
+                        if(formErrors.explanation) {
+                           const newErrors = {...formErrors};
+                           delete newErrors.explanation;
+                           setFormErrors(newErrors);
+                        }
+                    }}
+                    className={`w-full px-4 py-3 border rounded-xl outline-none transition-all min-h-[80px] ${
+                        formErrors.explanation ? 'border-red-500 bg-red-50/10' : 'border-gray-300 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500'
+                    }`}
                     placeholder="Penjelasan untuk siswa..."
                   />
                 </div>
