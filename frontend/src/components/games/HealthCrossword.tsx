@@ -24,17 +24,47 @@ interface GameState {
   totalClues: number;
   gameStatus: 'menu' | 'playing' | 'completed';
   hintsUsed: number;
+  startTime: number | null;
+  endTime: number | null;
 }
+
+const GAME_STATE_STORAGE_KEY = 'crosswordGameState';
+const GRID_STATE_STORAGE_KEY = 'crosswordGridState';
+const CURRENT_PUZZLE_ID_KEY = 'crosswordCurrentPuzzleId_v2';
+
+// Helper function to format time
+const formatTime = (seconds: number): string => {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+};
 
 const HealthCrossword: React.FC = () => {
   const navigate = useNavigate();
-  const [gameState, setGameState] = useState<GameState>({
-    score: 0,
-    correctAnswers: 0,
-    totalClues: 0,
-    gameStatus: 'menu',
-    hintsUsed: 0
-  });
+  
+  // Load saved game state from localStorage
+  const loadSavedGameState = (): GameState => {
+    try {
+      const saved = localStorage.getItem(GAME_STATE_STORAGE_KEY);
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (error) {
+      console.error('Failed to load game state:', error);
+    }
+    return {
+      score: 0,
+      correctAnswers: 0,
+      totalClues: 0,
+      gameStatus: 'menu',
+      hintsUsed: 0,
+      startTime: null,
+      endTime: null
+    };
+  };
+
+  const [gameState, setGameState] = useState<GameState>(loadSavedGameState);
+  const [elapsedTime, setElapsedTime] = useState<number>(0);
 
   const [selectedClue, setSelectedClue] = useState<number | null>(null);
   const [selectedDirection, setSelectedDirection] = useState<'across' | 'down'>('across');
@@ -102,16 +132,99 @@ const HealthCrossword: React.FC = () => {
   }, [clues]);
 
   const [grid, setGrid] = useState<CellData[][]>(() => initializeGrid());
+  const [isGridInitialized, setIsGridInitialized] = useState(false);
+
+  // Save game state to localStorage whenever it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem(GAME_STATE_STORAGE_KEY, JSON.stringify(gameState));
+    } catch (error) {
+      console.error('Failed to save game state:', error);
+    }
+  }, [gameState]);
+
+  // Save grid user inputs to localStorage whenever it changes (only save userInput)
+  useEffect(() => {
+    if (gameState.gameStatus === 'playing' && currentPuzzle && isGridInitialized) {
+      try {
+        // Only save user inputs, not the whole grid
+        const userInputs: string[][] = grid.map(row => row.map(cell => cell.userInput));
+        localStorage.setItem(GRID_STATE_STORAGE_KEY, JSON.stringify(userInputs));
+        localStorage.setItem(CURRENT_PUZZLE_ID_KEY, currentPuzzle.id);
+      } catch (error) {
+        console.error('Failed to save grid state:', error);
+      }
+    }
+  }, [grid, gameState.gameStatus, currentPuzzle, isGridInitialized]);
+
+  // Initialize grid when puzzle changes, then restore user inputs if available
+  useEffect(() => {
+    if (currentPuzzle && clues.length > 0) {
+      // Always build fresh grid first from puzzle data
+      const freshGrid = initializeGrid();
+      
+      // Only try to restore user inputs if playing
+      if (gameState.gameStatus === 'playing') {
+        try {
+          const savedPuzzleId = localStorage.getItem(CURRENT_PUZZLE_ID_KEY);
+          const savedInputs = localStorage.getItem(GRID_STATE_STORAGE_KEY);
+          
+          // Only restore if puzzle ID matches
+          if (savedInputs && savedPuzzleId === currentPuzzle.id) {
+            const parsedInputs: string[][] = JSON.parse(savedInputs);
+            
+            // Verify structure matches
+            if (parsedInputs.length === 15 && parsedInputs[0]?.length === 15) {
+              // Merge user inputs into fresh grid
+              for (let r = 0; r < 15; r++) {
+                for (let c = 0; c < 15; c++) {
+                  if (!freshGrid[r][c].isBlocked && parsedInputs[r][c]) {
+                    freshGrid[r][c].userInput = parsedInputs[r][c];
+                  }
+                }
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Failed to restore user inputs:', error);
+        }
+      }
+      
+      setGrid(freshGrid);
+      setIsGridInitialized(true);
+    }
+  }, [currentPuzzle, clues.length, gameState.gameStatus, initializeGrid]);
 
   useEffect(() => {
     if (currentPuzzle) {
-      setGrid(initializeGrid());
       setGameState(prev => ({
         ...prev,
         totalClues: clues.length
       }));
     }
-  }, [currentPuzzle, initializeGrid, clues.length]);
+  }, [currentPuzzle, clues.length]);
+
+  // Timer effect - runs every second while playing
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null;
+    
+    if (gameState.gameStatus === 'playing' && gameState.startTime) {
+      // Update elapsed time immediately
+      setElapsedTime(Math.floor((Date.now() - gameState.startTime) / 1000));
+      
+      // Then update every second
+      interval = setInterval(() => {
+        setElapsedTime(Math.floor((Date.now() - gameState.startTime!) / 1000));
+      }, 1000);
+    } else if (gameState.gameStatus === 'completed' && gameState.startTime && gameState.endTime) {
+      // Calculate final time when completed
+      setElapsedTime(Math.floor((gameState.endTime - gameState.startTime) / 1000));
+    }
+    
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [gameState.gameStatus, gameState.startTime, gameState.endTime]);
 
   const handleCellClick = (row: number, col: number) => {
     if (grid[row][col].isBlocked) return;
@@ -311,7 +424,8 @@ const HealthCrossword: React.FC = () => {
     if (correctCount === clues.length) {
       setGameState(prev => ({
         ...prev,
-        gameStatus: 'completed'
+        gameStatus: 'completed',
+        endTime: Date.now()
       }));
     }
   };
@@ -348,68 +462,103 @@ const HealthCrossword: React.FC = () => {
   };
 
   const clearGrid = () => {
-    const newGrid = grid.map(row =>
-      row.map(cell => ({
-        ...cell,
-        userInput: ''
-      }))
-    );
+    const newGrid = initializeGrid(); // Re-initialize clean grid
     setGrid(newGrid);
     setGameState(prev => ({
       ...prev,
       score: 0,
       correctAnswers: 0
     }));
+    // Clear saved grid state
+    localStorage.removeItem(GRID_STATE_STORAGE_KEY);
+    localStorage.removeItem(CURRENT_PUZZLE_ID_KEY);
   };
 
   const startGame = () => {
+    // Clear any previous saved inputs
+    localStorage.removeItem(GRID_STATE_STORAGE_KEY);
+    localStorage.removeItem(CURRENT_PUZZLE_ID_KEY);
+    
     setGameState(prev => ({
       ...prev,
       gameStatus: 'playing',
       score: 0,
       correctAnswers: 0,
-      hintsUsed: 0
+      hintsUsed: 0,
+      startTime: Date.now(),
+      endTime: null
     }));
+    setElapsedTime(0);
     setGrid(initializeGrid());
+    setIsGridInitialized(true);
   };
 
   const backToDashboard = () => {
     clearCurrentPuzzle();
+    // Clear all saved states when leaving
+    localStorage.removeItem(GAME_STATE_STORAGE_KEY);
+    localStorage.removeItem(GRID_STATE_STORAGE_KEY);
+    localStorage.removeItem(CURRENT_PUZZLE_ID_KEY);
     navigate('/gamehome');
   };
 
   const backToGameHome = () => {
     clearCurrentPuzzle();
+    // Clear all saved states when leaving
+    localStorage.removeItem(GAME_STATE_STORAGE_KEY);
+    localStorage.removeItem(GRID_STATE_STORAGE_KEY);
+    localStorage.removeItem(CURRENT_PUZZLE_ID_KEY);
     navigate('/gamehome');
   };
 
   const resetGame = () => {
     clearCurrentPuzzle();
+    // Clear all saved states
+    localStorage.removeItem(GAME_STATE_STORAGE_KEY);
+    localStorage.removeItem(GRID_STATE_STORAGE_KEY);
+    localStorage.removeItem(CURRENT_PUZZLE_ID_KEY);
+    
     const newPuzzle = getRandomPuzzle();
     setCurrentPuzzle(newPuzzle);
     saveCurrentPuzzle(newPuzzle.id);
     
-    setGameState(prev => ({
-      ...prev,
-      gameStatus: 'menu'
-    }));
+    setGameState({
+      score: 0,
+      correctAnswers: 0,
+      totalClues: 0,
+      gameStatus: 'menu',
+      hintsUsed: 0,
+      startTime: null,
+      endTime: null
+    });
+    setElapsedTime(0);
     setSelectedClue(null);
+    setIsGridInitialized(false);
   };
 
   const playAgain = () => {
     clearCurrentPuzzle();
+    // Clear all saved states
+    localStorage.removeItem(GAME_STATE_STORAGE_KEY);
+    localStorage.removeItem(GRID_STATE_STORAGE_KEY);
+    localStorage.removeItem(CURRENT_PUZZLE_ID_KEY);
+    
     const newPuzzle = getRandomPuzzle();
     setCurrentPuzzle(newPuzzle);
     saveCurrentPuzzle(newPuzzle.id);
     
-    setGameState(prev => ({
-      ...prev,
-      gameStatus: 'playing',
+    setGameState({
       score: 0,
       correctAnswers: 0,
-      hintsUsed: 0
-    }));
+      totalClues: 0,
+      gameStatus: 'playing',
+      hintsUsed: 0,
+      startTime: Date.now(),
+      endTime: null
+    });
+    setElapsedTime(0);
     setSelectedClue(null);
+    setIsGridInitialized(false);
   };
 
   const getCellHighlight = (row: number, col: number) => {
@@ -638,7 +787,11 @@ const HealthCrossword: React.FC = () => {
                   <p className="text-sm text-gray-600">📚 {currentPuzzle.title}</p>
                 )}
               </div>
-              <div className="flex gap-3">
+              <div className="flex gap-3 flex-wrap">
+                <div className="bg-white/90 backdrop-blur-sm rounded-xl px-3 md:px-4 py-2 shadow-md flex-1 md:flex-none">
+                  <div className="text-xs text-gray-600">⏱️ Waktu</div>
+                  <div className="text-lg md:text-xl font-bold text-blue-600">{formatTime(elapsedTime)}</div>
+                </div>
                 <div className="bg-white/90 backdrop-blur-sm rounded-xl px-3 md:px-4 py-2 shadow-md flex-1 md:flex-none">
                   <div className="text-xs text-gray-600">Score</div>
                   <div className="text-lg md:text-xl font-bold text-green-600">{gameState.score}</div>
@@ -720,10 +873,42 @@ const HealthCrossword: React.FC = () => {
                 <div className="text-5xl md:text-6xl mb-3 md:mb-4">🏆</div>
                 <h3 className="text-2xl md:text-3xl font-bold text-green-600 mb-3 md:mb-4">Selamat! Kamu Berhasil!</h3>
                 <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-6 md:p-8 mb-4 md:mb-6 border-2 border-green-200">
-                  <p className="text-base md:text-lg mb-2">Final Score: <span className="font-bold text-green-600">{gameState.score}</span></p>
+                  {/* Stats Grid */}
+                  <div className="grid grid-cols-3 gap-4 mb-6">
+                    <div className="bg-white rounded-xl p-4 shadow-sm border border-green-100">
+                      <div className="text-3xl md:text-4xl mb-1">⏱️</div>
+                      <div className="text-2xl md:text-3xl font-bold text-blue-600">{formatTime(elapsedTime)}</div>
+                      <div className="text-xs text-gray-500">Waktu Pengerjaan</div>
+                    </div>
+                    <div className="bg-white rounded-xl p-4 shadow-sm border border-green-100">
+                      <div className="text-3xl md:text-4xl mb-1">⭐</div>
+                      <div className="text-2xl md:text-3xl font-bold text-green-600">{gameState.score}</div>
+                      <div className="text-xs text-gray-500">Total Skor</div>
+                    </div>
+                    <div className="bg-white rounded-xl p-4 shadow-sm border border-green-100">
+                      <div className="text-3xl md:text-4xl mb-1">💡</div>
+                      <div className="text-2xl md:text-3xl font-bold text-orange-600">{gameState.hintsUsed}</div>
+                      <div className="text-xs text-gray-500">Hint Digunakan</div>
+                    </div>
+                  </div>
+                  
                   <p className="text-sm md:text-base text-gray-600 mb-4">
-                    Kamu berhasil menyelesaikan semua {gameState.totalClues} kata dengan menggunakan {gameState.hintsUsed} hint!
+                    🎉 Kamu berhasil menyelesaikan semua <span className="font-bold text-green-600">{gameState.totalClues} kata</span> dalam waktu <span className="font-bold text-blue-600">{formatTime(elapsedTime)}</span>!
                   </p>
+                  
+                  {/* Performance message based on time */}
+                  <div className="mb-4">
+                    {elapsedTime < 120 && (
+                      <p className="text-lg font-bold text-yellow-600">🚀 Luar Biasa Cepat!</p>
+                    )}
+                    {elapsedTime >= 120 && elapsedTime < 300 && (
+                      <p className="text-lg font-bold text-green-600">👏 Kerja Bagus!</p>
+                    )}
+                    {elapsedTime >= 300 && (
+                      <p className="text-lg font-bold text-blue-600">💪 Pantang Menyerah!</p>
+                    )}
+                  </div>
+                  
                   <div className="text-xs md:text-sm text-gray-600 space-y-1">
                     <p className="font-semibold">💡 Pengetahuan kesehatan yang sudah kamu pelajari:</p>
                     <div className="flex flex-wrap justify-center gap-2 mt-2">
