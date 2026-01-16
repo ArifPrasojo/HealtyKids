@@ -98,10 +98,12 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
 
   const handleLogout = () => {
     setIsOpen(false);
+
     localStorage.clear();
     sessionStorage.clear();
+
     if (onLogout) onLogout();
-    setTimeout(() => navigate('/login'), 100);
+    window.location.href = '/login';
   };
 
   const handleSaveProfile = async (e: React.FormEvent) => {

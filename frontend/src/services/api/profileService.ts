@@ -1,6 +1,6 @@
 // src/services/api/profileService.ts
 
-const API_BASE_URL = import.meta.env?.VITE_API_URL;
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 export interface ProfileData {
   name: string;
@@ -16,7 +16,6 @@ export interface QuizResultData {
 }
 
 // Interface untuk Admin (Response dari /admin/quiz/result)
-// Sesuai gambar Postman: ada studentName, tidak ada quizDescription
 export interface AdminQuizResultData {
   studentName: string;
   quizName: string;
@@ -25,7 +24,7 @@ export interface AdminQuizResultData {
 }
 
 export const profileService = {
-  // --- GET PROFILE (Existing) ---
+  // --- GET PROFILE ---
   getProfile: async (role: string): Promise<ProfileData | null> => {
     try {
       const token = localStorage.getItem('token');
@@ -59,7 +58,7 @@ export const profileService = {
     }
   },
 
-  // --- UPDATE PROFILE (Existing) ---
+  // --- UPDATE PROFILE ---
   updateProfile: async (role: string, profileData: ProfileData): Promise<ProfileData | null> => {
     try {
       const token = localStorage.getItem('token');
@@ -95,7 +94,7 @@ export const profileService = {
     }
   },
 
-  // --- GET QUIZ HISTORY (Updated for Admin & Siswa) ---
+  // --- GET QUIZ HISTORY ---
   getQuizHistory: async (role: string): Promise<(QuizResultData | AdminQuizResultData)[]> => {
     try {
       const token = localStorage.getItem('token');
@@ -104,13 +103,9 @@ export const profileService = {
       const isAdmin = role.toLowerCase().includes('admin');
 
       // Tentukan endpoint berdasarkan Role
-      // Admin: /admin/quiz/result
-      // Siswa: /quiz/result
       const endpoint = isAdmin 
         ? `${API_BASE_URL}/admin/quiz/result` 
         : `${API_BASE_URL}/quiz/result`;
-
-      console.log(`fetching quiz history for ${role} at ${endpoint}`);
 
       const response = await fetch(endpoint, {
         method: 'GET',
