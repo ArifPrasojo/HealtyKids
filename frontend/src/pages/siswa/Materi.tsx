@@ -22,6 +22,14 @@ const Materi: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
+  //Helper: Membersihkan Tag HTML untuk Preview Sidebar
+  const stripHtml = (html: string) => {
+     if (!html) return "Tidak ada deskripsi";
+     // Regex untuk menghapus semua tag HTML
+     const tmp = html.replace(/<[^>]+>/g, '');
+     return tmp || "Materi Pembelajaran";
+  };
+
   // --- 1. FETCH DATA (GET) ---
   useEffect(() => {
     const fetchDetailMateri = async () => {
@@ -82,19 +90,17 @@ const Materi: React.FC = () => {
   // Helper: Konversi Link YouTube biasa ke Link Embed
   const getYouTubeEmbedUrl = (url: string) => {
     if (!url) return '';
-    // Regex untuk mengambil ID video dari berbagai format link YouTube
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
     const match = url.match(regExp);
 
     if (match && match[2].length === 11) {
       return `https://www.youtube.com/embed/${match[2]}`;
     }
-    return url; // Kembalikan url asli jika gagal parse (fallback)
+    return url; 
   };
 
   const mainImageUrl = getFullImageUrl(currentItem.contentUrl);
 
-  // Perbaikan Link Gambar di dalam Text Editor HTML
   const processedContent = currentItem.content 
     ? currentItem.content.replace(/src="\/([^"]+)"/g, `src="${API_BASE_URL}/$1"`)
     : '<p class="text-gray-400 italic">Tidak ada konten teks.</p>';
@@ -189,7 +195,12 @@ const Materi: React.FC = () => {
                                     </div>
                                     <div className="flex-1 min-w-0">
                                       <div className={`text-sm lg:text-base font-semibold truncate ${active ? 'text-green-700' : 'text-gray-700'}`}>{item.title}</div>
-                                      <div className="text-xs lg:text-sm text-gray-500 mt-1 truncate uppercase">{item.contentCategory}</div>
+                                      
+                                      {/* MODIFIKASI DISINI: Menampilkan cuplikan deskripsi (content) yang sudah dibersihkan dari HTML */}
+                                      <div className="text-xs lg:text-sm text-gray-500 mt-1 truncate font-normal normal-case">
+                                        {stripHtml(item.content)}
+                                      </div>
+
                                     </div>
                                   </div>
                                 );
@@ -227,12 +238,11 @@ const Materi: React.FC = () => {
                   <div id="content-area" className="flex-1 p-6 lg:p-8 overflow-y-auto bg-gray-50/50">
                     <div className="animate-in fade-in duration-500 w-full max-w-none">
                       
-                      {/* --- MEDIA UTAMA (GAMBAR ATAU VIDEO YOUTUBE) --- */}
+                      {/* --- MEDIA UTAMA --- */}
                       {currentItem.contentUrl && !currentItem.content.includes(currentItem.contentUrl) && (
                         <div className="mb-8 grid gap-6">
                             <div className="w-full bg-gray-100 rounded-2xl p-2 border border-gray-200 shadow-inner overflow-hidden">
                                
-                               {/* LOGIKA SWITCH: Jika YouTube tampilkan Iframe, jika bukan tampilkan Image */}
                                {isYouTubeUrl(currentItem.contentUrl) ? (
                                  <div className="relative w-full pb-[56.25%] h-0">
                                    <iframe 
@@ -259,7 +269,6 @@ const Materi: React.FC = () => {
                       {/* TEXT CONTENT - QUILL RENDERER */}
                       <div className="ql-snow">
                         <div
-                          // Tambahkan class Tailwind [&_iframe]... agar video di dalam teks juga responsif
                           className="ql-editor !p-0 !overflow-visible prose prose-lg prose-slate max-w-none 
                           prose-headings:text-gray-800 
                           prose-p:text-gray-700 prose-p:leading-loose
