@@ -1,16 +1,19 @@
+// src/pages/siswa/Quiz.tsx
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
 import CloudBackground from '../../components/layouts/CloudBackground';
+import { userQuizService } from '../../services/api/userQuizService'; // <--- IMPORT SERVICE
 
-// Base URL API
+// Base URL API (Hanya disimpan untuk keperluan FILE_BASE_URL gambar)
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 const FILE_BASE_URL = API_BASE_URL?.replace('/api', ''); 
 
 interface QuizQuestion {
   id: number;
   question: string;
-  photo: string | null; // <--- 1. UPDATE INTERFACE: Tambahkan field photo
+  photo: string | null;
   options: string[];
   answerIds: number[]; 
   correctAnswer: number; 
@@ -39,7 +42,7 @@ const Quiz: React.FC = () => {
     message: ''
   });
 
-  // --- FETCHING DATA API ---
+  // --- FETCHING DATA API (UPDATED) ---
   useEffect(() => {
     const fetchQuizData = async () => {
       try {
@@ -50,13 +53,8 @@ const Quiz: React.FC = () => {
           return;
         }
 
-        const response = await fetch(`${API_BASE_URL}/quiz`, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
+        // MENGGUNAKAN SERVICE
+        const response = await userQuizService.getQuizData(token);
 
         if (response.status === 401) {
           localStorage.removeItem('token');
@@ -90,7 +88,7 @@ const Quiz: React.FC = () => {
             return {
               id: q.id, 
               question: q.question,
-              photo: q.photo, // <--- 2. UPDATE MAPPING: Ambil data photo dari API
+              photo: q.photo, 
               options: q.answers.map((a: any) => a.answer), 
               answerIds: q.answers.map((a: any) => a.id), 
               correctAnswer: correctIndex !== -1 ? correctIndex : 0
@@ -116,8 +114,6 @@ const Quiz: React.FC = () => {
 
     fetchQuizData();
   }, [navigate]);
-
-  // ... (BAGIAN TIMER & LOGIC LAIN TETAP SAMA, TIDAK DIUBAH) ...
 
   // --- TIMER LOGIC ---
   useEffect(() => {
@@ -169,7 +165,7 @@ const Quiz: React.FC = () => {
     if (currentQuestion > 0) setCurrentQuestion(currentQuestion - 1);
   };
 
-  // --- FUNGSI SUBMIT ---
+  // --- FUNGSI SUBMIT (UPDATED) ---
   const handleSubmitQuiz = async () => {
     setIsSubmitting(true);
     
@@ -184,7 +180,7 @@ const Quiz: React.FC = () => {
             questionId: q.id,
             answerId: answerId
         };
-    }).filter(item => item.answerId !== null); 
+    }).filter(item => item.answerId !== null) as { questionId: number; answerId: number }[]; // Type assertion
 
     const payload = {
         result: formattedResult
@@ -192,19 +188,16 @@ const Quiz: React.FC = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${API_BASE_URL}/quiz`, { 
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload)
-      });
-
-      const responseJson = await response.json();
-
-      if (!response.ok) {
-        throw new Error(responseJson.message || "Gagal menyimpan ke database");
+      
+      if (token) {
+         // MENGGUNAKAN SERVICE
+         const response = await userQuizService.submitQuizResult(token, payload);
+         
+         const responseJson = await response.json();
+   
+         if (!response.ok) {
+           throw new Error(responseJson.message || "Gagal menyimpan ke database");
+         }
       }
 
     } catch (error) {
