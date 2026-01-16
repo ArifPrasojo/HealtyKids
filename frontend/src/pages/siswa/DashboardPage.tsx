@@ -1,9 +1,8 @@
-import React, { useState } from 'react'; // Pastikan useState diimpor
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../../components/layouts/Layout';
 import CloudBackground from '../../components/layouts/CloudBackground';
 import { BookOpen, Target, Gamepad } from 'lucide-react';
-
 
 interface DashboardPageProps {
   onLogout?: () => void;
@@ -11,8 +10,6 @@ interface DashboardPageProps {
 
 const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
   const navigate = useNavigate();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [pendingRoute, setPendingRoute] = useState<string | null>(null);
 
   const menuItems = [
     {
@@ -50,40 +47,21 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
     }
   ];
 
+  // Fungsi navigasi langsung tanpa modal
   const handleMenuClick = (route: string) => {
-    if (route === '/Quiz') {
-      setPendingRoute(route);
-      setIsModalOpen(true);
-    } else {
-      navigate(route);
-    }
-  };
-
-  const handleConfirm = () => {
-    if (pendingRoute) {
-      navigate(pendingRoute);
-    }
-    setIsModalOpen(false);
-    setPendingRoute(null);
-  };
-
-  const handleCancel = () => {
-    setIsModalOpen(false);
-    setPendingRoute(null);
+    navigate(route);
   };
 
   return (
     <Layout onLogout={onLogout}>
-      {/* Ubah: h-screen di desktop, min-h-screen di mobile */}
       <div className="min-h-screen lg:h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/40 relative overflow-x-hidden lg:overflow-hidden flex flex-col">
         {/* Cloud Background */}
         <CloudBackground />
 
-        {/* Main Content - flex-1 dan justify-center hanya di desktop */}
+        {/* Main Content */}
         <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-12 lg:py-20 flex-1 flex flex-col lg:justify-center overflow-y-auto lg:overflow-visible">
           {/* Welcome Section */}
           <div className="text-center mb-6 md:mb-8 space-y-4 md:space-y-8 animate-fade-in">
-            {/* Main Title */}
             <div className="space-y-2">
               <div className="relative">
                 <h1 className="text-3xl md:text-5xl lg:text-7xl font-black text-gray-800 tracking-tight leading-tight">
@@ -191,35 +169,6 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
         {/* Bottom decoration */}
         <div className="h-12 md:h-16 bg-gradient-to-t from-green-100 to-transparent"></div>
       </div>
-
-      {/* Custom Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-white/50 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white rounded-3xl shadow-2xl p-6 md:p-8 max-w-md w-full mx-4 animate__animated animate__zoomIn">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-3xl">❓</span>
-              </div>
-              <h2 className="text-2xl font-bold text-gray-800 mb-2">Konfirmasi</h2>
-              <p className="text-gray-600 mb-6">Apakah Anda yakin ingin mengerjakan quiz ini dengan baik dan jujur?</p>
-              <div className="flex gap-4">
-                <button
-                  onClick={handleCancel}
-                  className="flex-1 bg-red-500 text-white py-3 px-6 rounded-2xl font-semibold hover:bg-red-600 transition-colors"
-                >
-                  Tidak, Kembali
-                </button>
-                <button
-                  onClick={handleConfirm}
-                  className="flex-1 bg-green-500 text-white py-3 px-6 rounded-2xl font-semibold hover:bg-green-600 transition-colors"
-                >
-                  Ya, Mulai Quiz
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </Layout>
   );
 };
