@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
+import CloudBackground from '../../components/layouts/CloudBackground';
 
 // Interface disesuaikan dengan data yang disimpan dari Quiz.tsx
 interface QuestionData {
@@ -41,6 +42,7 @@ const Result: React.FC = () => {
   if (!quizResults) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center p-4">
+              <CloudBackground />
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Memuat hasil...</p>
@@ -87,7 +89,6 @@ const Result: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center p-4 md:p-6">
       <div className="max-w-6xl w-full"> 
         <div className="flex flex-col lg:flex-row gap-6 md:gap-8">
-          
           {/* --- KARTU UTAMA (SKOR & STATISTIK) --- */}
           <div className="bg-white rounded-2xl md:rounded-3xl shadow-xl p-4 md:p-8 flex-1 h-fit">
             {/* Header with Success Icon */}
@@ -195,59 +196,6 @@ const Result: React.FC = () => {
               </Button>
             </div>
           </div>
-
-          {/* --- KARTU REVIEW JAWABAN --- */}
-          {/* PERUBAHAN DISINI: Mengganti md:h-auto menjadi md:h-[800px] agar ada limit tinggi */}
-          <div className="bg-white rounded-2xl md:rounded-3xl shadow-xl p-4 md:p-8 flex-1 flex flex-col h-[600px] md:h-[800px]">
-            <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-4 sticky top-0 bg-white z-10 pb-2 border-b border-gray-100">Review Jawaban</h3>
-            <div className="space-y-4 overflow-y-auto pr-2 flex-1 custom-scrollbar">
-              {quizResults.questions.map((question, index) => {
-                const selectedAnswerIndex = quizResults.selectedAnswers[index];
-                
-                // Cek apakah jawaban user benar (bandingkan index)
-                const isCorrect = selectedAnswerIndex === question.correctAnswer;
-                
-                // Ambil teks opsi, handle jika user tidak menjawab (-1)
-                const selectedText = selectedAnswerIndex !== -1 && question.options 
-                  ? question.options[selectedAnswerIndex] 
-                  : "Tidak dijawab";
-                  
-                const correctText = question.options 
-                  ? question.options[question.correctAnswer] 
-                  : "Loading...";
-
-                return (
-                  <div key={index} className={`p-4 rounded-xl border-2 transition-all hover:shadow-md ${isCorrect ? 'border-green-200 bg-green-50/50' : 'border-red-200 bg-red-50/50'}`}>
-                    <div className="flex items-start space-x-3">
-                      <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold ${isCorrect ? 'bg-green-500' : 'bg-red-500'}`}>
-                        {index + 1}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm md:text-base font-medium text-gray-800 mb-3 leading-relaxed">
-                          {question.question}
-                        </p>
-                        
-                        <div className="space-y-2">
-                          <div className={`p-2 rounded-lg text-sm ${isCorrect ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                            <span className="font-semibold block text-xs uppercase opacity-70 mb-1">Jawaban Kamu:</span>
-                            {selectedText}
-                          </div>
-                          
-                          {!isCorrect && (
-                             <div className="p-2 rounded-lg text-sm bg-blue-50 text-blue-800 border border-blue-100">
-                               <span className="font-semibold block text-xs uppercase opacity-70 mb-1">Jawaban Benar:</span>
-                               {correctText}
-                             </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
         </div>
       </div>
     </div>

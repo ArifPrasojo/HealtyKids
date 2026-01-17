@@ -6,7 +6,7 @@ import { Button } from '../../components/ui/Button';
 import CloudBackground from '../../components/layouts/CloudBackground';
 import { userQuizService } from '../../services/api/userQuizService';
 
-// Base URL API (Hanya disimpan untuk keperluan FILE_BASE_URL gambar)
+// Base URL API
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 const FILE_BASE_URL = API_BASE_URL?.replace('/api', ''); 
 
@@ -45,7 +45,7 @@ const Quiz: React.FC = () => {
     message: ''
   });
 
-  // --- FETCHING DATA API (UPDATED) ---
+  // --- FETCHING DATA API ---
   useEffect(() => {
     const fetchQuizData = async () => {
       try {
@@ -56,7 +56,6 @@ const Quiz: React.FC = () => {
           return;
         }
 
-        // MENGGUNAKAN SERVICE
         const response = await userQuizService.getQuizData(token);
 
         if (response.status === 401) {
@@ -65,7 +64,6 @@ const Quiz: React.FC = () => {
           return;
         }
 
-        // Handle jika materi belum selesai (403)
         if (response.status === 403) {
           const errorData = await response.json();
           setErrorModal({
@@ -76,7 +74,6 @@ const Quiz: React.FC = () => {
           return;
         }
 
-        // Handle jika Quiz Dinonaktifkan/Tidak Ditemukan (404)
         if (response.status === 404) {
             setErrorModal({
               show: true,
@@ -93,7 +90,6 @@ const Quiz: React.FC = () => {
         if (responseData.success && responseData.data) {
           const apiData = responseData.data;
 
-          // MAPPING DATA
           const mappedQuestions: QuizQuestion[] = apiData.questions.map((q: any) => {
             const correctIndex = q.answers.findIndex((a: any) => 
                 a.is_correct === 1 || a.is_correct === true || a.isCorrect === true
@@ -112,12 +108,10 @@ const Quiz: React.FC = () => {
           setQuestions(mappedQuestions);
           setSelectedAnswers(new Array(mappedQuestions.length).fill(-1));
           
-          // Set Waktu
           const durationInSeconds = apiData.duration ? apiData.duration * 60 : 1200;
           setTotalDuration(durationInSeconds);
           setTimeLeft(durationInSeconds);
 
-          // --- LOGIC TAMBAHAN: Tampilkan Konfirmasi setelah data siap ---
           setShowStartConfirmation(true);
         }
       } catch (error) {
@@ -132,8 +126,7 @@ const Quiz: React.FC = () => {
     fetchQuizData();
   }, [navigate]);
 
-  // --- TIMER LOGIC (MODIFIED) ---
-  // Timer tidak jalan jika showStartConfirmation masih true
+  // --- TIMER LOGIC ---
   useEffect(() => {
     if (timeLeft > 0 && !isPaused && !isLoading && !errorModal.show && !isSubmitting && !showStartConfirmation) {
       const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
@@ -169,7 +162,6 @@ const Quiz: React.FC = () => {
   const handlePause = () => { if (pauseTimeRemaining > 0) setIsPaused(true); };
   const handleResume = () => { setIsPaused(false); };
   
-  // Fungsi untuk memulai Quiz (setelah konfirmasi)
   const handleStartQuiz = () => {
     setShowStartConfirmation(false);
   };
@@ -188,15 +180,17 @@ const Quiz: React.FC = () => {
     if (currentQuestion > 0) setCurrentQuestion(currentQuestion - 1);
   };
 
-  // --- FUNGSI SUBMIT ---
+  // --- FUNGSI SUBMIT (UPDATED / DIPERBAIKI) ---
   const handleSubmitQuiz = async () => {
     setIsSubmitting(true);
     
     // Hitung waktu terpakai
     const timeSpent = Math.max(0, totalDuration - timeLeft);
 
+    // Format Data untuk dikirim ke Backend
     const formattedResult = questions.map((q, index) => {
         const selectedOptionIndex = selectedAnswers[index];
+        // Pastikan mengirim ID jawaban yang valid
         const answerId = selectedOptionIndex !== -1 ? q.answerIds[selectedOptionIndex] : null;
 
         return {
@@ -209,6 +203,10 @@ const Quiz: React.FC = () => {
         result: formattedResult
     };
 
+    // Variable untuk menyimpan Score dari Server
+    let finalScore = 0;
+    let isRequestSuccessful = false;
+
     try {
       const token = localStorage.getItem('token');
       
@@ -219,31 +217,46 @@ const Quiz: React.FC = () => {
          if (!response.ok) {
            throw new Error(responseJson.message || "Gagal menyimpan ke database");
          }
+
+         // === KUNCI PERBAIKAN ===
+         // Kita ambil SCORE langsung dari respon Backend (Server-Side Grading)
+         // Sesuai postman: data: { id: 57, score: 100, ... }
+         if (responseJson.success && responseJson.data) {
+             finalScore = responseJson.data.score; 
+             isRequestSuccessful = true;
+         }
       }
 
     } catch (error) {
       console.error("Error submitting quiz:", error);
+      // Anda bisa menambahkan alert error disini jika mau
     } finally {
-      let correctCount = 0;
-      selectedAnswers.forEach((answer, index) => {
-        if (questions[index] && answer === questions[index].correctAnswer) {
-          correctCount++;
-        }
-      });
-      
+      // === LOGIC DISPLAY ===
+      // Jangan hitung manual based on questions[index].correctAnswer karena mungkin data lokal basi.
+      // Kita hitung jumlah benar berdasarkan SCORE yang dikembalikan server.
+      // Rumus: (Score / 100) * Total Soal
+      const calculatedCorrectCount = Math.round((finalScore / 100) * questions.length);
+      const calculatedIncorrectCount = questions.length - calculatedCorrectCount;
+
       const resultsForUI = {
-        score: Math.floor((correctCount / questions.length) * 100),
+        score: finalScore, // Menggunakan Score Real dari Backend
         totalQuestions: questions.length,
-        correctAnswers: correctCount,
-        incorrectAnswers: questions.length - correctCount,
+        correctAnswers: calculatedCorrectCount,
+        incorrectAnswers: calculatedIncorrectCount,
         selectedAnswers,
         questions,
         timeTaken: timeSpent 
       };
 
+      // Simpan ke localStorage untuk ditampilkan di halaman Result
       localStorage.setItem('quizResults', JSON.stringify(resultsForUI));
+      
       setIsSubmitting(false);
-      navigate('/result');
+      
+      // Navigate hanya jika request sukses atau minimal data ada
+      if (isRequestSuccessful || questions.length > 0) {
+        navigate('/result');
+      }
     }
   };
 
@@ -259,7 +272,7 @@ const Quiz: React.FC = () => {
         <div className="bg-white p-8 rounded-3xl shadow-xl z-10 text-center">
            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto mb-4"></div>
            <p className="text-gray-600 font-bold">
-             {isSubmitting ? "Menyimpan Jawaban ke Database..." : "Memuat Data Quiz..."}
+             {isSubmitting ? "Menilai Jawaban..." : "Memuat Data Quiz..."}
            </p>
         </div>
       </div>
@@ -293,7 +306,7 @@ const Quiz: React.FC = () => {
         </div>
       )}
 
-      {/* --- MODAL KONFIRMASI MULAI (BARU) --- */}
+      {/* --- MODAL KONFIRMASI MULAI --- */}
       {showStartConfirmation && !errorModal.show && (
         <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center px-4 animate-in fade-in duration-300">
           <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full text-center border-2 border-blue-100">
@@ -352,7 +365,7 @@ const Quiz: React.FC = () => {
         </div>
       )}
 
-      {/* Konten Utama Quiz (Hanya tampil jika tidak ada error & sudah konfirmasi mulai) */}
+      {/* Konten Utama Quiz */}
       {!errorModal.show && !showStartConfirmation && questions.length > 0 && (
       <div className="max-w-4xl mx-auto relative z-10">
         
@@ -573,7 +586,7 @@ const Quiz: React.FC = () => {
                 disabled={!allAnswered || isSubmitting}
                 className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-6 md:px-8 py-2 md:py-3 rounded-full font-bold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-sm md:text-base"
               >
-                {isSubmitting ? 'Menyimpan...' : 'Submit Quiz'}
+                {isSubmitting ? 'Menilai...' : 'Submit Quiz'}
               </Button>
             ) : (
               <Button
