@@ -37,20 +37,17 @@ const ManageAnswers: React.FC = () => {
   const fetchAnswersData = async () => {
     try {
       setLoading(true);
-      // Menggunakan method dari class answerService yang baru
-      // questionId! aman digunakan karena sudah dicek di useEffect
       const result = await answerService.getAnswers(questionId!);
       
       if (result.success && result.data) {
-        setAnswers(result.data);
+        // --- PERBAIKAN DI SINI ---
+        // Kita urutkan manual berdasarkan ID agar posisinya tidak lompat-lompat setelah update
+        const sortedAnswers = result.data.sort((a, b) => a.id - b.id);
+        setAnswers(sortedAnswers);
       }
     } catch (err: any) {
-      // Menangkap error spesifik dari service (termasuk 401 Unauthorized)
       const errorMsg = err instanceof Error ? err.message : "Gagal memuat data jawaban dari server.";
       setStatusMessage({ type: 'error', text: errorMsg });
-      
-      // Opsional: Jika ingin redirect otomatis saat sesi habis
-      // if (errorMsg.includes("Sesi berakhir")) navigate('/login');
     } finally {
       setLoading(false);
     }
@@ -63,7 +60,6 @@ const ManageAnswers: React.FC = () => {
     setStatusMessage(null);
 
     try {
-      // Mengirim data jawaban yang sudah diedit ke server
       const result = await answerService.updateAnswers(questionId, answers);
 
       if (result.success) {

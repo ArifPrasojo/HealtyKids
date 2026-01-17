@@ -53,6 +53,12 @@ class AnswerService {
         throw new Error(data.message || 'Gagal mengambil jawaban');
       }
 
+      // --- PERBAIKAN DI SERVICE ---
+      // Memastikan data diurutkan berdasarkan ID sebelum dikembalikan ke component
+      if (data.data && Array.isArray(data.data)) {
+        data.data.sort((a: Answer, b: Answer) => a.id - b.id);
+      }
+
       return data;
     } catch (error) {
       throw error;
