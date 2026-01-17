@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { profileService } from '../../services/api/profileService';
 import type { ProfileData, QuizResultData, AdminQuizResultData } from '../../services/api/profileService';
+// --- IMPORT DATA REFRENSI ---
+import { referenceList } from '../../utils/refrensi';
 
 interface ProfileDropdownProps {
   onLogout?: () => void;
@@ -12,7 +14,7 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
   onLogout,
   role
 }) => {
-  // --- STATE EXISTING ---
+  // --- STATE ---
   const [isOpen, setIsOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -22,13 +24,16 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
   const [quizHistory, setQuizHistory] = useState<(QuizResultData | AdminQuizResultData)[]>([]); 
   const [isQuizLoading, setIsQuizLoading] = useState(false);
 
-  // --- STATE BARU: SEARCH & FILTER ---
+  // --- STATE REFRENSI ---
+  const [isRefModalOpen, setIsRefModalOpen] = useState(false);
+
+  // --- STATE SEARCH & FILTER ---
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterType, setFilterType] = useState('all'); // 'all', 'high', 'medium', 'low'
+  const [filterType, setFilterType] = useState('all');
 
   const isAdmin = role.toLowerCase().includes('admin');
 
-  // Data Profile Utama
+  // Data Profile
   const [profile, setProfile] = useState<ProfileData>({
     name: isAdmin ? 'Administrator' : 'Siswa',
     username: ''
@@ -70,7 +75,7 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // --- LOGIKA TOMBOL ---
+  // --- ACTIONS ---
   const openEditModal = () => {
     setFormData(profile);
     setIsOpen(false);
@@ -81,8 +86,6 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
     setIsOpen(false);
     setIsQuizModalOpen(true);
     setIsQuizLoading(true);
-    
-    // Reset filter saat modal dibuka
     setSearchTerm('');
     setFilterType('all');
 
@@ -96,12 +99,15 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
     }
   };
 
+  const openRefModal = () => {
+    setIsOpen(false);
+    setIsRefModalOpen(true);
+  };
+
   const handleLogout = () => {
     setIsOpen(false);
-
     localStorage.clear();
     sessionStorage.clear();
-
     if (onLogout) onLogout();
     window.location.href = '/login';
   };
@@ -123,24 +129,20 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
     }
   };
 
-  // --- LOGIKA FILTERING DATA ---
+  // --- FILTER LOGIC ---
   const filteredHistory = quizHistory.filter((item) => {
-    // 1. Filter Search (Nama Siswa atau Nama Quiz)
     const searchLower = searchTerm.toLowerCase();
-    
     let matchesSearch = false;
+    
     if (isAdmin) {
-      // Jika Admin: Cari berdasarkan Nama Siswa ATAU Nama Quiz
       const studentName = (item as AdminQuizResultData).studentName?.toLowerCase() || '';
       const quizName = item.quizName?.toLowerCase() || '';
       matchesSearch = studentName.includes(searchLower) || quizName.includes(searchLower);
     } else {
-      // Jika Siswa: Cari berdasarkan Nama Quiz
       const quizName = item.quizName?.toLowerCase() || '';
       matchesSearch = quizName.includes(searchLower);
     }
 
-    // 2. Filter Kategori Nilai
     let matchesFilter = true;
     if (filterType === 'high') matchesFilter = item.score >= 80;
     else if (filterType === 'medium') matchesFilter = item.score >= 60 && item.score < 80;
@@ -149,17 +151,100 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
     return matchesSearch && matchesFilter;
   });
 
-  // Helper Variables Styling
+  // --- PERBAIKAN FORMATTER WAKTU ---
+  const formatDate = (dateString: string) => {
+    if (!dateString) return '-';
+
+    // FIX: Hapus karakter 'Z' (UTC indicator) atau '+00:00'
+    // Ini memaksa browser membaca string sebagai "Local Time" (apa adanya),
+    // bukan mengonversinya dari UTC ke WIB lagi (yang bikin jam jadi maju 7 jam).
+    const localString = dateString.replace('Z', '').replace(/\+00:00$/, '');
+
+    const date = new Date(localString);
+    
+    if (isNaN(date.getTime())) return '-';
+
+    return new Intl.DateTimeFormat('id-ID', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    }).format(date).replace(/\./g, ':');
+  };
+
+  // --- EXPORT EXCEL (HTML TABLE METHOD) ---
+  const handleExportExcel = () => {
+    if (!filteredHistory || filteredHistory.length === 0) {
+      alert("Tidak ada data untuk diexport");
+      return;
+    }
+
+    let tableRows = '';
+    
+    filteredHistory.forEach((item, index) => {
+      const studentName = (item as AdminQuizResultData).studentName || '-';
+      const quizName = item.quizName || '-';
+      const score = item.score;
+      // Gunakan formatDate yang sudah diperbaiki
+      const time = formatDate(item.finishedAt);
+      
+      const bgRow = index % 2 === 0 ? '#ffffff' : '#f9fafb';
+      const scoreColor = score >= 80 ? '#16a34a' : (score >= 60 ? '#ca8a04' : '#dc2626');
+
+      tableRows += `
+        <tr style="background-color: ${bgRow};">
+          <td style="padding: 10px; border: 1px solid #d1d5db; text-align: center;">${index + 1}</td>
+          <td style="padding: 10px; border: 1px solid #d1d5db;">${studentName}</td>
+          <td style="padding: 10px; border: 1px solid #d1d5db;">${quizName}</td>
+          <td style="padding: 10px; border: 1px solid #d1d5db; text-align: center; color: ${scoreColor}; font-weight: bold;">${score}</td>
+          <td style="padding: 10px; border: 1px solid #d1d5db; text-align: center;">${time}</td>
+        </tr>
+      `;
+    });
+
+    const tableTemplate = `
+      <html xmlns:x="urn:schemas-microsoft-com:office:excel">
+        <head>
+          <meta http-equiv="content-type" content="text/plain; charset=UTF-8"/>
+        </head>
+        <body>
+          <h2 style="font-family: Arial, sans-serif; color: #4338ca;">Laporan Hasil Quiz Siswa</h2>
+          <p style="font-family: Arial, sans-serif;">Diexport pada: ${new Date().toLocaleString('id-ID', { hour12: false }).replace(/\./g, ':')}</p>
+          <br/>
+          <table border="1" style="border-collapse: collapse; width: 100%; font-family: Arial, sans-serif;">
+            <thead>
+              <tr style="background-color: #4f46e5; color: #ffffff;">
+                <th style="padding: 12px; border: 1px solid #3730a3; width: 50px;">No</th>
+                <th style="padding: 12px; border: 1px solid #3730a3; width: 250px;">Nama Siswa</th>
+                <th style="padding: 12px; border: 1px solid #3730a3; width: 250px;">Nama Quiz</th>
+                <th style="padding: 12px; border: 1px solid #3730a3; width: 80px;">Nilai</th>
+                <th style="padding: 12px; border: 1px solid #3730a3; width: 150px;">Waktu Selesai</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${tableRows}
+            </tbody>
+          </table>
+        </body>
+      </html>
+    `;
+
+    const blob = new Blob([tableTemplate], { type: "application/vnd.ms-excel" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `Laporan_Hasil_Quiz_${new Date().toISOString().slice(0,10)}.xls`);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const badgeColor = !isAdmin ? 'bg-green-50 text-green-600' : 'bg-indigo-50 text-indigo-600';
   const badgeText = !isAdmin ? 'Siswa' : 'Administrator';
   const avatarBg = !isAdmin ? 'from-green-500 to-emerald-600' : 'from-indigo-600 to-blue-600';
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('id-ID', { 
-      day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' 
-    });
-  };
 
   return (
     <>
@@ -198,28 +283,22 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
             </div>
 
             <div className="py-2">
-              <button 
-                onClick={openEditModal}
-                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-3"
-              >
+              <button onClick={openEditModal} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-3">
                 <span className="p-1 bg-blue-50 rounded text-blue-600">✎</span>
                 <span>Edit Profil</span>
               </button>
-
-              <button 
-                onClick={openQuizHistoryModal}
-                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-3"
-              >
+              <button onClick={openQuizHistoryModal} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-3">
                 <span className="p-1 bg-yellow-50 rounded text-yellow-600">🏆</span>
                 <span>{isAdmin ? 'Hasil Quiz Siswa' : 'Riwayat Quiz'}</span>
+              </button>
+              <button onClick={openRefModal} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-3">
+                <span className="p-1 bg-purple-50 rounded text-purple-600">📚</span>
+                <span>Daftar Pustaka</span>
               </button>
             </div>
 
             <div className="py-2 border-t border-gray-100">
-              <button 
-                onClick={handleLogout}
-                className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center space-x-3"
-              >
+              <button onClick={handleLogout} className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center space-x-3">
                 <span className="p-1 bg-red-50 rounded text-red-600">🚪</span>
                 <span>Keluar</span>
               </button>
@@ -234,154 +313,129 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
           <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden scale-100">
             <div className="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center">
               <h3 className="text-lg font-bold text-gray-800">Edit Profil</h3>
-              <button 
-                onClick={() => setIsEditModalOpen(false)}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                ✕
-              </button>
+              <button onClick={() => setIsEditModalOpen(false)} className="text-gray-400 hover:text-gray-600">✕</button>
             </div>
             <form onSubmit={handleSaveProfile} className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap</label>
-                <input 
-                  type="text" 
-                  required
-                  value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-                  placeholder="Nama Anda"
-                />
+                <input type="text" required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" placeholder="Nama Anda" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
-                <input 
-                  type="text" 
-                  required
-                  value={formData.username}
-                  onChange={(e) => setFormData({...formData, username: e.target.value})}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-                  placeholder="Username login"
-                />
+                <input type="text" required value={formData.username} onChange={(e) => setFormData({...formData, username: e.target.value})} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" placeholder="Username login" />
               </div>
               <div className="pt-4 flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => setIsEditModalOpen(false)}
-                  className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition-colors"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="flex-1 px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg font-medium transition-colors disabled:opacity-70 disabled:cursor-not-allowed flex justify-center items-center"
-                >
-                  {isLoading ? 'Menyimpan...' : 'Simpan'}
-                </button>
+                <button type="button" onClick={() => setIsEditModalOpen(false)} className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium">Batal</button>
+                <button type="submit" disabled={isLoading} className="flex-1 px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg font-medium disabled:opacity-70">{isLoading ? 'Menyimpan...' : 'Simpan'}</button>
               </div>
             </form>
           </div>
         </div>
       )}
 
-      {/* --- MODAL QUIZ RESULT (ADMIN & SISWA) --- */}
+      {/* --- MODAL QUIZ RESULT --- */}
       {isQuizModalOpen && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
           <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden scale-100 flex flex-col max-h-[80vh]">
             
-            {/* Header Modal */}
             <div className="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center shrink-0">
               <h3 className="text-lg font-bold text-gray-800">
                 {isAdmin ? 'Hasil Pengerjaan Siswa' : 'Riwayat Quiz Saya'}
               </h3>
-              <button 
-                onClick={() => setIsQuizModalOpen(false)}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                ✕
-              </button>
+              <button onClick={() => setIsQuizModalOpen(false)} className="text-gray-400 hover:text-gray-600">✕</button>
             </div>
 
-            {/* --- AREA SEARCH & FILTER (BARU) --- */}
-            <div className="px-6 py-3 bg-gray-50/50 border-b border-gray-100 flex gap-2">
-              <div className="relative flex-1">
+            <div className="px-6 py-3 bg-white border-b border-gray-100 flex flex-wrap gap-2 shadow-sm z-10">
+              <div className="relative flex-1 min-w-[150px]">
                 <span className="absolute left-3 top-2.5 text-gray-400">🔍</span>
                 <input 
                   type="text"
-                  placeholder={isAdmin ? "Cari siswa atau quiz..." : "Cari nama quiz..."}
-                  className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400"
+                  placeholder={isAdmin ? "Cari siswa/quiz..." : "Cari nama quiz..."}
+                  className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
               <select 
-                className="px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 bg-white text-gray-600"
+                className="px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-600"
                 value={filterType}
                 onChange={(e) => setFilterType(e.target.value)}
               >
                 <option value="all">Semua Nilai</option>
-                <option value="high">Nilai Tinggi (≥80)</option>
-                <option value="medium">Nilai Sedang (60-79)</option>
-                <option value="low">Nilai Rendah (&lt;60)</option>
+                <option value="high">≥ 80</option>
+                <option value="medium">60 - 79</option>
+                <option value="low">&lt; 60</option>
               </select>
+
+              {/* TOMBOL EXPORT EXCEL (HANYA ADMIN) */}
+              {isAdmin && (
+                <button
+                  onClick={handleExportExcel}
+                  className="px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-1 shadow-sm"
+                  title="Export data ke Excel (.xls)"
+                >
+                  <span className="text-xs">📥</span> <span className="hidden sm:inline">Excel</span>
+                </button>
+              )}
             </div>
 
-            {/* List Quiz */}
-            <div className="p-6 overflow-y-auto custom-scrollbar">
+            <div className="p-6 overflow-y-auto custom-scrollbar bg-gray-50/50">
               {isQuizLoading ? (
                 <div className="flex flex-col items-center justify-center py-10">
-                  <span className="w-8 h-8 border-4 border-blue-100 border-t-blue-500 rounded-full animate-spin mb-3"></span>
-                  <p className="text-gray-500 text-sm">Memuat data...</p>
+                  <span className="w-6 h-6 border-2 border-gray-200 border-t-blue-500 rounded-full animate-spin mb-2"></span>
+                  <p className="text-gray-400 text-xs">Memuat data...</p>
                 </div>
               ) : filteredHistory.length === 0 ? (
-                <div className="text-center py-10 text-gray-500">
-                  <p>Data tidak ditemukan.</p>
+                <div className="text-center py-12 text-gray-400">
+                  <p className="text-sm">Tidak ada riwayat quiz ditemukan.</p>
                 </div>
               ) : (
                 <div className="space-y-3">
                   {filteredHistory.map((item, index) => {
                     const studentName = (item as AdminQuizResultData).studentName; 
                     const quizDesc = (item as QuizResultData).quizDescription;
+                    
+                    let scoreColor = 'text-gray-600';
+                    let borderColor = 'border-gray-200';
+                    
+                    if (item.score >= 80) { scoreColor = 'text-green-600'; borderColor = 'hover:border-green-300'; }
+                    else if (item.score >= 60) { scoreColor = 'text-yellow-600'; borderColor = 'hover:border-yellow-300'; }
+                    else { scoreColor = 'text-red-500'; borderColor = 'hover:border-red-300'; }
 
                     return (
-                      <div key={index} className="border border-gray-100 rounded-xl p-4 bg-gray-50 hover:bg-white hover:shadow-md transition-all">
-                        <div className="flex justify-between items-start">
-                          <div>
+                      <div key={index} className={`bg-white border border-gray-200 rounded-xl p-4 transition-all duration-200 ${borderColor} hover:shadow-sm`}>
+                        <div className="flex justify-between items-center gap-4">
+                          
+                          {/* Left: Info */}
+                          <div className="flex-1 min-w-0">
                             {isAdmin ? (
-                              // --- TAMPILAN ADMIN ---
-                              <>
-                                <div className="flex items-center gap-2 mb-1">
-                                    <span className="text-xs font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
-                                        {studentName}
-                                    </span>
-                                </div>
-                                <h4 className="font-bold text-gray-800">{item.quizName}</h4>
-                                <p className="text-[10px] text-gray-400 mt-1">
-                                  Selesai: {formatDate(item.finishedAt)}
-                                </p>
-                              </>
+                              <div className="flex flex-col">
+                                <span className="text-xs font-semibold text-gray-500 mb-0.5">{studentName}</span>
+                                <h4 className="font-bold text-gray-800 text-sm truncate">{item.quizName}</h4>
+                              </div>
                             ) : (
-                              // --- TAMPILAN SISWA ---
-                              <>
-                                <h4 className="font-bold text-gray-800">{item.quizName}</h4>
-                                <p className="text-xs text-gray-500 mt-1 line-clamp-1">{quizDesc || 'Quiz interaktif'}</p>
-                                <p className="text-[10px] text-gray-400 mt-2">
-                                  Selesai: {formatDate(item.finishedAt)}
-                                </p>
-                              </>
+                              <div className="flex flex-col">
+                                <h4 className="font-bold text-gray-800 text-sm truncate">{item.quizName}</h4>
+                                <p className="text-xs text-gray-500 line-clamp-1 mt-0.5">{quizDesc || 'Quiz interaktif'}</p>
+                              </div>
                             )}
+                            
+                            <div className="flex items-center gap-1.5 mt-2 text-gray-400 text-[11px]">
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                              <span>{formatDate(item.finishedAt)}</span>
+                            </div>
                           </div>
 
-                          {/* Score Badge */}
-                          <div className={`flex flex-col items-center justify-center w-12 h-12 rounded-lg shrink-0 ml-3 ${
-                              item.score >= 80 ? 'bg-green-100 text-green-700' : 
-                              item.score >= 60 ? 'bg-yellow-100 text-yellow-700' : 
-                              'bg-red-100 text-red-700'
-                            }`}>
-                            <span className="text-lg font-bold">{item.score}</span>
-                            <span className="text-[9px] font-medium">Nilai</span>
+                          {/* Right: Score */}
+                          <div className="flex flex-col items-end pl-3 border-l border-gray-100">
+                             <span className={`text-2xl font-bold ${scoreColor} leading-none`}>
+                                {item.score}
+                             </span>
+                             <span className="text-[10px] text-gray-400 font-medium mt-1 uppercase tracking-wider">
+                                Nilai
+                             </span>
                           </div>
+
                         </div>
                       </div>
                     );
@@ -390,13 +444,47 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
               )}
             </div>
             
-            {/* Footer Modal */}
             <div className="bg-gray-50 px-6 py-3 border-t border-gray-100 shrink-0 text-right">
-                <button
-                  type="button"
-                  onClick={() => setIsQuizModalOpen(false)}
-                  className="px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-lg text-sm font-medium transition-colors"
-                >
+                <button onClick={() => setIsQuizModalOpen(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-lg text-sm font-medium transition-colors">
+                  Tutup
+                </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* --- MODAL REFRENSI --- */}
+      {isRefModalOpen && (
+        <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden scale-100 flex flex-col max-h-[85vh]">
+            <div className="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center shrink-0">
+              <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                <span className="text-purple-600">📚</span> Daftar Pustaka & Referensi
+              </h3>
+              <button onClick={() => setIsRefModalOpen(false)} className="text-gray-400 hover:text-gray-600">✕</button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto custom-scrollbar bg-white">
+               <div className="space-y-3">
+                  {referenceList.map((ref, index) => (
+                    <div key={index} className="group relative p-4 bg-white border border-gray-100 rounded-xl hover:border-purple-200 hover:shadow-sm transition-all duration-200">
+                       <div className="flex gap-4 items-start">
+                          <div className="shrink-0 w-8 h-8 flex items-center justify-center rounded-lg bg-purple-50 text-purple-600 font-bold text-xs group-hover:bg-purple-600 group-hover:text-white transition-colors duration-200">
+                             {index + 1}
+                          </div>
+                          <div className="flex-1">
+                             <p className="text-sm text-gray-600 leading-relaxed group-hover:text-gray-900 transition-colors">
+                                {ref}
+                             </p>
+                          </div>
+                       </div>
+                    </div>
+                  ))}
+               </div>
+            </div>
+
+            <div className="bg-gray-50 px-6 py-3 border-t border-gray-100 shrink-0 text-right">
+                <button onClick={() => setIsRefModalOpen(false)} className="px-4 py-2 text-white bg-purple-600 hover:bg-purple-700 rounded-lg text-sm font-medium transition-colors shadow-sm shadow-purple-200">
                   Tutup
                 </button>
             </div>
