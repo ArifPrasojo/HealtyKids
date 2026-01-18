@@ -1,4 +1,4 @@
-import { pgTable, serial, integer, timestamp, boolean } from "drizzle-orm/pg-core";
+import { pgTable, serial, integer, timestamp, boolean, varchar } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { users } from "./user.schema";
 import { quiz } from "./quiz.schema";
@@ -18,6 +18,8 @@ export const quizAttempt = pgTable("quiz_attempt", {
             onDelete: "cascade",
             onUpdate: "cascade"
         }),
+    quizName: varchar("quizName", { length: 100 }).notNull(),
+    quizDescription: varchar("quizDescription", { length: 150 }),
     score: integer("score"),
     finishedAt: timestamp("finished_at").notNull().defaultNow()
 });

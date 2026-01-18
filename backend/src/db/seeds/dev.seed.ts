@@ -42,7 +42,7 @@ export async function runSeed() {
             duration: 30,
             title: "Quiz",
             description: "Deskripsi quiz",
-            isActive: true
+            isActive: false
         })
         .returning()
 
