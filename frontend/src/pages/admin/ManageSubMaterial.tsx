@@ -453,15 +453,17 @@ const ManageSubMaterial = () => {
         {/* --- MODAL FORM --- */}
         {isFormOpen && (
           <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-fade-in">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl border border-gray-200 overflow-hidden transform transition-all scale-100 flex flex-col max-h-[90vh]">
-              <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gradient-to-r from-gray-50 to-white shrink-0">
-                <h3 className="font-bold text-gray-800">{editingItem ? 'Edit Sub Materi' : 'Tambah Sub Materi'}</h3>
-                <button onClick={handleReset}><X size={24} className="text-gray-400" /></button>
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl border border-gray-200 overflow-hidden transform transition-all scale-100 flex flex-col max-h-[95vh]">
+              <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gradient-to-r from-blue-50 to-indigo-50 shrink-0">
+                <h3 className="text-xl font-bold text-gray-800">{editingItem ? 'Edit Sub Materi' : 'Tambah Sub Materi'}</h3>
+                <button onClick={handleReset} className="hover:bg-white/50 p-2 rounded-lg transition-colors">
+                  <X size={24} className="text-gray-600" />
+                </button>
               </div>
               
-              <div className="p-6 space-y-6 overflow-y-auto">
+              <div className="p-6 overflow-y-auto">
                 {actionError && (
-                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-start gap-3 animate-fade-in shadow-sm">
+                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-start gap-3 animate-fade-in shadow-sm mb-6">
                       <AlertCircle size={20} className="mt-0.5 shrink-0" />
                       <div>
                         <p className="font-semibold text-sm">Gagal Menyimpan</p>
@@ -470,97 +472,115 @@ const ManageSubMaterial = () => {
                   </div>
                 )}
 
-                <div>
-                  <label className="block text-base font-semibold text-gray-800 mb-3">Judul</label>
-                  <input 
-                    type="text" 
-                    value={formData.title}
-                    onChange={(e) => setFormData({...formData, title: e.target.value})}
-                    className="w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-base shadow-sm"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-base font-semibold text-gray-800 mb-3">Tipe Konten</label>
-                  <div className="flex gap-4">
-                    <label className="flex items-center gap-2 cursor-pointer border px-3 py-2 rounded hover:bg-gray-50">
+                {/* Grid Layout: Side by Side */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Kolom Kiri: Judul, Tipe, dan Media */}
+                  <div className="space-y-5">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Judul <span className="text-red-500">*</span></label>
                       <input 
-                        type="radio" 
-                        checked={formData.contentCategory === 'video'} 
-                        onChange={() => setFormData({...formData, contentCategory: 'video', contentUrl: ''})}
+                        type="text" 
+                        value={formData.title}
+                        onChange={(e) => setFormData({...formData, title: e.target.value})}
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-sm shadow-sm"
+                        placeholder="Masukkan judul sub materi"
                       />
-                      <Video size={16} /> Video
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer border px-3 py-2 rounded hover:bg-gray-50">
-                      <input 
-                        type="radio" 
-                        checked={formData.contentCategory === 'photo'} 
-                        onChange={() => setFormData({...formData, contentCategory: 'photo', contentUrl: ''})}
-                      />
-                      <ImageIcon size={16} /> Foto
-                    </label>
-                  </div>
-                </div>
+                    </div>
 
-                <div>
-                  <label className="block text-base font-semibold text-gray-800 mb-3">
-                    {formData.contentCategory === 'video' ? 'Link Video Youtube (Opsional)' : 'Upload Foto (Opsional)'}
-                  </label>
-                  
-                  {formData.contentCategory === 'video' ? (
-                    <input 
-                      type="url" 
-                      value={formData.contentUrl}
-                      onChange={(e) => setFormData({...formData, contentUrl: e.target.value})}
-                      className="w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-base shadow-sm"
-                      placeholder="https://www.youtube.com/..."
-                    />
-                  ) : (
-                    <div className="border-2 border-dashed rounded-xl p-6 text-center hover:bg-gray-50 transition">
-                      <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" id="fileUpload" />
-                      <label htmlFor="fileUpload" className="cursor-pointer flex flex-col items-center gap-2 text-gray-500">
-                        {formData.contentUrl ? (
-                           <img 
-                             src={getFullImageUrl(formData.contentUrl)} 
-                             alt="Preview" 
-                             className="h-32 object-contain mx-auto"
-                             onError={(e) => { (e.currentTarget as HTMLImageElement).src = "https://placehold.co/150?text=Error"; }}
-                           />
-                        ) : (
-                          <>
-                            <UploadCloud size={32} />
-                            <span className="text-sm">Klik untuk upload foto</span>
-                          </>
-                        )}
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Tipe Konten</label>
+                      <div className="flex gap-3">
+                        <label className="flex-1 flex items-center justify-center gap-2 cursor-pointer border-2 px-3 py-2.5 rounded-xl hover:bg-blue-50 hover:border-blue-300 transition-all">
+                          <input 
+                            type="radio" 
+                            checked={formData.contentCategory === 'video'} 
+                            onChange={() => setFormData({...formData, contentCategory: 'video', contentUrl: ''})}
+                            className="w-4 h-4"
+                          />
+                          <Video size={16} className="text-red-600" /> 
+                          <span className="font-medium text-sm">Video</span>
+                        </label>
+                        <label className="flex-1 flex items-center justify-center gap-2 cursor-pointer border-2 px-3 py-2.5 rounded-xl hover:bg-blue-50 hover:border-blue-300 transition-all">
+                          <input 
+                            type="radio" 
+                            checked={formData.contentCategory === 'photo'} 
+                            onChange={() => setFormData({...formData, contentCategory: 'photo', contentUrl: ''})}
+                            className="w-4 h-4"
+                          />
+                          <ImageIcon size={16} className="text-blue-600" /> 
+                          <span className="font-medium text-sm">Foto</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        {formData.contentCategory === 'video' ? 'Link Video Youtube (Opsional)' : 'Upload Foto (Opsional)'}
                       </label>
-                      {formData.contentUrl && (
-                        <button 
-                          onClick={() => document.getElementById('fileUpload')?.click()} 
-                          className="text-xs text-blue-600 mt-2 underline"
-                        >
-                          Ganti Foto
-                        </button>
+                      
+                      {formData.contentCategory === 'video' ? (
+                        <div className="border-2 border-dashed border-gray-300 rounded-xl p-5 text-center hover:bg-gray-50 hover:border-blue-400 transition min-h-[180px] flex flex-col justify-center">
+                          <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <Video size={28} className="text-gray-400" />
+                          </div>
+                          <input 
+                            type="url" 
+                            value={formData.contentUrl}
+                            onChange={(e) => setFormData({...formData, contentUrl: e.target.value})}
+                            className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-sm shadow-sm"
+                            placeholder="https://www.youtube.com/..."
+                          />
+                          <p className="text-xs text-gray-500 mt-2">Paste link video Youtube</p>
+                        </div>
+                      ) : (
+                        <div className="border-2 border-dashed border-gray-300 rounded-xl p-5 text-center hover:bg-gray-50 hover:border-blue-400 transition min-h-[180px]">
+                          <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" id="fileUpload" />
+                          <label htmlFor="fileUpload" className="cursor-pointer flex flex-col items-center gap-3 text-gray-500">
+                            {formData.contentUrl ? (
+                               <img 
+                                 src={getFullImageUrl(formData.contentUrl)} 
+                                 alt="Preview" 
+                                 className="h-32 w-full object-contain mx-auto rounded-lg"
+                                 onError={(e) => { (e.currentTarget as HTMLImageElement).src = "https://placehold.co/150?text=Error"; }}
+                               />
+                            ) : (
+                              <>
+                                <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center">
+                                  <UploadCloud size={28} className="text-gray-400" />
+                                </div>
+                                <div>
+                                  <p className="text-sm font-medium text-gray-700">Klik untuk upload foto</p>
+                                  <p className="text-xs text-gray-500 mt-1">PNG, JPG hingga 2MB</p>
+                                </div>
+                              </>
+                            )}
+                          </label>
+                          {formData.contentUrl && (
+                            <button 
+                              onClick={() => document.getElementById('fileUpload')?.click()} 
+                              className="text-xs text-blue-600 mt-2 underline hover:text-blue-700 font-medium"
+                            >
+                              Ganti Foto
+                            </button>
+                          )}
+                        </div>
                       )}
                     </div>
-                  )}
-                </div>
+                  </div>
 
-                <div>
-                  <label className="block text-base font-semibold text-gray-800 mb-3">Deskripsi</label>
-
-                  <div className="bg-white rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500/20 transition-all shadow-sm
-                    [&_.ql-toolbar]:border-b-gray-200 
-                    [&_.ql-container]:h-[300px] 
-                    [&_.ql-editor]:h-full 
-                    [&_.ql-editor]:overflow-y-auto">
-
-                    <ReactQuill
-                      theme="snow"
-                      value={formData.content}
-                      onChange={(content) => setFormData({ ...formData, content: content })}
-                      modules={quillModules}
-                      className="mb-0"
-                    />
+                  {/* Kolom Kanan: Editor Deskripsi */}
+                  <div className="flex flex-col">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Deskripsi Lengkap</label>
+                    <div className="bg-white rounded-xl overflow-hidden border-2 border-gray-300 focus-within:ring-2 focus-within:ring-blue-500/30 focus-within:border-blue-500 transition-all shadow-sm h-[530px] flex flex-col">
+                      <ReactQuill
+                        theme="snow"
+                        value={formData.content}
+                        onChange={(content) => setFormData({ ...formData, content: content })}
+                        modules={quillModules}
+                        className="h-full flex flex-col [&_.ql-toolbar]:shrink-0 [&_.ql-toolbar]:bg-gray-50 [&_.ql-toolbar]:border-b-2 [&_.ql-toolbar]:border-gray-200 [&_.ql-container]:flex-1 [&_.ql-container]:overflow-hidden [&_.ql-editor]:h-full [&_.ql-editor]:overflow-y-auto [&_.ql-editor]:text-base [&_.ql-editor]:leading-relaxed [&_.ql-editor]:p-4"
+                        placeholder="Tulis deskripsi lengkap untuk sub materi ini..."
+                      />
+                    </div>
                   </div>
                 </div>
 
