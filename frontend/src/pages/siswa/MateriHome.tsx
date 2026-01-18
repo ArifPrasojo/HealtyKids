@@ -44,7 +44,10 @@ const MateriHome: React.FC<MateriHomeProps> = ({ onLogout }) => {
         const data = await materialService.getAllMaterials();
         
         // Transformasi data untuk kebutuhan UI (styling)
-        const formattedData = data.map((item, index) => {
+        // Pastikan data ada sebelum di-map
+        const safeData = Array.isArray(data) ? data : [];
+        
+        const formattedData = safeData.map((item, index) => {
           const style = styleAssets[index % styleAssets.length];
           return {
             ...item,
@@ -69,8 +72,6 @@ const MateriHome: React.FC<MateriHomeProps> = ({ onLogout }) => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ... (Sisa fungsi renderProgressBars, handleMateriClick, dan return JSX tetap sama)
-  
   const handleMateriClick = (materi: MateriCard) => {
     navigate(materi.route, { 
       state: { title: materi.title, description: materi.description } 
@@ -91,7 +92,6 @@ const MateriHome: React.FC<MateriHomeProps> = ({ onLogout }) => {
 
   return (
     <Layout onLogout={onLogout}>
-      {/* Konten Anda tetap sama */}
       <button
         onClick={() => navigate('/dashboard')}
         className="fixed bottom-6 left-6 z-50 bg-gradient-to-r from-purple-500/20 to-blue-600/20 backdrop-blur-sm border border-purple-300/30 text-purple-700 hover:from-purple-500/30 hover:to-blue-600/30 hover:border-purple-400/50 px-4 py-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center space-x-2"
@@ -121,6 +121,16 @@ const MateriHome: React.FC<MateriHomeProps> = ({ onLogout }) => {
                 <p className="text-sm">{errorMessage}</p>
                 <Button variant="secondary" onClick={() => window.location.reload()} className="mt-4">Coba Lagi</Button>
             </div>
+          ) : materiData.length === 0 ? (
+            /* --- MODIFIKASI: KONDISI MATERI KOSONG --- */
+            <div className="flex flex-col items-center justify-center py-16 bg-white/60 backdrop-blur-md rounded-3xl border border-white/40 shadow-sm text-center">
+                <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4 text-4xl shadow-inner">
+                   📂
+                </div>
+                <h3 className="text-xl font-bold text-gray-700">Materi Masih Kosong</h3>
+                <p className="text-gray-500 mt-2 max-w-md">Saat ini belum ada materi pembelajaran yang tersedia. Silakan cek kembali nanti.</p>
+            </div>
+            /* ---------------------------------------- */
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {materiData.map((materi) => (
