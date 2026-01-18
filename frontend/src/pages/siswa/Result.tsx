@@ -73,7 +73,7 @@ const Result: React.FC = () => {
   const scorePercentage = quizResults.score; 
 
   // Responsive circle size
-  const circleSize = window.innerWidth < 640 ? 120 : 160; 
+  const circleSize = window.innerWidth < 640 ? 120 : 140; 
   const radius = circleSize / 2 - 10; 
   const circumference = 2 * Math.PI * radius;
   const strokeDasharray = circumference;
@@ -86,13 +86,14 @@ const Result: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center p-4 md:p-6">
-      <div className="max-w-6xl w-full"> 
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center p-4 md:p-6 relative overflow-hidden">
+      <CloudBackground />
+      <div className="max-w-4xl w-full relative z-10"> 
         <div className="flex flex-col lg:flex-row gap-6 md:gap-8">
           {/* --- KARTU UTAMA (SKOR & STATISTIK) --- */}
-          <div className="bg-white rounded-2xl md:rounded-3xl shadow-xl p-4 md:p-8 flex-1 h-fit">
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl md:rounded-3xl shadow-xl p-3 md:p-6 flex-1 h-fit">
             {/* Header with Success Icon */}
-            <div className="text-center mb-6 md:mb-8">
+            <div className="text-center mb-4 md:mb-6">
               <div className="w-12 h-12 md:w-16 md:h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4">
                 <div className="w-4 h-4 md:w-6 md:h-6 bg-green-500 rounded-full flex items-center justify-center">
                   <svg className="w-3 h-3 md:w-4 md:h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -105,7 +106,7 @@ const Result: React.FC = () => {
             </div>
 
             {/* Score Circle using SVG */}
-            <div className="text-center mb-6 md:mb-8">
+            <div className="text-center mb-4 md:mb-6">
               <div className="relative inline-block mb-4 md:mb-6">
                 <svg width={circleSize} height={circleSize} className="transform -rotate-90">
                   {/* Background Circle */}
@@ -114,7 +115,7 @@ const Result: React.FC = () => {
                     cy={circleSize / 2}
                     r={radius}
                     stroke="#f3f4f6"
-                    strokeWidth="8"
+                    strokeWidth="6"
                     fill="transparent"
                   />
                   {/* Progress Circle */}
@@ -123,7 +124,7 @@ const Result: React.FC = () => {
                     cy={circleSize / 2}
                     r={radius}
                     stroke={getScoreStroke(scorePercentage)}
-                    strokeWidth="8"
+                    strokeWidth="6"
                     fill="transparent"
                     strokeDasharray={strokeDasharray}
                     strokeDashoffset={strokeDashoffset}
@@ -150,9 +151,9 @@ const Result: React.FC = () => {
             </div>
 
             {/* Statistics Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 mb-4 md:mb-6">
               {/* Correct Answers */}
-              <div className="text-center p-3 md:p-4 bg-green-50 rounded-xl md:rounded-2xl border border-green-200">
+              <div className="text-center p-2 md:p-3 bg-green-50 rounded-xl md:rounded-2xl border border-green-200">
                 <div className="flex items-center justify-center mb-2 md:mb-3">
                   <div className="w-3 h-3 md:w-4 md:h-4 bg-green-500 rounded-full mr-2"></div>
                   <span className="text-xs md:text-sm font-semibold text-gray-700">Benar</span>
@@ -162,7 +163,7 @@ const Result: React.FC = () => {
               </div>
 
               {/* Incorrect Answers */}
-              <div className="text-center p-3 md:p-4 bg-red-50 rounded-xl md:rounded-2xl border border-red-200">
+              <div className="text-center p-2 md:p-3 bg-red-50 rounded-xl md:rounded-2xl border border-red-200">
                 <div className="flex items-center justify-center mb-2 md:mb-3">
                   <div className="w-3 h-3 md:w-4 md:h-4 bg-red-500 rounded-full mr-2"></div>
                   <span className="text-xs md:text-sm font-semibold text-gray-700">Salah</span>
@@ -172,7 +173,7 @@ const Result: React.FC = () => {
               </div>
 
               {/* Time Taken */}
-              <div className="text-center p-3 md:p-4 bg-blue-50 rounded-xl md:rounded-2xl border border-blue-200 sm:col-span-2 lg:col-span-1">
+              <div className="text-center p-2 md:p-3 bg-blue-50 rounded-xl md:rounded-2xl border border-blue-200 sm:col-span-2 lg:col-span-1">
                 <div className="flex items-center justify-center mb-2 md:mb-3">
                   <div className="w-3 h-3 md:w-4 md:h-4 bg-blue-500 rounded-full mr-2"></div>
                   <span className="text-xs md:text-sm font-semibold text-gray-700">Waktu</span>

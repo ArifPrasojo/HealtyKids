@@ -4,6 +4,8 @@ import { profileService } from '../../services/api/profileService';
 import type { ProfileData, QuizResultData, AdminQuizResultData } from '../../services/api/profileService';
 // --- IMPORT DATA REFRENSI ---
 import { referenceList } from '../../utils/refrensi';
+// --- IMPORT ICONS ---
+import { Edit, Trophy, BookOpen, LogOut, X, Search, Download } from 'lucide-react';
 
 interface ProfileDropdownProps {
   onLogout?: () => void;
@@ -251,7 +253,7 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
       {/* --- NAVBAR ITEM --- */}
       <div className="relative z-50" ref={dropdownRef}>
         <div 
-          className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 rounded-xl px-2 py-2 md:px-3 transition-all duration-200"
+          className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 rounded-xl px-2 py-2 md:px-3 transition-all duration-200 hover:shadow-sm"
           onClick={() => setIsOpen(!isOpen)}
         >
           <div className="hidden md:flex flex-col items-end text-right">
@@ -271,9 +273,9 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
 
         {/* Dropdown Menu */}
         {isOpen && (
-          <div className="absolute right-0 mt-2 w-72 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 animate-in fade-in slide-in-from-top-2">
+          <div className="absolute right-0 mt-2 w-72 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 animate-in fade-in slide-in-from-top-2 duration-200">
             <div className="px-4 py-4 border-b border-gray-100 flex items-center space-x-3">
-              <div className={`w-10 h-10 bg-gradient-to-r ${avatarBg} rounded-full flex items-center justify-center text-white font-bold`}>
+              <div className={`w-10 h-10 bg-gradient-to-r ${avatarBg} rounded-full flex items-center justify-center text-white font-bold shadow-sm`}>
                 {profile.name ? profile.name.charAt(0).toUpperCase() : '?'}
               </div>
               <div className="overflow-hidden">
@@ -283,23 +285,23 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
             </div>
 
             <div className="py-2">
-              <button onClick={openEditModal} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-3">
-                <span className="p-1 bg-blue-50 rounded text-blue-600">✎</span>
+              <button onClick={openEditModal} className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 flex items-center space-x-3 transition-all duration-200 rounded-lg mx-2">
+                <span className="p-1.5 bg-blue-50 rounded-lg text-blue-600"><Edit size={16} /></span>
                 <span>Edit Profil</span>
               </button>
-              <button onClick={openQuizHistoryModal} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-3">
-                <span className="p-1 bg-yellow-50 rounded text-yellow-600">🏆</span>
+              <button onClick={openQuizHistoryModal} className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-yellow-50 hover:text-yellow-700 flex items-center space-x-3 transition-all duration-200 rounded-lg mx-2">
+                <span className="p-1.5 bg-yellow-50 rounded-lg text-yellow-600"><Trophy size={16} /></span>
                 <span>{isAdmin ? 'Hasil Quiz Siswa' : 'Riwayat Quiz'}</span>
               </button>
-              <button onClick={openRefModal} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-3">
-                <span className="p-1 bg-purple-50 rounded text-purple-600">📚</span>
+              <button onClick={openRefModal} className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-700 flex items-center space-x-3 transition-all duration-200 rounded-lg mx-2">
+                <span className="p-1.5 bg-purple-50 rounded-lg text-purple-600"><BookOpen size={16} /></span>
                 <span>Daftar Pustaka</span>
               </button>
             </div>
 
             <div className="py-2 border-t border-gray-100">
-              <button onClick={handleLogout} className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center space-x-3">
-                <span className="p-1 bg-red-50 rounded text-red-600">🚪</span>
+              <button onClick={handleLogout} className="w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 flex items-center space-x-3 transition-all duration-200 rounded-lg mx-2">
+                <span className="p-1.5 bg-red-50 rounded-lg text-red-600"><LogOut size={16} /></span>
                 <span>Keluar</span>
               </button>
             </div>
@@ -313,7 +315,7 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
           <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden scale-100">
             <div className="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center">
               <h3 className="text-lg font-bold text-gray-800">Edit Profil</h3>
-              <button onClick={() => setIsEditModalOpen(false)} className="text-gray-400 hover:text-gray-600">✕</button>
+              <button onClick={() => setIsEditModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
             </div>
             <form onSubmit={handleSaveProfile} className="p-6 space-y-4">
               <div>
@@ -342,12 +344,12 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
               <h3 className="text-lg font-bold text-gray-800">
                 {isAdmin ? 'Hasil Pengerjaan Siswa' : 'Riwayat Quiz Saya'}
               </h3>
-              <button onClick={() => setIsQuizModalOpen(false)} className="text-gray-400 hover:text-gray-600">✕</button>
+              <button onClick={() => setIsQuizModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
             </div>
 
             <div className="px-6 py-3 bg-white border-b border-gray-100 flex flex-wrap gap-2 shadow-sm z-10">
               <div className="relative flex-1 min-w-[150px]">
-                <span className="absolute left-3 top-2.5 text-gray-400">🔍</span>
+                <span className="absolute left-3 top-2.5 text-gray-400"><Search size={16} /></span>
                 <input 
                   type="text"
                   placeholder={isAdmin ? "Cari siswa/quiz..." : "Cari nama quiz..."}
@@ -374,7 +376,7 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
                   className="px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-1 shadow-sm"
                   title="Export data ke Excel (.xls)"
                 >
-                  <span className="text-xs">📥</span> <span className="hidden sm:inline">Excel</span>
+                  <Download size={14} /> <span className="hidden sm:inline">Excel</span>
                 </button>
               )}
             </div>
@@ -459,9 +461,9 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
           <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden scale-100 flex flex-col max-h-[85vh]">
             <div className="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center shrink-0">
               <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-                <span className="text-purple-600">📚</span> Daftar Pustaka & Referensi
+                <BookOpen className="text-purple-600" size={20} /> Daftar Pustaka & Referensi
               </h3>
-              <button onClick={() => setIsRefModalOpen(false)} className="text-gray-400 hover:text-gray-600">✕</button>
+              <button onClick={() => setIsRefModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
             </div>
             
             <div className="p-6 overflow-y-auto custom-scrollbar bg-white">
