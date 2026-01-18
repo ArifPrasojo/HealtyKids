@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '../../components/layouts/Layout';
+// Pastikan CSS Quill tetap diimport
 import 'react-quill-new/dist/quill.snow.css'; 
 
 import { 
@@ -25,7 +26,6 @@ const Materi: React.FC = () => {
   //Helper: Membersihkan Tag HTML untuk Preview Sidebar
   const stripHtml = (html: string) => {
      if (!html) return "Tidak ada deskripsi";
-     // Regex untuk menghapus semua tag HTML
      const tmp = html.replace(/<[^>]+>/g, '');
      return tmp || "Materi Pembelajaran";
   };
@@ -195,12 +195,9 @@ const Materi: React.FC = () => {
                                     </div>
                                     <div className="flex-1 min-w-0">
                                       <div className={`text-sm lg:text-base font-semibold truncate ${active ? 'text-green-700' : 'text-gray-700'}`}>{item.title}</div>
-                                      
-                                      {/* MODIFIKASI DISINI: Menampilkan cuplikan deskripsi (content) yang sudah dibersihkan dari HTML */}
                                       <div className="text-xs lg:text-sm text-gray-500 mt-1 truncate font-normal normal-case">
                                         {stripHtml(item.content)}
                                       </div>
-
                                     </div>
                                   </div>
                                 );
@@ -272,12 +269,33 @@ const Materi: React.FC = () => {
                           className="ql-editor !p-0 !overflow-visible prose prose-lg prose-slate max-w-none 
                           prose-headings:text-gray-800 
                           prose-p:text-gray-700 prose-p:leading-loose
-                          prose-img:rounded-xl prose-img:shadow-md prose-img:mx-auto prose-img:max-h-[500px]
                           prose-li:text-gray-700
                           prose-strong:text-gray-900 prose-strong:font-bold
+                          
+                          /* Hapus prose-img:mx-auto agar tidak memaksa semua gambar ke tengah */
+                          prose-img:rounded-xl prose-img:shadow-md prose-img:max-h-[500px]
+                          
+                          /* Support Video & Iframe */
                           [&_.ql-video]:w-full [&_.ql-video]:aspect-video [&_.ql-video]:rounded-xl
                           [&_iframe]:w-full [&_iframe]:aspect-video [&_iframe]:rounded-xl
-                          [&_.ql-align-center]:text-center [&_.ql-align-right]:text-right [&_.ql-align-justify]:text-justify"
+                          
+                          /* Support Alignment Text & Paragraph (P) */
+                          [&_.ql-align-center]:text-center 
+                          [&_.ql-align-right]:text-right 
+                          [&_.ql-align-justify]:text-justify
+
+                          /* PERBAIKAN: Support Image Alignment dari Quill/Resize Module */
+                          [&_img]:inline-block [&_img]:align-middle
+                          
+                          /* Jika gambar dibungkus <p class='ql-align-center'> (Tombol Align Toolbar) */
+                          [&_.ql-align-center>img]:!mx-auto [&_.ql-align-center>img]:!block
+                          
+                          /* Jika gambar punya inline style 'margin: auto' (Resize Module Handle) */
+                          [&_img[style*='margin:_auto']]:!mx-auto [&_img[style*='margin:_auto']]:!block
+                          
+                          /* Jika gambar punya float left/right */
+                          [&_img[style*='float:_left']]:mr-6 [&_img[style*='float:_left']]:mb-2
+                          [&_img[style*='float:_right']]:ml-6 [&_img[style*='float:_right']]:mb-2"
                           
                           dangerouslySetInnerHTML={{ __html: processedContent }}
                         />
