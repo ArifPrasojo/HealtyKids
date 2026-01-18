@@ -264,7 +264,7 @@ export const getQuizAttempt = async () => {
     const result = await db
         .select({
             studentName: users.name,
-            quizName: quiz.title,
+            quizName: quizAttempt.quizName,
             score: quizAttempt.score,
             finishedAt: quizAttempt.finishedAt
         })
@@ -326,6 +326,8 @@ export const quizStudentPost = async (user: any, data: quizStudentPostInput) => 
         const [attempt] = await tx
             .insert(quizAttempt)
             .values({
+                quizName: quizData.title,
+                quizDescription: quizData.description,
                 quizId: quizData.id,
                 studentId: studentData.id
             })
@@ -395,13 +397,12 @@ export const getQuizAttemptStudent = async (user: any) => {
     const studentData = await getDataStudent(sub)
     const result = await db
         .select({
-            quizName: quiz.title,
-            quizDescription: quiz.description,
+            quizName: quizAttempt.quizName,
+            quizDescription: quizAttempt.quizDescription,
             score: quizAttempt.score,
             finishedAt: quizAttempt.finishedAt
         })
         .from(quizAttempt)
-        .leftJoin(quiz, eq(quizAttempt.quizId, quiz.id))
         .where(eq(quizAttempt.studentId, studentData.id))
 
     return result
