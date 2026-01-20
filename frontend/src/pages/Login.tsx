@@ -203,7 +203,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 {/* Email Input */}
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                    Email / Username
+                    Username
                   </label>
                   <input
                     type="text" 

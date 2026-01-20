@@ -1,13 +1,11 @@
-// src/services/api/profileService.ts
-
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 export interface ProfileData {
   name: string;
   username: string;
+  password?: string; 
 }
 
-// Interface untuk Siswa (Response dari /quiz/result)
 export interface QuizResultData {
   quizName: string;
   quizDescription: string;
@@ -15,7 +13,6 @@ export interface QuizResultData {
   finishedAt: string;
 }
 
-// Interface untuk Admin (Response dari /admin/quiz/result)
 export interface AdminQuizResultData {
   studentName: string;
   quizName: string;
@@ -24,7 +21,7 @@ export interface AdminQuizResultData {
 }
 
 export const profileService = {
-  // --- GET PROFILE ---
+
   getProfile: async (role: string): Promise<ProfileData | null> => {
     try {
       const token = localStorage.getItem('token');
@@ -58,7 +55,7 @@ export const profileService = {
     }
   },
 
-  // --- UPDATE PROFILE ---
+
   updateProfile: async (role: string, profileData: ProfileData): Promise<ProfileData | null> => {
     try {
       const token = localStorage.getItem('token');
@@ -68,6 +65,15 @@ export const profileService = {
         ? `${API_BASE_URL}/admin/profile` 
         : `${API_BASE_URL}/profile`;
 
+      const payload: any = {
+        name: profileData.name,
+        username: profileData.username
+      };
+
+      if (profileData.password && profileData.password.trim() !== '') {
+        payload.password = profileData.password;
+      }
+
       const response = await fetch(endpoint, {
         method: 'PUT',
         headers: {
@@ -75,7 +81,7 @@ export const profileService = {
           'Accept': 'application/json',
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(profileData)
+        body: JSON.stringify(payload)
       });
 
       const data = await response.json();
@@ -94,7 +100,7 @@ export const profileService = {
     }
   },
 
-  // --- GET QUIZ HISTORY ---
+
   getQuizHistory: async (role: string): Promise<(QuizResultData | AdminQuizResultData)[]> => {
     try {
       const token = localStorage.getItem('token');
