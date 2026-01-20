@@ -310,10 +310,10 @@ const Materi: React.FC = () => {
                   {/* Footer Navigation */}
                   <div className="p-4 lg:p-6 border-t border-gray-200 flex items-center justify-between gap-3 bg-white">
                     <button onClick={handlePreviousLesson} disabled={currentIndex === 0} className="disabled:opacity-50 hover:scale-105 transition-transform">
-                      <img src={iconKembali} alt="Kembali" className="h-12 lg:h-14 w-auto" onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.parentElement!.innerText = "⬅ Kembali"; }} />
+                      <img src={iconKembali} alt="Kembali" className="h-12 lg:h-14 w-auto"/>
                     </button>
                     <button onClick={handleNextLesson} className="hover:scale-105 transition-transform">
-                      <img src={iconLanjut} alt="Lanjut" className="h-12 lg:h-14 w-auto" onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.parentElement!.innerText = "Lanjut ➡"; }} />
+                      <img src={iconLanjut} alt="Lanjut" className="h-12 lg:h-14 w-auto"/>
                     </button>
                   </div>
 
