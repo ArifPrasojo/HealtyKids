@@ -3,6 +3,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '../../components/layouts/Layout';
 // Pastikan CSS Quill tetap diimport
 import 'react-quill-new/dist/quill.snow.css'; 
+// Ganti baris import yang error dengan ini:
+import iconKembali from "../../assets/icons/kembali.svg";
+import iconLanjut from "../../assets/icons/lanjut.svg";
 
 import { 
   getSubMaterials, 
@@ -307,10 +310,10 @@ const Materi: React.FC = () => {
                   {/* Footer Navigation */}
                   <div className="p-4 lg:p-6 border-t border-gray-200 flex items-center justify-between gap-3 bg-white">
                     <button onClick={handlePreviousLesson} disabled={currentIndex === 0} className="disabled:opacity-50 hover:scale-105 transition-transform">
-                      <img src="/src/assets/icons/kembali.svg" alt="Kembali" className="h-12 lg:h-14 w-auto" onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.parentElement!.innerText = "⬅ Kembali"; }} />
+                      <img src={iconKembali} alt="Kembali" className="h-12 lg:h-14 w-auto" onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.parentElement!.innerText = "⬅ Kembali"; }} />
                     </button>
                     <button onClick={handleNextLesson} className="hover:scale-105 transition-transform">
-                      <img src="/src/assets/icons/lanjut.svg" alt="Lanjut" className="h-12 lg:h-14 w-auto" onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.parentElement!.innerText = "Lanjut ➡"; }} />
+                      <img src={iconLanjut} alt="Lanjut" className="h-12 lg:h-14 w-auto" onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.parentElement!.innerText = "Lanjut ➡"; }} />
                     </button>
                   </div>
 
