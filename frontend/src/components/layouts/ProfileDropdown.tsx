@@ -5,7 +5,7 @@ import type { ProfileData, QuizResultData, AdminQuizResultData } from '../../ser
 // --- IMPORT DATA REFRENSI ---
 import { referenceList } from '../../utils/refrensi';
 // --- IMPORT ICONS ---
-import { Edit, Trophy, BookOpen, LogOut, X, Search, Download } from 'lucide-react';
+import { Edit, Trophy, BookOpen, LogOut, X, Search, Download, Eye, EyeOff } from 'lucide-react';
 
 interface ProfileDropdownProps {
   onLogout?: () => void;
@@ -20,6 +20,7 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   
   // --- STATE QUIZ ---
   const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
@@ -43,7 +44,8 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
 
   const [formData, setFormData] = useState<ProfileData>({
     name: '',
-    username: ''
+    username: '',
+    password: ''
   });
 
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -79,7 +81,12 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
 
   // --- ACTIONS ---
   const openEditModal = () => {
-    setFormData(profile);
+    setFormData({
+      name: profile.name,
+      username: profile.username,
+      password: '' // Reset password saat buka modal
+    });
+    setShowPassword(false); // Reset show password
     setIsOpen(false);
     setIsEditModalOpen(true);
   };
@@ -122,7 +129,6 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
       if (updatedData) {
         setProfile(updatedData); 
         setIsEditModalOpen(false);
-        alert("Profile berhasil diperbarui!");
       }
     } catch (error) {
       alert("Gagal memperbarui profile.");
@@ -157,9 +163,6 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
   const formatDate = (dateString: string) => {
     if (!dateString) return '-';
 
-    // FIX: Hapus karakter 'Z' (UTC indicator) atau '+00:00'
-    // Ini memaksa browser membaca string sebagai "Local Time" (apa adanya),
-    // bukan mengonversinya dari UTC ke WIB lagi (yang bikin jam jadi maju 7 jam).
     const localString = dateString.replace('Z', '').replace(/\+00:00$/, '');
 
     const date = new Date(localString);
@@ -325,6 +328,28 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
                 <input type="text" required value={formData.username} onChange={(e) => setFormData({...formData, username: e.target.value})} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" placeholder="Username login" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Password Baru 
+                  <span className="text-xs text-gray-500 ml-1">(Kosongkan jika tidak ingin mengubah)</span>
+                </label>
+                <div className="relative">
+                  <input 
+                    type={showPassword ? "text" : "password"}
+                    value={formData.password || ''} 
+                    onChange={(e) => setFormData({...formData, password: e.target.value})} 
+                    className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" 
+                    placeholder="Masukkan Password Baru" 
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
               </div>
               <div className="pt-4 flex gap-3">
                 <button type="button" onClick={() => setIsEditModalOpen(false)} className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium">Batal</button>
