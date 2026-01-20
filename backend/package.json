@@ -5,7 +5,8 @@
     "dev": "bun --watch src/index.ts",
     "build": "bun build src/index.ts",
     "migration": "bun run src/db/migration.ts && bunx drizzle-kit push",
-    "seed-dev": "bun run src/db/seeds/dev.seed.ts"
+    "seed-dev": "bun run src/db/seeds/dev.seed.ts",
+    "seed-prod": "bun run src/db/seeds/prod.seed.ts"
   },
   "dependencies": {
     "@hono/node-server": "^1.19.5",
