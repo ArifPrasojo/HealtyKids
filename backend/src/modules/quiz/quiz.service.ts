@@ -123,11 +123,6 @@ export const createQuestion = async (data: createQuestionInput) => {
                     questionId: createQuestion.id,
                     answer: "Ini Jawaban 4",
                     isCorrect: false
-                },
-                {
-                    questionId: createQuestion.id,
-                    answer: "Ini Jawaban 5",
-                    isCorrect: false
                 }
             ])
             .returning()
