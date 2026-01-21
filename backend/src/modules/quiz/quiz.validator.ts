@@ -27,7 +27,7 @@ const answerQuestionItem = z.object({
 })
 
 export const updateAnswerQuestionSchema = z.object({
-    answer: z.array(answerQuestionItem).min(5, "Jawaban harus ada 5").max(5, "Jawaban harus ada 5")
+    answer: z.array(answerQuestionItem).min(4, "Jawaban harus ada 4").max(4, "Jawaban harus ada 4")
 })
 
 // VALIDATOR STUDENDT
