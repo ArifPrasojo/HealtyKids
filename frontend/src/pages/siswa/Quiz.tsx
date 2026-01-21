@@ -91,7 +91,12 @@ const Quiz: React.FC = () => {
           const apiData = responseData.data;
 
           const mappedQuestions: QuizQuestion[] = apiData.questions.map((q: any) => {
-            const correctIndex = q.answers.findIndex((a: any) => 
+            // === PERBAIKAN DI SINI ===
+            // 1. Kita copy array answers dan sort berdasarkan ID secara ascending
+            // Ini menjamin urutan opsi (A, B, C, D) selalu sama berdasarkan ID database
+            const sortedAnswers = [...q.answers].sort((a: any, b: any) => a.id - b.id);
+
+            const correctIndex = sortedAnswers.findIndex((a: any) => 
                 a.is_correct === 1 || a.is_correct === true || a.isCorrect === true
             );
             
@@ -99,8 +104,8 @@ const Quiz: React.FC = () => {
               id: q.id, 
               question: q.question,
               photo: q.photo, 
-              options: q.answers.map((a: any) => a.answer), 
-              answerIds: q.answers.map((a: any) => a.id), 
+              options: sortedAnswers.map((a: any) => a.answer), 
+              answerIds: sortedAnswers.map((a: any) => a.id), 
               correctAnswer: correctIndex !== -1 ? correctIndex : 0
             };
           });
