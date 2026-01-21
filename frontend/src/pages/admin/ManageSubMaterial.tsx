@@ -11,8 +11,12 @@ import ReactQuill, { Quill } from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 import ImageResize from 'quill-image-resize-module-react';
 
-// Registrasi Module ke Quill
-Quill.register('modules/imageResize', ImageResize);
+// --- FIX: REGISTRASI MODULE DENGAN PENGECEKAN ---
+// Cek apakah module sudah ada di imports Quill. Jika belum, baru register.
+// Ini mencegah warning "Overwriting modules/imageResize" saat hot-reload.
+if (!Quill.imports['modules/imageResize']) {
+  Quill.register('modules/imageResize', ImageResize);
+}
 
 import { subMaterialService } from '../../services/api/subMaterialService';
 import type { SubMaterialItem, SubMaterialFormData } from '../../services/api/subMaterialService';
@@ -30,7 +34,7 @@ const quillModules = {
     [{ 'script': 'sub'}, { 'script': 'super' }],
     [{ 'color': [] }, { 'background': [] }],
     [{ 'indent': '-1'}, { 'indent': '+1' }],
-    [{ 'align': [] }], // Toolbar align tetap ada untuk teks/paragraf
+    [{ 'align': [] }],
     ['blockquote'],
     ['link', 'image'],
     ['clean']
@@ -38,9 +42,19 @@ const quillModules = {
   // Konfigurasi Image Resize
   imageResize: {
     parchment: Quill.import('parchment'),
-    modules: ['Resize', 'DisplaySize'] // Menampilkan ukuran pixel saat resize
+    modules: ['Resize', 'DisplaySize']
   }
 };
+
+// --- WHITELIST FORMATS (MENGHILANGKAN LIST LI) ---
+const quillFormats = [
+  'header', 'font', 'size',
+  'bold', 'italic', 'underline', 'strike',
+  'script', 'color', 'background',
+  'indent', 'align',
+  'blockquote', 'link', 'image'
+  // 'list' dan 'bullet' SENGAJA DIHAPUS agar tidak muncul tag <li>
+];
 
 const ManageSubMaterial = () => {
   const { materialId } = useParams<{ materialId: string }>();
@@ -435,38 +449,44 @@ const ManageSubMaterial = () => {
                   </div>
                 )}
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Form Kiri */}
-                  <div className="space-y-5">
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Judul <span className="text-red-500">*</span></label>
-                      <input type="text" value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-sm shadow-sm" placeholder="Masukkan judul sub materi" />
-                    </div>
+                {/* Container Utama: Stack Vertikal */}
+                <div className="space-y-6">
+                  
+                  {/* Bagian Atas: Grid untuk Input Judul, Tipe, dan Upload */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Kolom Kiri: Judul dan Tipe */}
+                    <div className="space-y-5">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Judul <span className="text-red-500">*</span></label>
+                        <input type="text" value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-sm shadow-sm" placeholder="Masukkan judul sub materi" />
+                      </div>
 
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Tipe Konten</label>
-                      <div className="flex gap-3">
-                        <label className="flex-1 flex items-center justify-center gap-2 cursor-pointer border-2 px-3 py-2.5 rounded-xl hover:bg-blue-50 hover:border-blue-300 transition-all">
-                          <input type="radio" checked={formData.contentCategory === 'video'} onChange={() => setFormData({...formData, contentCategory: 'video', contentUrl: ''})} className="w-4 h-4" />
-                          <Video size={16} className="text-red-600" /> <span className="font-medium text-sm">Video</span>
-                        </label>
-                        <label className="flex-1 flex items-center justify-center gap-2 cursor-pointer border-2 px-3 py-2.5 rounded-xl hover:bg-blue-50 hover:border-blue-300 transition-all">
-                          <input type="radio" checked={formData.contentCategory === 'photo'} onChange={() => setFormData({...formData, contentCategory: 'photo', contentUrl: ''})} className="w-4 h-4" />
-                          <ImageIcon size={16} className="text-blue-600" /> <span className="font-medium text-sm">Foto</span>
-                        </label>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Tipe Konten</label>
+                        <div className="flex gap-3">
+                          <label className="flex-1 flex items-center justify-center gap-2 cursor-pointer border-2 px-3 py-2.5 rounded-xl hover:bg-blue-50 hover:border-blue-300 transition-all">
+                            <input type="radio" checked={formData.contentCategory === 'video'} onChange={() => setFormData({...formData, contentCategory: 'video', contentUrl: ''})} className="w-4 h-4" />
+                            <Video size={16} className="text-red-600" /> <span className="font-medium text-sm">Video</span>
+                          </label>
+                          <label className="flex-1 flex items-center justify-center gap-2 cursor-pointer border-2 px-3 py-2.5 rounded-xl hover:bg-blue-50 hover:border-blue-300 transition-all">
+                            <input type="radio" checked={formData.contentCategory === 'photo'} onChange={() => setFormData({...formData, contentCategory: 'photo', contentUrl: ''})} className="w-4 h-4" />
+                            <ImageIcon size={16} className="text-blue-600" /> <span className="font-medium text-sm">Foto</span>
+                          </label>
+                        </div>
                       </div>
                     </div>
 
+                    {/* Kolom Kanan: Upload / URL */}
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">{formData.contentCategory === 'video' ? 'Link Video Youtube (Opsional)' : 'Upload Foto (Opsional)'}</label>
                       {formData.contentCategory === 'video' ? (
-                        <div className="border-2 border-dashed border-gray-300 rounded-xl p-5 text-center hover:bg-gray-50 hover:border-blue-400 transition min-h-[180px] flex flex-col justify-center">
+                        <div className="border-2 border-dashed border-gray-300 rounded-xl p-5 text-center hover:bg-gray-50 hover:border-blue-400 transition min-h-[160px] flex flex-col justify-center">
                           <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3"><Video size={28} className="text-gray-400" /></div>
                           <input type="url" value={formData.contentUrl} onChange={(e) => setFormData({...formData, contentUrl: e.target.value})} className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-sm shadow-sm" placeholder="https://www.youtube.com/..." />
                           <p className="text-xs text-gray-500 mt-2">Paste link video Youtube</p>
                         </div>
                       ) : (
-                        <div className="border-2 border-dashed border-gray-300 rounded-xl p-5 text-center hover:bg-gray-50 hover:border-blue-400 transition min-h-[180px]">
+                        <div className="border-2 border-dashed border-gray-300 rounded-xl p-5 text-center hover:bg-gray-50 hover:border-blue-400 transition min-h-[160px]">
                           <input type="file" accept=".jpg, .jpeg, .png" onChange={handleFileChange} className="hidden" id="fileUpload" />
                           <label htmlFor="fileUpload" className="cursor-pointer flex flex-col items-center gap-3 text-gray-500">
                             {formData.contentUrl ? (
@@ -486,23 +506,22 @@ const ManageSubMaterial = () => {
                     </div>
                   </div>
 
-                  {/* Editor Deskripsi */}
-                  <div className="flex flex-col">
+                  {/* Bagian Bawah: Editor Deskripsi (SUPER WIDE / FULL WIDTH) */}
+                  <div className="flex flex-col w-full">
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Deskripsi Lengkap</label>
-                    <div className="bg-white rounded-xl overflow-hidden border-2 border-gray-300 focus-within:ring-2 focus-within:ring-blue-500/30 focus-within:border-blue-500 transition-all shadow-sm h-[530px] flex flex-col">
+                    <div className="bg-white rounded-xl overflow-hidden border-2 border-gray-300 focus-within:ring-2 focus-within:ring-blue-500/30 focus-within:border-blue-500 transition-all shadow-sm h-[530px] flex flex-col w-full">
                       <ReactQuill
                         theme="snow"
                         value={formData.content}
                         onChange={(content) => setFormData({ ...formData, content: content })}
                         modules={quillModules}
-                        // Saya tetap mempertahankan CSS inline-block agar toolbar Align Center bawaan Quill tetap berfungsi
-                        // jika user memilih untuk menengahkan paragraf (wrapper image).
-                        // Modul imageResize juga akan menambahkan opsi align sendiri pada gambar.
-                        className="h-full flex flex-col [&_.ql-toolbar]:shrink-0 [&_.ql-toolbar]:bg-gray-50 [&_.ql-toolbar]:border-b-2 [&_.ql-toolbar]:border-gray-200 [&_.ql-container]:flex-1 [&_.ql-container]:overflow-hidden [&_.ql-editor]:h-full [&_.ql-editor]:overflow-y-auto [&_.ql-editor]:text-base [&_.ql-editor]:leading-relaxed [&_.ql-editor]:p-4 [&_.ql-editor_img]:inline-block"
+                        formats={quillFormats} // Fix: Mencegah tag <li>
+                        className="h-full flex flex-col w-full [&_.ql-toolbar]:shrink-0 [&_.ql-toolbar]:bg-gray-50 [&_.ql-toolbar]:border-b-2 [&_.ql-toolbar]:border-gray-200 [&_.ql-container]:flex-1 [&_.ql-container]:overflow-hidden [&_.ql-editor]:h-full [&_.ql-editor]:overflow-y-auto [&_.ql-editor]:text-base [&_.ql-editor]:leading-relaxed [&_.ql-editor]:p-4 [&_.ql-editor_img]:inline-block"
                         placeholder="Tulis deskripsi lengkap untuk sub materi ini..."
                       />
                     </div>
                   </div>
+
                 </div>
               </div>
 

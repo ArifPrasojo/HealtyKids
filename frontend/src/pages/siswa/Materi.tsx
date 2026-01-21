@@ -199,7 +199,7 @@ const Materi: React.FC = () => {
                                     <div className="flex-1 min-w-0">
                                       <div className={`text-sm lg:text-base font-semibold truncate ${active ? 'text-green-700' : 'text-gray-700'}`}>{item.title}</div>
                                       <div className="text-xs lg:text-sm text-gray-500 mt-1 truncate font-normal normal-case">
-                                        {stripHtml(item.content)}
+                                        {stripHtml(item.title)}
                                       </div>
                                     </div>
                                   </div>
