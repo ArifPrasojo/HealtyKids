@@ -274,6 +274,9 @@ const Materi: React.FC = () => {
                           prose-p:text-gray-700 prose-p:leading-loose
                           prose-li:text-gray-700
                           prose-strong:text-gray-900 prose-strong:font-bold
+
+                          /* FIX: Agar ENTER (Paragraf kosong) tetap memiliki tinggi */
+                          [&_p:empty]:min-h-[1em] [&_p:empty]:before:content-['\00a0']
                           
                           /* Hapus prose-img:mx-auto agar tidak memaksa semua gambar ke tengah */
                           prose-img:rounded-xl prose-img:shadow-md prose-img:max-h-[500px]
@@ -299,7 +302,7 @@ const Materi: React.FC = () => {
                           /* Jika gambar punya float left/right */
                           [&_img[style*='float:_left']]:mr-6 [&_img[style*='float:_left']]:mb-2
                           [&_img[style*='float:_right']]:ml-6 [&_img[style*='float:_right']]:mb-2"
-                          
+
                           dangerouslySetInnerHTML={{ __html: processedContent }}
                         />
                       </div>
