@@ -443,9 +443,10 @@ const HealthWordSearch: React.FC = () => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const renderGrid = () => (
+const renderGrid = () => (
     <div 
-      className="inline-grid gap-0.5 bg-gray-300 p-2 md:p-3 rounded-xl overflow-auto"
+      // UBAH 1: Gunakan 'grid' (bukan inline-grid), w-full, dan max-w agar responsif tapi tidak melebar berlebihan
+      className="grid gap-0.5 bg-gray-300 p-2 md:p-3 rounded-xl w-full max-w-xl mx-auto select-none touch-none"
       style={{ gridTemplateColumns: `repeat(${GRID_SIZE}, minmax(0, 1fr))` }}
       onMouseLeave={() => {
         if (isSelecting) {
@@ -455,6 +456,7 @@ const HealthWordSearch: React.FC = () => {
           setSelectedCells([]);
         }
       }}
+      // Tambahkan prevent default untuk mencegah scroll saat swipe di HP
       onTouchMove={handleCellTouchMove}
       onTouchEnd={handleCellTouchEnd}
     >
@@ -466,7 +468,11 @@ const HealthWordSearch: React.FC = () => {
             <div
               key={cellKey}
               data-cell={cellKey}
-              className={`w-8 h-8 md:w-10 md:h-10 flex items-center justify-center text-sm md:text-base font-bold cursor-pointer transition-all select-none border-2 ${
+              // UBAH 2: 
+              // - Hapus 'w-8 h-8' dll.
+              // - Ganti dengan 'aspect-square w-full' (kotak otomatis persegi mengikuti lebar kolom)
+              // - Font size diperkecil untuk mobile: text-[10px]
+              className={`aspect-square w-full flex items-center justify-center text-[10px] sm:text-xs md:text-base font-bold cursor-pointer transition-all border ${
                 cell.isFound
                   ? 'bg-green-400 text-white border-green-600'
                   : cell.isHighlighted

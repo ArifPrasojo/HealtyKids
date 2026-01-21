@@ -23,7 +23,7 @@ const GameHome: React.FC<GameHomeProps> = ({ onLogout }) => {
   const gameData: GameCard[] = [
     {
       id: 1,
-      title: 'Health Matching Game',
+      title: 'Mencocokkan Istilah Kesehatan',
       description: 'Cocokkan gambar dengan kata yang tepat untuk belajar kesehatan reproduksi',
       icon: '🧩',
       route: '/game/matching',
@@ -39,7 +39,7 @@ const GameHome: React.FC<GameHomeProps> = ({ onLogout }) => {
     },
     {
       id: 3,
-      title: 'Health Word Search',
+      title: 'Teka-Teki Kata Kesehatan',
       description: 'Temukan kata-kata kesehatan tersembunyi dalam kotak huruf',
       icon: '🔍',
       route: '/game/wordsearch',
