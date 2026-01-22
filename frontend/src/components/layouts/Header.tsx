@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import ProfileDropdown from './ProfileDropdown'; // Import komponen gabungan tadi
-import logo from '../../assets/images/logo.png';
+import logo from '../../assets/images/Logo1.png';
 
 interface HeaderProps {
   onLogout?: () => void;

@@ -409,9 +409,9 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 </div>
               </div>
               
-              <h1 className="text-xl font-bold mb-2">HealthyKids</h1>
+              <h1 className="text-xl font-bold mb-2">Sexophone</h1>
               <p className="text-green-100 text-sm">
-                Platform Pembelajaran Kesehatan Remaja
+              Platform pendidikan seksualitas yang aman dan terpercaya untuk remaja Indonesia
               </p>
             </div>
           </div>
@@ -531,7 +531,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
             <div className="mt-8 text-center">
               <p className="text-xs text-gray-500">
-                © 2024 Sexophone. Platform pendidikan seksualitas untuk remaja Indonesia.
+                © 2025 Sexophone. Platform pendidikan seksualitas untuk remaja Indonesia.
               </p>
             </div>
           </div>
