@@ -15,9 +15,6 @@ const Header: React.FC<HeaderProps> = ({ onLogout, hideLogoMobile = false }) => 
   useEffect(() => {
     // Ambil data user dari localStorage
     const storedUser = localStorage.getItem('user');
-    
-    // DEBUG: Cek apa isi localStorage di console
-    console.log("🛠️ [Header] Raw localStorage 'user':", storedUser);
 
     if (storedUser) {
       try {
@@ -27,10 +24,8 @@ const Header: React.FC<HeaderProps> = ({ onLogout, hideLogoMobile = false }) => 
         // Sesuaikan 'role' di bawah dengan response LOGIN API Anda
         const roleFromStorage = parsedUser.role || parsedUser.roles || 'siswa';
         
-        console.log("🛠️ [Header] Detected Role:", roleFromStorage);
         setUserRole(roleFromStorage);
       } catch (error) {
-        console.error("Error parsing user data:", error);
         setUserRole('siswa'); // Fallback
       }
     } else {

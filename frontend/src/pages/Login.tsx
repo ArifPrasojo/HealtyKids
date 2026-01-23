@@ -17,7 +17,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [showAbout, setShowAbout] = useState(false);
   
   const [signInData, setSignInData] = useState({
-    email: '',
+    username: '',
     password: ''
   });
   
@@ -57,7 +57,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
     try {
       const data = await loginService.login({
-        username: signInData.email,
+        username: signInData.username,
         password: signInData.password
       });
 
@@ -200,19 +200,19 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 </p>
               </div>
               <form onSubmit={handleSignInSubmit} className="space-y-4 md:space-y-6">
-                {/* Email Input */}
+                {/* username Input */}
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
                     Username
                   </label>
                   <input
                     type="text" 
-                    id="email"
-                    name="email"
-                    value={signInData.email}
+                    id="username"
+                    name="username"
+                    value={signInData.username}
                     onChange={handleSignInInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
-                    placeholder="Masukkan username atau email"
+                    placeholder="Masukkan username "
                     required
                   />
                 </div>
@@ -450,13 +450,13 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                   
                   <div>
                     <input
-                      name="email"
+                      name="username"
                       type="text" 
                       required
-                      value={signInData.email}
+                      value={signInData.username}
                       onChange={handleSignInInputChange}
                       className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-0 focus:border-green-500 transition-all duration-200 bg-gray-50 text-sm"
-                      placeholder="Email / Username"
+                      placeholder="Username"
                     />
                   </div>
 
