@@ -48,32 +48,50 @@ const HealthWordSearch: React.FC = () => {
   const [placements, setPlacements] = useState<Placement[]>([]);
   const [touchStart, setTouchStart] = useState<{ row: number; col: number } | null>(null);
 
-  // Health-related words to find
-  const words: WordData[] = [
-    { word: 'PUBERTAS', hint: 'Masa perubahan dari anak ke remaja', found: false },
-    { word: 'HORMON', hint: 'Zat kimia pengatur tubuh', found: false },
-    { word: 'PRIVASI', hint: 'Hak menjaga area pribadi', found: false },
-    { word: 'SEHAT', hint: 'Kondisi tubuh yang baik', found: false },
-    { word: 'TUBUH', hint: 'Bagian fisik manusia', found: false },
-    { word: 'EMOSI', hint: 'Perasaan dan suasana hati', found: false },
-    { word: 'BATASAN', hint: 'Batas yang tidak boleh dilanggar', found: false },
-    { word: 'KEBERSIHAN', hint: 'Menjaga diri tetap bersih', found: false },
-    { word: 'MENSTRUASI', hint: 'Siklus bulanan pada perempuan', found: false },
-    { word: 'NUTRISI', hint: 'Zat makanan untuk pertumbuhan', found: false }
+  const ALL_WORDS: WordData[] = [
+    { word: 'REMAJA', hint: 'Masa peralihan dari anak-anak', found: false },
+    { word: 'PUBERTAS', hint: 'Masa kematangan seksual fisik', found: false },
+    { word: 'TOUCHING', hint: 'Sentuhan fisik', found: false },
+    { word: 'MASTURBASI', hint: 'Merangsang alat kelamin sendiri', found: false },
+    { word: 'ORAL', hint: 'Aktivitas seksual menggunakan mulut', found: false },
+    { word: 'ANAL', hint: 'Berhubungan dengan organ pembuangan', found: false },
+    { word: 'MENULAR', hint: 'Dapat berpindah ke orang lain', found: false },
+    { word: 'HIV', hint: 'Virus yang menyerang kekebalan tubuh', found: false },
+    { word: 'PORNOGRAFI', hint: 'Tulisan/gambar perilaku erotis', found: false },
+    { word: 'TEMAN', hint: 'Lingkungan pergaulan sebaya', found: false },
+    { word: 'BERISIKO', hint: 'Tindakan yang berbahaya', found: false },
+    { word: 'PACARAN', hint: 'Hubungan kasih sayang dua orang', found: false },
+    { word: 'SEKSUAL', hint: 'Berkaitan dengan perkara seks', found: false },
+    { word: 'GONORE', hint: 'Penyakit kencing nanah', found: false },
+    { word: 'SIFILIS', hint: 'Penyakit raja singa', found: false },
+    { word: 'KECANDUAN', hint: 'Keinginan kuat terus menerus', found: false },
+    { word: 'INSECURE', hint: 'Perasaan tidak aman/kurang PD', found: false },
+    { word: 'EMOSI', hint: 'Luapan perasaan yang berkembang', found: false },
+    { word: 'PENASARAN', hint: 'Keinginan besar untuk tahu', found: false },
+    { word: 'BATASAN', hint: 'Aturan yang harus dijaga', found: false }
   ];
 
-  const [wordList, setWordList] = useState<WordData[]>(words);
+  // Helper to get 10 random words
+  const selectRandomWords = (): WordData[] => {
+    // Shuffle array
+    const shuffled = [...ALL_WORDS].sort(() => 0.5 - Math.random());
+    // Take first 10
+    return shuffled.slice(0, 10).map(w => ({ ...w, found: false }));
+  };
+
+  const [wordList, setWordList] = useState<WordData[]>([]);
 
   // Grid size
   const GRID_SIZE = 13;
 
   // Function to generate random placements
-  const generatePlacements = (): Placement[] => {
+  // MODIFIED: Now accepts targetWords as argument instead of using global variable
+  const generatePlacements = (targetWords: WordData[]): Placement[] => {
     const directions: ('horizontal' | 'vertical' | 'diagonal')[] = ['horizontal', 'vertical', 'diagonal'];
     const newPlacements: Placement[] = [];
     const usedCells = new Set<string>();
 
-    words.forEach(({ word }) => {
+    targetWords.forEach(({ word }) => {
       let placed = false;
       let attempts = 0;
       const maxAttempts = 100; // Prevent infinite loop
@@ -154,7 +172,8 @@ const HealthWordSearch: React.FC = () => {
   };
 
   // Generate grid with words
-  const generateGrid = (): Cell[][] => {
+  // MODIFIED: Accepts currentPlacements to ensure sync
+  const generateGrid = (currentPlacements: Placement[]): Cell[][] => {
     const grid: Cell[][] = Array(GRID_SIZE).fill(null).map(() =>
       Array(GRID_SIZE).fill(null).map(() => ({
         letter: '',
@@ -163,7 +182,7 @@ const HealthWordSearch: React.FC = () => {
       }))
     );
 
-    placements.forEach((placement, index) => {
+    currentPlacements.forEach((placement, index) => {
       const { word, row, col, direction } = placement;
       for (let i = 0; i < word.length; i++) {
         let r = row;
@@ -202,14 +221,7 @@ const HealthWordSearch: React.FC = () => {
     return grid;
   };
 
-  const [grid, setGrid] = useState<Cell[][]>(() => generateGrid());
-
-  useEffect(() => {
-    setGameState(prev => ({
-      ...prev,
-      totalWords: words.length
-    }));
-  }, []);
+  const [grid, setGrid] = useState<Cell[][]>([]);
 
   // Timer
   useEffect(() => {
@@ -324,10 +336,12 @@ const HealthWordSearch: React.FC = () => {
   const highlightCell = (row: number, col: number, highlight: boolean) => {
     setGrid(prev => {
       const newGrid = [...prev];
-      newGrid[row][col] = {
-        ...newGrid[row][col],
-        isHighlighted: highlight
-      };
+      if(newGrid[row] && newGrid[row][col]) {
+        newGrid[row][col] = {
+            ...newGrid[row][col],
+            isHighlighted: highlight
+        };
+      }
       return newGrid;
     });
   };
@@ -409,7 +423,7 @@ const HealthWordSearch: React.FC = () => {
       }));
 
       // Check if game completed
-      if (wordsFound === words.length) {
+      if (wordsFound === wordList.length) {
         setGameState(prev => ({
           ...prev,
           gameStatus: 'completed'
@@ -419,18 +433,26 @@ const HealthWordSearch: React.FC = () => {
   };
 
   const startGame = () => {
-    const newPlacements = generatePlacements();
+    // 1. Pilih 10 kata acak dari 20 kata yang tersedia
+    const activeWords = selectRandomWords();
+    setWordList(activeWords);
+
+    // 2. Generate placements untuk 10 kata tersebut
+    const newPlacements = generatePlacements(activeWords);
     setPlacements(newPlacements);
+
+    // 3. Reset Game State
     setGameState({
       score: 0,
       wordsFound: 0,
-      totalWords: words.length,
+      totalWords: activeWords.length,
       gameStatus: 'playing',
       timeElapsed: 0,
       hintsUsed: 0
     });
-    setGrid(generateGrid());
-    setWordList(words.map(w => ({ ...w, found: false })));
+
+    // 4. Buat Grid baru berdasarkan placements
+    setGrid(generateGrid(newPlacements));
   };
 
   const backToDashboard = () => {
@@ -445,7 +467,6 @@ const HealthWordSearch: React.FC = () => {
 
 const renderGrid = () => (
     <div 
-      // UBAH 1: Gunakan 'grid' (bukan inline-grid), w-full, dan max-w agar responsif tapi tidak melebar berlebihan
       className="grid gap-0.5 bg-gray-300 p-2 md:p-3 rounded-xl w-full max-w-xl mx-auto select-none touch-none"
       style={{ gridTemplateColumns: `repeat(${GRID_SIZE}, minmax(0, 1fr))` }}
       onMouseLeave={() => {
@@ -456,7 +477,6 @@ const renderGrid = () => (
           setSelectedCells([]);
         }
       }}
-      // Tambahkan prevent default untuk mencegah scroll saat swipe di HP
       onTouchMove={handleCellTouchMove}
       onTouchEnd={handleCellTouchEnd}
     >
@@ -468,10 +488,6 @@ const renderGrid = () => (
             <div
               key={cellKey}
               data-cell={cellKey}
-              // UBAH 2: 
-              // - Hapus 'w-8 h-8' dll.
-              // - Ganti dengan 'aspect-square w-full' (kotak otomatis persegi mengikuti lebar kolom)
-              // - Font size diperkecil untuk mobile: text-[10px]
               className={`aspect-square w-full flex items-center justify-center text-[10px] sm:text-xs md:text-base font-bold cursor-pointer transition-all border ${
                 cell.isFound
                   ? 'bg-green-400 text-white border-green-600'

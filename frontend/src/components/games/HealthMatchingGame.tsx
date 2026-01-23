@@ -40,37 +40,27 @@ const HealthMatchingGame: React.FC = () => {
   const [connections, setConnections] = useState<{ leftId: number; rightId: number; isCorrect?: boolean }[]>([]);
   const [showCheck, setShowCheck] = useState(false);
 
-  // Health education data for SMP/SMA students
   const healthItems: HealthItem[] = [
-    // Organ tubuh
-    { id: 1, term: "Jantung", definition: "Organ yang memompa darah ke seluruh tubuh", category: "organ" },
-    { id: 2, term: "Paru-paru", definition: "Organ pernapasan yang mengambil oksigen dari udara", category: "organ" },
-    { id: 3, term: "Hati", definition: "Organ yang menyaring racun dari darah", category: "organ" },
-    { id: 4, term: "Ginjal", definition: "Organ yang menyaring limbah dari darah dan membuat urin", category: "organ" },
-    
-    // Nutrisi
-    { id: 5, term: "Protein", definition: "Zat gizi untuk membangun dan memperbaiki jaringan tubuh", category: "nutrisi" },
-    { id: 6, term: "Karbohidrat", definition: "Sumber energi utama bagi tubuh", category: "nutrisi" },
-    { id: 7, term: "Vitamin C", definition: "Vitamin yang meningkatkan daya tahan tubuh", category: "nutrisi" },
-    { id: 8, term: "Kalsium", definition: "Mineral penting untuk kesehatan tulang dan gigi", category: "nutrisi" },
-    
-    // Aktivitas kesehatan
-    { id: 9, term: "Aerobik", definition: "Olahraga yang meningkatkan kesehatan jantung dan paru-paru", category: "aktivitas" },
-    { id: 10, term: "Yoga", definition: "Latihan yang menggabungkan pose, pernapasan, dan meditasi", category: "aktivitas" },
-    { id: 11, term: "Pemanasan", definition: "Aktivitas ringan sebelum olahraga untuk mencegah cedera", category: "aktivitas" },
-    { id: 12, term: "Stretching", definition: "Peregangan otot untuk meningkatkan fleksibilitas", category: "aktivitas" },
-    
-    // Penyakit/kondisi
-    { id: 13, term: "Hipertensi", definition: "Kondisi tekanan darah tinggi", category: "penyakit" },
-    { id: 14, term: "Diabetes", definition: "Penyakit yang ditandai kadar gula darah tinggi", category: "penyakit" },
-    { id: 15, term: "Anemia", definition: "Kondisi kekurangan sel darah merah", category: "penyakit" },
-    { id: 16, term: "Obesitas", definition: "Kondisi kelebihan berat badan yang berlebihan", category: "penyakit" },
-    
-    // Kesehatan mental
-    { id: 17, term: "Stres", definition: "Reaksi tubuh terhadap tekanan fisik atau mental", category: "mental" },
-    { id: 18, term: "Depresi", definition: "Gangguan mood yang menyebabkan perasaan sedih berkepanjangan", category: "mental" },
-    { id: 19, term: "Resiliensi", definition: "Kemampuan untuk pulih dari kesulitan hidup", category: "mental" },
-    { id: 20, term: "Mindfulness", definition: "Kesadaran penuh terhadap momen saat ini", category: "mental" }
+    { id: 1, term: "Remaja", definition: "Masa peralihan dari anak menuju dewasa", category: "mental" },
+    { id: 2, term: "Pubertas", definition: "Masa terjadinya perubahan fisik dan emosi pada remaja", category: "mental" },
+    { id: 3, term: "Insecure", definition: "Perasaan kurang percaya diri terhadap diri sendiri", category: "mental" },
+    { id: 4, term: "Privasi", definition: "Keinginan untuk memiliki ruang pribadi", category: "mental" },
+    { id: 5, term: "Touching", definition: "Sentuhan ringan seperti berpegangan tangan", category: "aktivitas" },
+    { id: 6, term: "Kissing", definition: "Berciuman sebagai bentuk ekspresi perasaan", category: "aktivitas" },
+    { id: 7, term: "Necking", definition: "Sentuhan di area leher hingga dada", category: "aktivitas" },
+    { id: 8, term: "Masturbasi", definition: "Perilaku seksual yang dilakukan terhadap diri sendiri", category: "aktivitas" },
+    { id: 9, term: "Perilaku seksual berisiko", definition: "Perilaku yang dapat membahayakan kesehatan fisik dan mental", category: "penyakit" },
+    { id: 10, term: "Seks daring", definition: "Aktivitas seksual yang dilakukan melalui media digital", category: "aktivitas" },
+    { id: 11, term: "Pornografi", definition: "Konten yang menampilkan hal seksual dan tidak pantas", category: "aktivitas" },
+    { id: 12, term: "Infeksi Menular Seksual", definition: "Penyakit yang menular melalui hubungan seksual", category: "penyakit" },
+    { id: 13, term: "HIV/AIDS", definition: "Penyakit yang menyerang sistem kekebalan tubuh", category: "penyakit" },
+    { id: 14, term: "Pendidikan seksual", definition: "Pemberian informasi yang benar untuk menjaga diri", category: "nutrisi" }, // Kategori nutrisi dipinjam untuk variasi warna
+    { id: 15, term: "Kontrol diri", definition: "Kemampuan membatasi perilaku agar tidak merugikan diri sendiri", category: "mental" },
+    { id: 16, term: "Pornografi (Visual)", definition: "Konten yang menampilkan hal seksual dalam bentuk gambar, video, atau suara", category: "aktivitas" },
+    { id: 17, term: "Seks Daring (Online)", definition: "Aktivitas Seksual yang dilakukan melalui media digital", category: "aktivitas" },
+    { id: 18, term: "Pengaruh Teman Sebaya", definition: "Dorongan dari teman untuk melakukan perilaku tertentu", category: "mental" },
+    { id: 19, term: "Perilaku Seksual", definition: "Segala aktivitas yang didasarkan pada dorongan seksual", category: "aktivitas" },
+    { id: 20, term: "Gonore", definition: "Penyakit munculnya nanah saat BAK", category: "penyakit" }
   ];
 
   // Shuffle array function
@@ -85,7 +75,7 @@ const HealthMatchingGame: React.FC = () => {
 
   // Initialize game with random items
   const initializeGame = () => {
-    const selectedItems = shuffleArray(healthItems).slice(0, 6);
+    const selectedItems = shuffleArray(healthItems).slice(0, 5);
     setCurrentItems(selectedItems);
     setShuffledRightItems(shuffleArray([...selectedItems]));
     setMatches([]);
@@ -166,7 +156,6 @@ const HealthMatchingGame: React.FC = () => {
       // Hitung total pasangan yang sudah benar (unique)
       const totalCorrectMatches = updatedMatches.length;
       
-      // Cek apakah SEMUA item (6) sudah terhubung dengan benar
       if (totalCorrectMatches === currentItems.length) {
         setTimeout(() => {
           setGameState(prev => ({ ...prev, gameStatus: 'completed' }));
@@ -416,24 +405,20 @@ const HealthMatchingGame: React.FC = () => {
               </h3>
               <div className="space-y-2">
                 <div className="flex items-center space-x-2 md:space-x-3 p-2 md:p-3 bg-green-50 rounded-lg">
-                  <div className="w-3 h-3 md:w-4 md:h-4 rounded-full bg-gradient-to-r from-green-400 to-emerald-500"></div>
-                  <p className="text-xs md:text-sm text-gray-700">Organ Tubuh</p>
-                </div>
-                <div className="flex items-center space-x-2 md:space-x-3 p-2 md:p-3 bg-green-50 rounded-lg">
-                  <div className="w-3 h-3 md:w-4 md:h-4 rounded-full bg-gradient-to-r from-green-500 to-teal-500"></div>
-                  <p className="text-xs md:text-sm text-gray-700">Nutrisi</p>
+                  <div className="w-3 h-3 md:w-4 md:h-4 rounded-full bg-gradient-to-r from-green-600 to-emerald-600"></div>
+                  <p className="text-xs md:text-sm text-gray-700">Kesehatan Mental & Pubertas</p>
                 </div>
                 <div className="flex items-center space-x-2 md:space-x-3 p-2 md:p-3 bg-green-50 rounded-lg">
                   <div className="w-3 h-3 md:w-4 md:h-4 rounded-full bg-gradient-to-r from-teal-400 to-cyan-500"></div>
-                  <p className="text-xs md:text-sm text-gray-700">Aktivitas Kesehatan</p>
+                  <p className="text-xs md:text-sm text-gray-700">Aktivitas & Perilaku</p>
                 </div>
                 <div className="flex items-center space-x-2 md:space-x-3 p-2 md:p-3 bg-green-50 rounded-lg">
                   <div className="w-3 h-3 md:w-4 md:h-4 rounded-full bg-gradient-to-r from-emerald-400 to-green-500"></div>
-                  <p className="text-xs md:text-sm text-gray-700">Penyakit</p>
+                  <p className="text-xs md:text-sm text-gray-700">Penyakit Menular Seksual</p>
                 </div>
                 <div className="flex items-center space-x-2 md:space-x-3 p-2 md:p-3 bg-green-50 rounded-lg">
-                  <div className="w-3 h-3 md:w-4 md:h-4 rounded-full bg-gradient-to-r from-green-600 to-emerald-600"></div>
-                  <p className="text-xs md:text-sm text-gray-700">Kesehatan Mental</p>
+                  <div className="w-3 h-3 md:w-4 md:h-4 rounded-full bg-gradient-to-r from-green-500 to-teal-500"></div>
+                  <p className="text-xs md:text-sm text-gray-700">Edukasi & Pencegahan</p>
                 </div>
               </div>
             </div>
@@ -454,18 +439,16 @@ const HealthMatchingGame: React.FC = () => {
               <div className="text-center bg-gradient-to-br from-green-500 to-emerald-600 text-white rounded-2xl p-6 md:p-8 shadow-xl">
                 <h2 className="text-2xl md:text-4xl font-bold mb-3 md:mb-4">🎯 Game Mencocokkan Istilah Kesehatan</h2>
                 <p className="text-sm md:text-lg mb-4 md:mb-6">
-                  Uji pengetahuanmu tentang kesehatan! 
+                  Uji pengetahuanmu tentang kesehatan reproduksi remaja! 
                   Cocokkan istilah kesehatan dengan definisi yang tepat dan pelajari hal-hal penting tentang tubuh dan kesehatan.
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-4 md:mb-6 text-left">
                   <div>
                     <h4 className="font-bold text-green-100 mb-2 md:mb-3 text-sm md:text-base">📚 Kategori Materi:</h4>
                     <div className="space-y-1.5 md:space-y-2 text-xs md:text-sm">
-                      <div className="flex items-center"><span className="w-3 h-3 md:w-4 md:h-4 rounded-full bg-gradient-to-r from-green-400 to-emerald-500 mr-2"></span>Organ Tubuh</div>
-                      <div className="flex items-center"><span className="w-3 h-3 md:w-4 md:h-4 rounded-full bg-gradient-to-r from-green-500 to-teal-500 mr-2"></span>Nutrisi</div>
-                      <div className="flex items-center"><span className="w-3 h-3 md:w-4 md:h-4 rounded-full bg-gradient-to-r from-teal-400 to-cyan-500 mr-2"></span>Aktivitas</div>
-                      <div className="flex items-center"><span className="w-3 h-3 md:w-4 md:h-4 rounded-full bg-gradient-to-r from-emerald-400 to-green-500 mr-2"></span>Penyakit</div>
                       <div className="flex items-center"><span className="w-3 h-3 md:w-4 md:h-4 rounded-full bg-gradient-to-r from-green-600 to-emerald-600 mr-2"></span>Kesehatan Mental</div>
+                      <div className="flex items-center"><span className="w-3 h-3 md:w-4 md:h-4 rounded-full bg-gradient-to-r from-teal-400 to-cyan-500 mr-2"></span>Aktivitas Seksual</div>
+                      <div className="flex items-center"><span className="w-3 h-3 md:w-4 md:h-4 rounded-full bg-gradient-to-r from-emerald-400 to-green-500 mr-2"></span>Penyakit Menular</div>
                     </div>
                   </div>
                   <div>
