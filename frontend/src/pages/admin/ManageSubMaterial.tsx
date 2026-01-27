@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { 
   Plus, Edit, Trash2, X, Search, Loader, 
   Video, Image as ImageIcon, ArrowLeft, UploadCloud,
@@ -21,26 +21,40 @@ import CloudBackground from '../../components/layouts/CloudBackground';
 
 const BACKEND_URL = import.meta.env?.VITE_API_URL;
 
-// --- KONFIGURASI TOOLBAR & MODULES EDITOR ---
-const quillModules = {
-  toolbar: [
-    [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-    [{ 'font': [] }],
-    [{ 'size': ['small', false, 'large', 'huge'] }],
-    ['bold', 'italic', 'underline', 'strike'],
-    [{ 'script': 'sub'}, { 'script': 'super' }],
-    [{ 'color': [] }, { 'background': [] }],
-    [{ 'indent': '-1'}, { 'indent': '+1' }],
-    [{ 'align': [] }],
-    ['blockquote'],
-    ['link', 'image'],
-    ['clean']
-  ],
-  // Konfigurasi Image Resize
-  imageResize: {
-    parchment: Quill.import('parchment'),
-    modules: ['Resize', 'DisplaySize']
-  }
+// --- UTILITY: KOMPRESI GAMBAR (Mengurangi ukuran Base64) ---
+const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target?.result as string;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                // Set ukuran maksimal (misal lebar 800px) untuk menjaga proporsi
+                const MAX_WIDTH = 800;
+                const scaleSize = MAX_WIDTH / img.width;
+                const newWidth = (img.width > MAX_WIDTH) ? MAX_WIDTH : img.width;
+                const newHeight = (img.width > MAX_WIDTH) ? img.height * scaleSize : img.height;
+
+                canvas.width = newWidth;
+                canvas.height = newHeight;
+
+                const ctx = canvas.getContext('2d');
+                if (ctx) {
+                    ctx.drawImage(img, 0, 0, newWidth, newHeight);
+                    // Kompres ke JPEG dengan kualitas 0.6 (60%)
+                    // Ini akan mengurangi ukuran file secara drastis (misal 5MB -> 100KB)
+                    const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.6);
+                    resolve(compressedDataUrl);
+                } else {
+                    reject(new Error("Gagal memproses gambar"));
+                }
+            };
+            img.onerror = (err) => reject(err);
+        };
+        reader.onerror = (err) => reject(err);
+    });
 };
 
 // --- WHITELIST FORMATS (MENGHILANGKAN LIST LI) ---
@@ -50,12 +64,14 @@ const quillFormats = [
   'script', 'color', 'background',
   'indent', 'align',
   'blockquote', 'link', 'image'
-  // 'list' dan 'bullet' SENGAJA DIHAPUS agar tidak muncul tag <li>
 ];
 
 const ManageSubMaterial = () => {
   const { materialId } = useParams<{ materialId: string }>();
   const navigate = useNavigate();
+  
+  // Ref untuk ReactQuill
+  const quillRef = useRef<ReactQuill>(null);
 
   // --- States ---
   const [dataList, setDataList] = useState<SubMaterialItem[]>([]);
@@ -81,6 +97,65 @@ const ManageSubMaterial = () => {
     contentUrl: '',
     content: ''
   });
+
+  // --- CUSTOM IMAGE HANDLER FOR QUILL ---
+  // Fungsi ini akan dipanggil saat tombol gambar di toolbar diklik
+  const imageHandler = useCallback(() => {
+    const input = document.createElement('input');
+    input.setAttribute('type', 'file');
+    input.setAttribute('accept', 'image/*');
+    input.click();
+
+    input.onchange = async () => {
+      const file = input.files ? input.files[0] : null;
+      if (file) {
+        // Cek ukuran awal jika perlu, tapi kita akan kompres
+        try {
+            // Kompres gambar sebelum dimasukkan ke editor
+            const compressedUrl = await compressImage(file);
+            
+            // Masukkan ke editor
+            const quill = quillRef.current?.getEditor();
+            if (quill) {
+                const range = quill.getSelection();
+                const index = range ? range.index : 0;
+                quill.insertEmbed(index, 'image', compressedUrl);
+                // Pindahkan kursor ke setelah gambar
+                quill.setSelection(index + 1, 0); 
+            }
+        } catch (error) {
+            console.error("Gagal memproses gambar:", error);
+            setActionError("Gagal memproses gambar untuk editor.");
+        }
+      }
+    };
+  }, []);
+
+  // --- KONFIGURASI TOOLBAR & MODULES EDITOR (INSIDE COMPONENT) ---
+  const modules = useMemo(() => ({
+    toolbar: {
+      container: [
+        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+        [{ 'font': [] }],
+        [{ 'size': ['small', false, 'large', 'huge'] }],
+        ['bold', 'italic', 'underline', 'strike'],
+        [{ 'script': 'sub'}, { 'script': 'super' }],
+        [{ 'color': [] }, { 'background': [] }],
+        [{ 'indent': '-1'}, { 'indent': '+1' }],
+        [{ 'align': [] }],
+        ['blockquote'],
+        ['link', 'image'], // Tombol image akan menggunakan handler kustom kita
+        ['clean']
+      ],
+      handlers: {
+        image: imageHandler // Pasang handler custom di sini
+      }
+    },
+    imageResize: {
+      parchment: Quill.import('parchment'),
+      modules: ['Resize', 'DisplaySize']
+    }
+  }), [imageHandler]);
 
   // --- Effects ---
   useEffect(() => {
@@ -123,7 +198,7 @@ const ManageSubMaterial = () => {
     if (path.startsWith('http') || path.startsWith('data:')) return path;
     
     const cleanPath = path.startsWith('/') ? path : `/${path}`;
-    const baseUrl = BACKEND_URL.endsWith('/') ? BACKEND_URL.slice(0, -1) : BACKEND_URL;
+    const baseUrl = BACKEND_URL && BACKEND_URL.endsWith('/') ? BACKEND_URL.slice(0, -1) : BACKEND_URL;
     
     return `${baseUrl}${cleanPath}`;
   };
@@ -155,7 +230,7 @@ const ManageSubMaterial = () => {
     setIsDeleteOpen(true);
   };
 
-  // Validasi Upload File
+  // Validasi Upload File (Thumbnail Utama)
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -182,7 +257,7 @@ const ManageSubMaterial = () => {
     }
   };
 
-const handleSubmit = async () => {
+  const handleSubmit = async () => {
     if (!formData.title) {
         setActionError("Judul wajib diisi");
         return;
@@ -222,8 +297,7 @@ const handleSubmit = async () => {
       const errorMessage = err.message || "";
       
       if (errorMessage.includes("Unexpected token") || errorMessage.includes("not valid JSON")) {
-        // Ini mendeteksi jika server membalas dengan HTML error page (biasanya karena limit size)
-        setActionError("Gagal menyimpan: Ukuran data (gambar) terlalu besar untuk server. Coba kurangi jumlah/ukuran gambar di deskripsi.");
+        setActionError("Gagal menyimpan: Ukuran data terlalu besar. Gambar di deskripsi telah dikompres otomatis, namun jika masih gagal, coba kurangi jumlah gambar.");
       } else {
         setActionError(errorMessage || "Terjadi kesalahan saat menyimpan data.");
       }
@@ -516,11 +590,12 @@ const handleSubmit = async () => {
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Deskripsi Lengkap</label>
                     <div className="bg-white rounded-xl overflow-hidden border-2 border-gray-300 focus-within:ring-2 focus-within:ring-blue-500/30 focus-within:border-blue-500 transition-all shadow-sm h-[530px] flex flex-col w-full">
                       <ReactQuill
+                        ref={quillRef} // Pasang Ref disini
                         theme="snow"
                         value={formData.content}
                         onChange={(content) => setFormData({ ...formData, content: content })}
-                        modules={quillModules}
-                        formats={quillFormats} // Fix: Mencegah tag <li>
+                        modules={modules} // Gunakan modules yang ada imageHandlernya
+                        formats={quillFormats}
                         className="h-full flex flex-col w-full [&_.ql-toolbar]:shrink-0 [&_.ql-toolbar]:bg-gray-50 [&_.ql-toolbar]:border-b-2 [&_.ql-toolbar]:border-gray-200 [&_.ql-container]:flex-1 [&_.ql-container]:overflow-hidden [&_.ql-editor]:h-full [&_.ql-editor]:overflow-y-auto [&_.ql-editor]:text-base [&_.ql-editor]:leading-relaxed [&_.ql-editor]:p-4 [&_.ql-editor_img]:inline-block"
                         placeholder="Tulis deskripsi lengkap untuk sub materi ini..."
                       />
