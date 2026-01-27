@@ -274,9 +274,8 @@ export const getQuizAttempt = async () => {
 export const getQuizStudent = async (user: any) => {
     const { sub } = user
     const studentData = await getDataStudent(sub)
-
     await checkProgres(studentData.id)
-
+    const existingQuiz = await getQuiz()
     const [result] = await db.query.quiz.findMany({
         columns: {
             duration: true,
@@ -284,7 +283,7 @@ export const getQuizStudent = async (user: any) => {
             description: true,
             isActive: true,
         },
-        where: (q, { eq }) => eq(q.isDelete, false),
+        where: (q, { eq }) => eq(q.id, existingQuiz.id),
         with: {
             questions: {
                 columns: {
