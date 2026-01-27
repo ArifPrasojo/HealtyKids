@@ -11,9 +11,6 @@ import ReactQuill, { Quill } from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 import ImageResize from 'quill-image-resize-module-react';
 
-// --- FIX: REGISTRASI MODULE DENGAN PENGECEKAN ---
-// Cek apakah module sudah ada di imports Quill. Jika belum, baru register.
-// Ini mencegah warning "Overwriting modules/imageResize" saat hot-reload.
 if (!Quill.imports['modules/imageResize']) {
   Quill.register('modules/imageResize', ImageResize);
 }
@@ -185,7 +182,7 @@ const ManageSubMaterial = () => {
     }
   };
 
-  const handleSubmit = async () => {
+const handleSubmit = async () => {
     if (!formData.title) {
         setActionError("Judul wajib diisi");
         return;
@@ -221,7 +218,15 @@ const ManageSubMaterial = () => {
       fetchData();
     } catch (err: any) {
       console.error("Submit Error:", err);
-      setActionError(err.message || "Terjadi kesalahan saat menyimpan data.");
+
+      const errorMessage = err.message || "";
+      
+      if (errorMessage.includes("Unexpected token") || errorMessage.includes("not valid JSON")) {
+        // Ini mendeteksi jika server membalas dengan HTML error page (biasanya karena limit size)
+        setActionError("Gagal menyimpan: Ukuran data (gambar) terlalu besar untuk server. Coba kurangi jumlah/ukuran gambar di deskripsi.");
+      } else {
+        setActionError(errorMessage || "Terjadi kesalahan saat menyimpan data.");
+      }
     } finally {
       setIsSubmitting(false);
     }
