@@ -15,6 +15,23 @@ if (!Quill.imports['modules/imageResize']) {
   Quill.register('modules/imageResize', ImageResize);
 }
 
+const fontList = [
+  "Arial",
+  "Comic Sans MS", 
+  "Courier New",
+  "Georgia",
+  "Helvetica",
+  "Lucida Sans Unicode",
+  "Roboto",
+  "Times New Roman",
+  "Trebuchet MS",
+  "Verdana"
+];
+
+const Font = Quill.import("attributors/style/font") as any;
+Font.whitelist = fontList;
+Quill.register(Font, true);
+
 import { subMaterialService } from '../../services/api/subMaterialService';
 import type { SubMaterialItem, SubMaterialFormData } from '../../services/api/subMaterialService';
 import CloudBackground from '../../components/layouts/CloudBackground';
@@ -31,7 +48,6 @@ const compressImage = (file: File): Promise<string> => {
             img.src = event.target?.result as string;
             img.onload = () => {
                 const canvas = document.createElement('canvas');
-                // Set ukuran maksimal (misal lebar 800px) untuk menjaga proporsi
                 const MAX_WIDTH = 800;
                 const scaleSize = MAX_WIDTH / img.width;
                 const newWidth = (img.width > MAX_WIDTH) ? MAX_WIDTH : img.width;
@@ -43,8 +59,6 @@ const compressImage = (file: File): Promise<string> => {
                 const ctx = canvas.getContext('2d');
                 if (ctx) {
                     ctx.drawImage(img, 0, 0, newWidth, newHeight);
-                    // Kompres ke JPEG dengan kualitas 0.6 (60%)
-                    // Ini akan mengurangi ukuran file secara drastis (misal 5MB -> 100KB)
                     const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.6);
                     resolve(compressedDataUrl);
                 } else {
@@ -57,7 +71,7 @@ const compressImage = (file: File): Promise<string> => {
     });
 };
 
-// --- WHITELIST FORMATS (MENGHILANGKAN LIST LI) ---
+// --- WHITELIST FORMATS ---
 const quillFormats = [
   'header', 'font', 'size',
   'bold', 'italic', 'underline', 'strike',
@@ -70,7 +84,6 @@ const ManageSubMaterial = () => {
   const { materialId } = useParams<{ materialId: string }>();
   const navigate = useNavigate();
   
-  // Ref untuk ReactQuill
   const quillRef = useRef<ReactQuill>(null);
 
   // --- States ---
@@ -99,7 +112,6 @@ const ManageSubMaterial = () => {
   });
 
   // --- CUSTOM IMAGE HANDLER FOR QUILL ---
-  // Fungsi ini akan dipanggil saat tombol gambar di toolbar diklik
   const imageHandler = useCallback(() => {
     const input = document.createElement('input');
     input.setAttribute('type', 'file');
@@ -109,18 +121,13 @@ const ManageSubMaterial = () => {
     input.onchange = async () => {
       const file = input.files ? input.files[0] : null;
       if (file) {
-        // Cek ukuran awal jika perlu, tapi kita akan kompres
         try {
-            // Kompres gambar sebelum dimasukkan ke editor
             const compressedUrl = await compressImage(file);
-            
-            // Masukkan ke editor
             const quill = quillRef.current?.getEditor();
             if (quill) {
                 const range = quill.getSelection();
                 const index = range ? range.index : 0;
                 quill.insertEmbed(index, 'image', compressedUrl);
-                // Pindahkan kursor ke setelah gambar
                 quill.setSelection(index + 1, 0); 
             }
         } catch (error) {
@@ -131,12 +138,13 @@ const ManageSubMaterial = () => {
     };
   }, []);
 
-  // --- KONFIGURASI TOOLBAR & MODULES EDITOR (INSIDE COMPONENT) ---
+  // --- KONFIGURASI TOOLBAR & MODULES EDITOR ---
   const modules = useMemo(() => ({
     toolbar: {
       container: [
         [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-        [{ 'font': [] }],
+        // --- 2. UPDATE BAGIAN FONT DI TOOLBAR ---
+        [{ 'font': fontList }], 
         [{ 'size': ['small', false, 'large', 'huge'] }],
         ['bold', 'italic', 'underline', 'strike'],
         [{ 'script': 'sub'}, { 'script': 'super' }],
@@ -144,11 +152,11 @@ const ManageSubMaterial = () => {
         [{ 'indent': '-1'}, { 'indent': '+1' }],
         [{ 'align': [] }],
         ['blockquote'],
-        ['link', 'image'], // Tombol image akan menggunakan handler kustom kita
+        ['link', 'image'],
         ['clean']
       ],
       handlers: {
-        image: imageHandler // Pasang handler custom di sini
+        image: imageHandler
       }
     },
     imageResize: {
@@ -230,7 +238,6 @@ const ManageSubMaterial = () => {
     setIsDeleteOpen(true);
   };
 
-  // Validasi Upload File (Thumbnail Utama)
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -293,9 +300,7 @@ const ManageSubMaterial = () => {
       fetchData();
     } catch (err: any) {
       console.error("Submit Error:", err);
-
       const errorMessage = err.message || "";
-      
       if (errorMessage.includes("Unexpected token") || errorMessage.includes("not valid JSON")) {
         setActionError("Gagal menyimpan: Ukuran data terlalu besar. Gambar di deskripsi telah dikompres otomatis, namun jika masih gagal, coba kurangi jumlah gambar.");
       } else {
@@ -330,6 +335,48 @@ const ManageSubMaterial = () => {
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 overflow-hidden">
+      <style>{`
+          /* Kita tidak perlu mendefinisikan .ql-font-arial dll lagi karena sekarang menggunakan style inline */
+          
+          /* TAPI kita tetap perlu menata tampilan NAMA di dalam Dropdown Menu */
+          
+          /* Mengatur font label dropdown agar sesuai dengan bentuk aslinya */
+          .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Arial"]::before,
+          .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Arial"]::before { content: "Arial"; font-family: "Arial"; }
+
+          .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Comic Sans MS"]::before,
+          .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Comic Sans MS"]::before { content: "Comic Sans MS"; font-family: "Comic Sans MS"; }
+
+          .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Courier New"]::before,
+          .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Courier New"]::before { content: "Courier New"; font-family: "Courier New"; }
+
+          .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Georgia"]::before,
+          .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Georgia"]::before { content: "Georgia"; font-family: "Georgia"; }
+
+          .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Helvetica"]::before,
+          .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Helvetica"]::before { content: "Helvetica"; font-family: "Helvetica"; }
+
+          .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Lucida Sans Unicode"]::before,
+          .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Lucida Sans Unicode"]::before { content: "Lucida Sans"; font-family: "Lucida Sans Unicode"; }
+
+          .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Roboto"]::before,
+          .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Roboto"]::before { content: "Roboto"; font-family: "Roboto"; }
+
+          .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Times New Roman"]::before,
+          .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Times New Roman"]::before { content: "Times New Roman"; font-family: "Times New Roman"; }
+
+          .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Trebuchet MS"]::before,
+          .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Trebuchet MS"]::before { content: "Trebuchet MS"; font-family: "Trebuchet MS"; }
+
+          .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Verdana"]::before,
+          .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Verdana"]::before { content: "Verdana"; font-family: "Verdana"; }
+          
+          /* Mengatur lebar dropdown agar nama font panjang (Times New Roman) tidak terpotong */
+          .ql-snow .ql-picker.ql-font {
+              width: 150px !important;
+          }
+      `}</style>
+
       <CloudBackground 
         cloudImage="./src/assets/images/awanhijau.png"
         showCityBottom={true}
