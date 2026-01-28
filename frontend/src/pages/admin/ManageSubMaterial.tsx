@@ -23,12 +23,14 @@ const fontList = [
   "Helvetica",
   "Lucida Sans Unicode",
   "Roboto",
+  "Segoe UI",     
   "Times New Roman",
   "Trebuchet MS",
+  "VAG Rounded", 
   "Verdana"
 ];
 
-const Font = Quill.import("attributors/style/font") as any;
+const Font = Quill.import("attributors/style/font")as any;
 Font.whitelist = fontList;
 Quill.register(Font, true);
 
@@ -335,47 +337,53 @@ const ManageSubMaterial = () => {
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 overflow-hidden">
-      <style>{`
-          /* Kita tidak perlu mendefinisikan .ql-font-arial dll lagi karena sekarang menggunakan style inline */
-          
-          /* TAPI kita tetap perlu menata tampilan NAMA di dalam Dropdown Menu */
-          
-          /* Mengatur font label dropdown agar sesuai dengan bentuk aslinya */
-          .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Arial"]::before,
-          .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Arial"]::before { content: "Arial"; font-family: "Arial"; }
+    <style>{`
+        /* Mengatur font label dropdown agar sesuai dengan bentuk aslinya */
+        .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Arial"]::before,
+        .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Arial"]::before { content: "Arial"; font-family: "Arial"; }
 
-          .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Comic Sans MS"]::before,
-          .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Comic Sans MS"]::before { content: "Comic Sans MS"; font-family: "Comic Sans MS"; }
+        .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Comic Sans MS"]::before,
+        .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Comic Sans MS"]::before { content: "Comic Sans MS"; font-family: "Comic Sans MS"; }
 
-          .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Courier New"]::before,
-          .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Courier New"]::before { content: "Courier New"; font-family: "Courier New"; }
+        .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Courier New"]::before,
+        .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Courier New"]::before { content: "Courier New"; font-family: "Courier New"; }
 
-          .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Georgia"]::before,
-          .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Georgia"]::before { content: "Georgia"; font-family: "Georgia"; }
+        .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Georgia"]::before,
+        .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Georgia"]::before { content: "Georgia"; font-family: "Georgia"; }
 
-          .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Helvetica"]::before,
-          .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Helvetica"]::before { content: "Helvetica"; font-family: "Helvetica"; }
+        .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Helvetica"]::before,
+        .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Helvetica"]::before { content: "Helvetica"; font-family: "Helvetica"; }
 
-          .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Lucida Sans Unicode"]::before,
-          .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Lucida Sans Unicode"]::before { content: "Lucida Sans"; font-family: "Lucida Sans Unicode"; }
+        .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Lucida Sans Unicode"]::before,
+        .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Lucida Sans Unicode"]::before { content: "Lucida Sans"; font-family: "Lucida Sans Unicode"; }
 
-          .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Roboto"]::before,
-          .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Roboto"]::before { content: "Roboto"; font-family: "Roboto"; }
+        .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Roboto"]::before,
+        .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Roboto"]::before { content: "Roboto"; font-family: "Roboto"; }
 
-          .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Times New Roman"]::before,
-          .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Times New Roman"]::before { content: "Times New Roman"; font-family: "Times New Roman"; }
+        /* --- TAMBAHAN BARU: Segoe UI --- */
+        .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Segoe UI"]::before,
+        .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Segoe UI"]::before { content: "Segoe UI"; font-family: "Segoe UI", sans-serif; }
 
-          .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Trebuchet MS"]::before,
-          .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Trebuchet MS"]::before { content: "Trebuchet MS"; font-family: "Trebuchet MS"; }
+        .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Times New Roman"]::before,
+        .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Times New Roman"]::before { content: "Times New Roman"; font-family: "Times New Roman"; }
 
-          .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Verdana"]::before,
-          .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Verdana"]::before { content: "Verdana"; font-family: "Verdana"; }
-          
-          /* Mengatur lebar dropdown agar nama font panjang (Times New Roman) tidak terpotong */
-          .ql-snow .ql-picker.ql-font {
-              width: 150px !important;
-          }
-      `}</style>
+        .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Trebuchet MS"]::before,
+        .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Trebuchet MS"]::before { content: "Trebuchet MS"; font-family: "Trebuchet MS"; }
+
+        /* --- TAMBAHAN BARU: VAG Rounded --- */
+        /* Catatan: VAG Rounded bukan font sistem standar. Pastikan font ini terinstall di komputer */
+        /* atau gunakan webfont alternatif seperti 'Varela Round' jika VAG Rounded tidak muncul */
+        .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="VAG Rounded"]::before,
+        .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="VAG Rounded"]::before { content: "VAG Rounded"; font-family: "VAG Rounded", "VAGRounded BT", sans-serif; }
+
+        .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Verdana"]::before,
+        .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Verdana"]::before { content: "Verdana"; font-family: "Verdana"; }
+        
+        /* Mengatur lebar dropdown agar nama font panjang tidak terpotong */
+        .ql-snow .ql-picker.ql-font {
+            width: 150px !important;
+        }
+    `}</style>
 
       <CloudBackground 
         cloudImage="./src/assets/images/awanhijau.png"
