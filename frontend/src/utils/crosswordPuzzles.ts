@@ -38,7 +38,7 @@ const puzzles: PuzzleSet[] = [
       },
       {
         id: 2,
-        number: 3,
+        number: 2,
         clue: 'Kondisi ketika remaja sulit mengontrol dorongan karena dilakukan berulang-ulang disebut…',
         answer: 'KECANDUAN',
         direction: 'down',
@@ -47,7 +47,7 @@ const puzzles: PuzzleSet[] = [
       },
       {
         id: 3,
-        number: 5,
+        number: 3,
         clue: 'Perilaku seksual dengan sentuhan area sensitif secara intens disebut…',
         answer: 'PETTING',
         direction: 'down',
@@ -56,7 +56,7 @@ const puzzles: PuzzleSet[] = [
       },
       {
         id: 4,
-        number: 7,
+        number: 4,
         clue: 'Masa dimana remaja mengalami perubahan hormon yang signifikan disebut masa…',
         answer: 'PUBERTAS',
         direction: 'across',
@@ -67,7 +67,7 @@ const puzzles: PuzzleSet[] = [
       // --- MENURUN (DOWN) - 3 soal ---
       {
         id: 5,
-        number: 2,
+        number: 5,
         clue: 'Perubahan suara menjadi lebih berat pada remaja laki-laki ditandai dengan tumbuhnya…',
         answer: 'JAKUN',
         direction: 'down',
@@ -76,7 +76,7 @@ const puzzles: PuzzleSet[] = [
       },
       {
         id: 6,
-        number: 4,
+        number: 6,
         clue: 'Hubungan seksual melalui anus disebut seks…',
         answer: 'ANAL',
         direction: 'across',
@@ -85,7 +85,7 @@ const puzzles: PuzzleSet[] = [
       },
       {
         id: 7,
-        number: 6,
+        number: 7,
         clue: 'Media yang sering menampilkan konten seksual berlebihan adalah…',
         answer: 'INTERNET',
         direction: 'across',
@@ -186,42 +186,40 @@ const puzzles: PuzzleSet[] = [
         startCol: 5
       },
       {
+        id: 3,
+        number: 3,
+        clue: 'Masa peralihan dari anak menuju dewasa siebut masa…',
+        answer: 'REMAJA',
+        direction: 'across',
+        startRow: 6,
+        startCol: 3,
+      },
+      {
         id: 4,
         number: 4,
-        clue: 'Perilaku seksual dengan fokus pada area leher hingga dada disebut…',
-        answer: 'NECKING',
+        clue: 'Virus yang menyerang sistem kekebalan tubuh manusia disebut…',
+        answer: 'HIV',
         direction: 'across',
-        startRow: 8,
-        startCol: 2
+        startRow: 4,
+        startCol: 5
       },
-
-      // --- MENURUN (DOWN) - 3 soal ---
       {
         id: 5,
         number: 5,
-        clue: 'Perubahan suara pada remaja laki-laki karena tumbuhnya…',
-        answer: 'JAKUN',
+        clue: 'Hubungan seksual melalui anus disebut…',
+        answer: 'ANAL',
         direction: 'down',
-        startRow: 4,
-        startCol: 2
+        startRow: 6,
+        startCol: 8
       },
       {
         id: 6,
         number: 6,
-        clue: 'Gangguan kecemasan berlebihan yang dialami remaja disebut…',
-        answer: 'ANXIETY',
+        clue: 'Upaya pemberitahuan informasi yang benar tentang kesehatan reproduksi disebut pendidikan…',
+        answer: 'SEKSUAL',
         direction: 'across',
-        startRow: 5,
-        startCol: 2
-      },
-      {
-        id: 7,
-        number: 7,
-        clue: 'Penyakit IMS yang dikenal sebagai kencing nanah adalah…',
-        answer: 'GONORE',
-        direction: 'down',
-        startRow: 6,
-        startCol: 7
+        startRow: 9,
+        startCol: 1       
       }
     ]
   }
