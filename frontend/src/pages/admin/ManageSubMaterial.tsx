@@ -266,7 +266,7 @@ const ManageSubMaterial = () => {
     }
   };
 
-  const handleSubmit = async () => {
+const handleSubmit = async () => {
     if (!formData.title) {
         setActionError("Judul wajib diisi");
         return;
@@ -276,10 +276,16 @@ const ManageSubMaterial = () => {
       setIsSubmitting(true);
       setActionError(null);
 
+      const cleanContent = formData.content
+          ? formData.content
+              .replace(/&nbsp;/g, ' ')  // Ubah Non-breaking space jadi spasi biasa
+              .replace(/word-break:\s*break-all;?/g, '') // Hapus style pemecah kata
+          : '';
+
       const payload: Partial<SubMaterialFormData> = {
         title: formData.title,
         contentCategory: formData.contentCategory,
-        content: formData.content
+        content: cleanContent // Gunakan variable yang sudah dibersihkan
       };
 
       if (editingItem) {
