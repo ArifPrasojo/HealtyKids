@@ -265,8 +265,7 @@ const Materi: React.FC = () => {
                             </div>
                         </div>
                       )}
-
-                      {/* TEXT CONTENT - QUILL RENDERER */}
+                      
                       <div className="ql-snow">
                         <div
                           className="ql-editor !p-0 !overflow-visible prose prose-lg prose-slate max-w-none 
@@ -274,32 +273,16 @@ const Materi: React.FC = () => {
                           prose-p:text-gray-700 prose-p:leading-loose
                           prose-li:text-gray-700
                           prose-strong:text-gray-900 prose-strong:font-bold
-
-                          /* FIX: Agar ENTER (Paragraf kosong) tetap memiliki tinggi */
                           [&_p:empty]:min-h-[1em] [&_p:empty]:before:content-['\00a0']
-                          
-                          /* Hapus prose-img:mx-auto agar tidak memaksa semua gambar ke tengah */
                           prose-img:rounded-xl prose-img:shadow-md prose-img:max-h-[500px]
-                          
-                          /* Support Video & Iframe */
                           [&_.ql-video]:w-full [&_.ql-video]:aspect-video [&_.ql-video]:rounded-xl
                           [&_iframe]:w-full [&_iframe]:aspect-video [&_iframe]:rounded-xl
-                          
-                          /* Support Alignment Text & Paragraph (P) */
                           [&_.ql-align-center]:text-center 
                           [&_.ql-align-right]:text-right 
                           [&_.ql-align-justify]:text-justify
-
-                          /* PERBAIKAN: Support Image Alignment dari Quill/Resize Module */
                           [&_img]:inline-block [&_img]:align-middle
-                          
-                          /* Jika gambar dibungkus <p class='ql-align-center'> (Tombol Align Toolbar) */
                           [&_.ql-align-center>img]:!mx-auto [&_.ql-align-center>img]:!block
-                          
-                          /* Jika gambar punya inline style 'margin: auto' (Resize Module Handle) */
                           [&_img[style*='margin:_auto']]:!mx-auto [&_img[style*='margin:_auto']]:!block
-                          
-                          /* Jika gambar punya float left/right */
                           [&_img[style*='float:_left']]:mr-6 [&_img[style*='float:_left']]:mb-2
                           [&_img[style*='float:_right']]:ml-6 [&_img[style*='float:_right']]:mb-2"
 
