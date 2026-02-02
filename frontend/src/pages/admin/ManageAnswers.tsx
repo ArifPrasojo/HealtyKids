@@ -107,7 +107,6 @@ const ManageAnswers: React.FC = () => {
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
             <div>
               <div className="flex items-center gap-3 mb-1">
-                <span className="bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded">Q-ID: {questionId}</span>
                 <h1 className="text-3xl font-bold text-gray-900">Kelola Jawaban</h1>
               </div>
               <p className="text-gray-600 text-base">Tentukan pilihan jawaban dan tandai jawaban yang benar</p>
@@ -182,7 +181,6 @@ const ManageAnswers: React.FC = () => {
                           <div className="bg-gray-100 text-gray-500 p-2 rounded-lg group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors">
                              <Hash size={20} />
                           </div>
-                          <span className="text-[10px] font-bold text-gray-400 uppercase">ID: {ans.id}</span>
                         </div>
 
                         {/* Input Answer */}
@@ -218,10 +216,6 @@ const ManageAnswers: React.FC = () => {
               </div>
             )}
           </div>
-
-          <p className="text-center mt-10 text-gray-500 text-sm italic font-medium">
-            Sistem Bank Soal &copy; 2026 Healthy-Kids Admin
-          </p>
         </div>
       </div>
     </div>
